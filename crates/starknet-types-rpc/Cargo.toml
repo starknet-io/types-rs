@@ -1,0 +1,13 @@
+[package]
+name = "starknet-types-rpc"
+version = "0.0.1"
+edition = "2021"
+license = "MIT"
+homepage = "https://github.com/starknet-io/types-rs"
+repository = "https://github.com/starknet-io/types-rs"
+categories = ["types", "math", "crypto"]
+keywords = ["stark", "zkp", "cairo"]
+description = "Starknet RPC types."
+readme = "README.md"
+
+[dependencies]

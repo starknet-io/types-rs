@@ -1,0 +1,11 @@
+[workspace]
+members = [
+	"crates/stark-felt",
+    "crates/starknet-types-core",
+    "crates/starknet-types-rpc",
+]
+
+[workspace.package]
+authors = ["Shahar Papini <@spapinistarkware>", "Abdelhamid Bakhta <@abdelhamidbakhta>", "Dan Brownstein <@dan-starkware>", "Federico Carrone <@unbalancedparentheses>", "Jonathan Lei <@xJonathanLEI>"]
+edition = "2021"
+repository = "https://github.com/starknet-io/types-rs"
