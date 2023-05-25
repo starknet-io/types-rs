@@ -1,6 +1,6 @@
 [package]
 name = "stark-felt"
-version = "0.0.1"
+version = "0.0.2"
 edition = "2021"
 license = "MIT"
 homepage = "https://github.com/starknet-io/types-rs"
