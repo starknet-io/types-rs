@@ -11,3 +11,5 @@ description = "Field element type for Cairo."
 readme = "README.md"
 
 [dependencies]
+bitvec = { version = "1.0.1", default-features = false }
+serde = { version = "1.0.163", default-features = false }
