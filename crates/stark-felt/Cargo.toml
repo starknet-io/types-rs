@@ -11,3 +11,10 @@ description = "Field element type for Cairo."
 readme = "README.md"
 
 [dependencies]
+bitvec = { version = "1.0.1", default-features = false }
+serde = { version = "1.0.163", optional = true, default-features = false }
+
+[features]
+default = ["std", "serde"]
+std = []
+alloc = ["serde?/alloc"]
