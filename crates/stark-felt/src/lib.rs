@@ -32,11 +32,6 @@ impl Felt {
     /// Maximum value of [Felt]. Equals to 2^251 + 17 * 2^192.
     pub const MAX: Self = Self {};
 
-    /// Creates a new [Felt] from its Montgomery representation.
-    pub const fn from_mont(_mont_repr: &[u64; 4]) -> Self {
-        todo!()
-    }
-
     /// Creates a new [Felt] from its big-endian representation in a [u8] slice.
     pub const fn from_bytes_be(_bytes: &[u8]) -> Result<Self, FromBytesError> {
         todo!()
@@ -44,11 +39,6 @@ impl Felt {
 
     /// Creates a new [Felt] from its little-endian representation in a [u8] slice.
     pub const fn from_bytes_le(_bytes: &[u8]) -> Result<Self, FromBytesError> {
-        todo!()
-    }
-
-    /// Converts to Montgomery representation.
-    pub const fn to_mont(&self) -> [u64; 4] {
         todo!()
     }
 
@@ -92,7 +82,7 @@ impl Felt {
         todo!()
     }
 
-    /// Finds the square root.
+    /// Finds the square root. There may be 2 roots for each square, and the lower one is returned.
     pub const fn sqrt(&self) -> Option<Self> {
         todo!()
     }
@@ -103,7 +93,7 @@ impl Felt {
     }
 
     /// Raises `self` to the power of `exponent`.
-    pub const fn pow(&self, _exponent: &Self) -> Self {
+    pub const fn pow(&self, _exponent: u128) -> Self {
         todo!()
     }
 
@@ -335,138 +325,6 @@ mod arithmetic {
         type Output = Felt;
 
         fn neg(self) -> Self::Output {
-            todo!()
-        }
-    }
-
-    impl ops::BitAndAssign<Felt> for Felt {
-        fn bitand_assign(&mut self, _rhs: Felt) {
-            todo!()
-        }
-    }
-
-    impl ops::BitAndAssign<&Felt> for Felt {
-        fn bitand_assign(&mut self, _rhs: &Felt) {
-            todo!()
-        }
-    }
-
-    impl ops::BitAnd<Felt> for Felt {
-        type Output = Felt;
-
-        fn bitand(self, _rhs: Felt) -> Self::Output {
-            todo!()
-        }
-    }
-
-    impl ops::BitAnd<&Felt> for Felt {
-        type Output = Felt;
-
-        fn bitand(self, _rhs: &Felt) -> Self::Output {
-            todo!()
-        }
-    }
-
-    impl ops::BitAnd<Felt> for &Felt {
-        type Output = Felt;
-
-        fn bitand(self, _rhs: Felt) -> Self::Output {
-            todo!()
-        }
-    }
-
-    impl ops::BitAnd<&Felt> for &Felt {
-        type Output = Felt;
-
-        fn bitand(self, _rhs: &Felt) -> Self::Output {
-            todo!()
-        }
-    }
-
-    impl ops::BitOrAssign<Felt> for Felt {
-        fn bitor_assign(&mut self, _rhs: Felt) {
-            todo!()
-        }
-    }
-
-    impl ops::BitOrAssign<&Felt> for Felt {
-        fn bitor_assign(&mut self, _rhs: &Felt) {
-            todo!()
-        }
-    }
-
-    impl ops::BitOr<Felt> for Felt {
-        type Output = Felt;
-
-        fn bitor(self, _rhs: Felt) -> Self::Output {
-            todo!()
-        }
-    }
-
-    impl ops::BitOr<&Felt> for Felt {
-        type Output = Felt;
-
-        fn bitor(self, _rhs: &Felt) -> Self::Output {
-            todo!()
-        }
-    }
-
-    impl ops::BitOr<Felt> for &Felt {
-        type Output = Felt;
-
-        fn bitor(self, _rhs: Felt) -> Self::Output {
-            todo!()
-        }
-    }
-
-    impl ops::BitOr<&Felt> for &Felt {
-        type Output = Felt;
-
-        fn bitor(self, _rhs: &Felt) -> Self::Output {
-            todo!()
-        }
-    }
-
-    impl ops::BitXorAssign<Felt> for Felt {
-        fn bitxor_assign(&mut self, _rhs: Felt) {
-            todo!()
-        }
-    }
-
-    impl ops::BitXorAssign<&Felt> for Felt {
-        fn bitxor_assign(&mut self, _rhs: &Felt) {
-            todo!()
-        }
-    }
-
-    impl ops::BitXor<Felt> for Felt {
-        type Output = Felt;
-
-        fn bitxor(self, _rhs: Felt) -> Self::Output {
-            todo!()
-        }
-    }
-
-    impl ops::BitXor<&Felt> for Felt {
-        type Output = Felt;
-
-        fn bitxor(self, _rhs: &Felt) -> Self::Output {
-            todo!()
-        }
-    }
-
-    impl ops::BitXor<Felt> for &Felt {
-        type Output = Felt;
-
-        fn bitxor(self, _rhs: Felt) -> Self::Output {
-            todo!()
-        }
-    }
-
-    impl ops::BitXor<&Felt> for &Felt {
-        type Output = Felt;
-
-        fn bitxor(self, _rhs: &Felt) -> Self::Output {
             todo!()
         }
     }
