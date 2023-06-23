@@ -31,3 +31,22 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
+
+  no-std-build:
+    name: Test no_std support
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install latest nightly
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+          components: rustfmt, clippy
+          target: thumbv6m-none-eabi
+
+      - name: Build stark-felt
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --package stark-felt --target thumbv6m-none-eabi --no-default-features

@@ -1,4 +1,12 @@
+#![cfg_attr(not(feature = "std"), no_std)]
+
 use bitvec::array::BitArray;
+
+#[cfg(target_pointer_width = "64")]
+pub type BitArrayStore = [u64; 4];
+
+#[cfg(not(target_pointer_width = "64"))]
+pub type BitArrayStore = [u32; 8];
 
 /// Definition of the Field Element type.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -53,12 +61,12 @@ impl Felt {
     }
 
     /// Converts to big-endian bit representation.
-    pub const fn to_bits_be(&self) -> BitArray<[u64; 4]> {
+    pub const fn to_bits_be(&self) -> BitArray<BitArrayStore> {
         todo!()
     }
 
     /// Converts to little-endian bit representation.
-    pub const fn to_bits_le(&self) -> BitArray<[u64; 4]> {
+    pub const fn to_bits_le(&self) -> BitArray<BitArrayStore> {
         todo!()
     }
 
@@ -342,7 +350,7 @@ mod arithmetic {
     }
 }
 
-// TODO: gate this behind a `serde` feature
+#[cfg(feature = "serde")]
 mod serde {
     use ::serde::{Deserialize, Serialize};
 
@@ -399,7 +407,7 @@ mod errors {
 
     use super::*;
 
-    // TODO: gate this behind a `std` feature
+    #[cfg(feature = "std")]
     impl std::error::Error for FeltIsZeroError {}
 
     impl fmt::Display for FeltIsZeroError {
@@ -408,7 +416,7 @@ mod errors {
         }
     }
 
-    // TODO: gate this behind a `std` feature
+    #[cfg(feature = "std")]
     impl std::error::Error for FromStrError {}
 
     impl fmt::Display for FromStrError {
@@ -417,7 +425,7 @@ mod errors {
         }
     }
 
-    // TODO: gate this behind a `std` feature
+    #[cfg(feature = "std")]
     impl std::error::Error for FromBytesError {}
 
     impl fmt::Display for FromBytesError {
