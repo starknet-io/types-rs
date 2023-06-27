@@ -8,9 +8,16 @@ pub type BitArrayStore = [u64; 4];
 #[cfg(not(target_pointer_width = "64"))]
 pub type BitArrayStore = [u32; 8];
 
+use lambdaworks_math::{
+    field::{
+        element::FieldElement, fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
+    },
+    unsigned_integer::element::UnsignedInteger,
+};
+
 /// Definition of the Field Element type.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub struct Felt {}
+pub struct Felt(FieldElement<Stark252PrimeField>);
 
 /// A non-zero [Felt].
 pub struct NonZeroFelt {}
