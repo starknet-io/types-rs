@@ -12,7 +12,7 @@ use lambdaworks_math::{
     field::{
         element::FieldElement, fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
     },
-    unsigned_integer::element::UnsignedInteger,
+    traits::ByteConversion,
 };
 
 /// Definition of the Field Element type.
@@ -46,39 +46,47 @@ pub struct FromStrError;
 pub struct FromBytesError;
 
 impl Felt {
-    /// [Felt] constant that's equal to 0.
-    pub const ZERO: Self = Self {};
+    // TODO: check if its ok to use lazy_static here
+    // /// [Felt] constant that's equal to 0.
+    // pub const ZERO: Self = Self(FieldElement::<Stark252PrimeField>::zero());
 
-    /// [Felt] constant that's equal to 1.
-    pub const ONE: Self = Self {};
+    // /// [Felt] constant that's equal to 1.
+    // pub const ONE: Self = Self(FieldElement::<Stark252PrimeField>::one());
 
-    /// [Felt] constant that's equal to 2.
-    pub const TWO: Self = Self {};
+    // /// [Felt] constant that's equal to 2.
+    // pub const TWO: Self = Self(FieldElement::<Stark252PrimeField>::from(2));
 
-    /// [Felt] constant that's equal to 3.
-    pub const THREE: Self = Self {};
+    // /// [Felt] constant that's equal to 3.
+    // pub const THREE: Self = Self(FieldElement::<Stark252PrimeField>::from(3));
 
-    /// Maximum value of [Felt]. Equals to 2^251 + 17 * 2^192.
-    pub const MAX: Self = Self {};
+    // /// Maximum value of [Felt]. Equals to 2^251 + 17 * 2^192.
+    // pub const MAX: Self = Self(FieldElement::<Stark252PrimeField>::zero() - FieldElement::<Stark252PrimeField>::one());
 
+    // TODO: const was removed from all methods, check if this is ok/ if we can make these const in lambdaworks
     /// Creates a new [Felt] from its big-endian representation in a [u8] slice.
-    pub const fn from_bytes_be(_bytes: &[u8]) -> Result<Self, FromBytesError> {
-        todo!()
+    pub fn from_bytes_be(bytes: &[u8]) -> Result<Self, FromBytesError> {
+        FieldElement::from_bytes_be(bytes)
+            .map(|x| Self(x))
+            .map_err(|_| FromBytesError)
     }
 
     /// Creates a new [Felt] from its little-endian representation in a [u8] slice.
-    pub const fn from_bytes_le(_bytes: &[u8]) -> Result<Self, FromBytesError> {
-        todo!()
+    pub fn from_bytes_le(bytes: &[u8]) -> Result<Self, FromBytesError> {
+        FieldElement::from_bytes_le(bytes)
+            .map(|x| Self(x))
+            .map_err(|_| FromBytesError)
     }
 
     /// Converts to big-endian byte representation in a [u8] array.
-    pub const fn to_bytes_be(&self) -> [u8; 32] {
+    pub fn to_bytes_be(&self) -> [u8; 32] {
+        // TODO: implement a no-std version in lambdaworks crate (like to_bytes_le)
+        //self.0.to_bytes_be()
         todo!()
     }
 
     /// Converts to little-endian byte representation in a [u8] array.
-    pub const fn to_bytes_le(&self) -> [u8; 32] {
-        todo!()
+    pub fn to_bytes_le(&self) -> [u8; 32] {
+        self.0.to_bytes_le()
     }
 
     /// Converts to big-endian bit representation.
@@ -92,8 +100,8 @@ impl Felt {
     }
 
     /// Checks if `self` is equal to [Felt::Zero].
-    pub const fn is_zero(&self) -> bool {
-        todo!()
+    pub fn is_zero(&self) -> bool {
+        self.0 == FieldElement::from_raw(&Stark252PrimeField::ZERO)
     }
 
     /// Finite field division.
