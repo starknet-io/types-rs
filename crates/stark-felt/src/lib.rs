@@ -148,6 +148,7 @@ impl Felt {
         Self(self.0.mul(rhs.0))
     }
 
+    // Question: Why is this method needed?
     /// Modular multiplicative inverse.
     pub const fn inverse_mod(&self, _p: &Self) -> Self {
         todo!()
