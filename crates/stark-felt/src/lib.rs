@@ -80,9 +80,7 @@ impl Felt {
 
     /// Converts to big-endian byte representation in a [u8] array.
     pub fn to_bytes_be(&self) -> [u8; 32] {
-        // TODO: implement a no-std version in lambdaworks crate (like to_bytes_le)
-        //self.0.to_bytes_be()
-        todo!()
+        self.0.to_bytes_be()
     }
 
     /// Converts to little-endian byte representation in a [u8] array.
@@ -436,21 +434,21 @@ mod formatting {
     /// Represents [Felt] in decimal by default.
     impl fmt::Display for Felt {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            self.0.fmt(f)
+            fmt::Display::fmt(&self, f)
         }
     }
 
     /// Represents [Felt] in lowercase hexadecimal format.
     impl fmt::LowerHex for Felt {
-        fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            todo!()
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            fmt::LowerHex::fmt(&self, f)
         }
     }
 
     /// Represents [Felt] in uppercase hexadecimal format.
     impl fmt::UpperHex for Felt {
-        fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            todo!()
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            fmt::UpperHex::fmt(&self, f)
         }
     }
 }
@@ -464,8 +462,8 @@ mod errors {
     impl std::error::Error for FeltIsZeroError {}
 
     impl fmt::Display for FeltIsZeroError {
-        fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            todo!()
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            "Tried to create NonZeroFelt from 0".fmt(f)
         }
     }
 
