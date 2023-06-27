@@ -34,7 +34,7 @@ impl Ord for Felt {
 }
 
 /// A non-zero [Felt].
-pub struct NonZeroFelt {}
+pub struct NonZeroFelt(FieldElement<Stark252PrimeField>);
 
 #[derive(Debug)]
 pub struct FeltIsZeroError;
@@ -104,29 +104,32 @@ impl Felt {
         self.0 == FieldElement::from_raw(&Stark252PrimeField::ZERO)
     }
 
+    // Question: What is the difference between field_div & floor_div?
     /// Finite field division.
-    pub const fn field_div(&self, _rhs: &NonZeroFelt) -> Self {
-        todo!()
+    pub fn field_div(&self, rhs: &NonZeroFelt) -> Self {
+        Self(&self.0 / &rhs.0)
     }
 
     /// Floor division.
-    pub const fn floor_div(&self, _rhs: &NonZeroFelt) -> Self {
-        todo!()
+    pub fn floor_div(&self, rhs: &NonZeroFelt) -> Self {
+        Self(&self.0 / &rhs.0)
     }
 
     /// Multiplicative inverse.
-    pub const fn inverse(&self) -> Option<Self> {
-        todo!()
+    pub fn inverse(&self) -> Option<Self> {
+        Some(Self(self.0.inv()))
     }
 
     /// Finds the square root. There may be 2 roots for each square, and the lower one is returned.
-    pub const fn sqrt(&self) -> Option<Self> {
-        todo!()
+    pub fn sqrt(&self) -> Option<Self> {
+        let (root_1, root_2) = self.0.sqrt()?;
+        let value = FieldElement::new(root_1.representative().min(root_2.representative()));
+        Some(Self(value))
     }
 
     /// Raises `self` to the power of 2.
-    pub const fn square(&self) -> Self {
-        todo!()
+    pub fn square(&self) -> Self {
+        Self(self.0.square())
     }
 
     /// Raises `self` to the power of `exponent`.
