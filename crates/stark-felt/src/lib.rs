@@ -372,7 +372,7 @@ mod arithmetic {
         type Output = Felt;
 
         fn neg(self) -> Self::Output {
-            todo!()
+            Self(self.0.neg())
         }
     }
 
@@ -380,35 +380,41 @@ mod arithmetic {
         type Output = Felt;
 
         fn neg(self) -> Self::Output {
-            todo!()
+            Felt(self.0.neg())
         }
     }
 
+    // Are these two impls needed?
+
     impl iter::Sum for Felt {
-        fn sum<I: Iterator<Item = Self>>(_iter: I) -> Self {
-            todo!()
+        fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+            iter.sum()
         }
     }
 
     impl<'a> iter::Sum<&'a Felt> for Felt {
-        fn sum<I: Iterator<Item = &'a Felt>>(_iter: I) -> Self {
-            todo!()
+        fn sum<I: Iterator<Item = &'a Felt>>(iter: I) -> Self {
+            iter.sum()
         }
     }
 }
 
+// Serialization & Deserialization differs between projects and objectives
+// For example: In cairo 0 programs, instructions are Felts in hexadecimal format, but constants are Felts in decimal value
+// It doesn't make much sense to have a universal serialization
 #[cfg(feature = "serde")]
 mod serde {
     use ::serde::{Deserialize, Serialize};
 
     use super::*;
 
+    // Serialization to decimal value
     impl Serialize for Felt {
-        fn serialize<S>(&self, _serializer: S) -> Result<S::Ok, S::Error>
+        fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where
             S: ::serde::Serializer,
         {
-            todo!()
+            serializer.serialize_str(&self.to_string())
         }
     }
 
@@ -429,8 +435,8 @@ mod formatting {
 
     /// Represents [Felt] in decimal by default.
     impl fmt::Display for Felt {
-        fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            todo!()
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            self.0.fmt(f)
         }
     }
 
