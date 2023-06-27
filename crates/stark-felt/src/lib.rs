@@ -459,8 +459,8 @@ mod errors {
     impl std::error::Error for FromStrError {}
 
     impl fmt::Display for FromStrError {
-        fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            todo!()
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            "Failed to create Felt from string".fmt(f)
         }
     }
 
@@ -468,8 +468,8 @@ mod errors {
     impl std::error::Error for FromBytesError {}
 
     impl fmt::Display for FromBytesError {
-        fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            todo!()
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            "Failed to create Felt from bytes".fmt(f)
         }
     }
 }
