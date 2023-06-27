@@ -267,15 +267,15 @@ mod arithmetic {
 
     /// Field subtraction. Never overflows/underflows.
     impl ops::SubAssign<Felt> for Felt {
-        fn sub_assign(&mut self, _rhs: Felt) {
-            todo!()
+        fn sub_assign(&mut self, rhs: Felt) {
+            self.0 = self.0 - rhs.0
         }
     }
 
     /// Field subtraction. Never overflows/underflows.
     impl ops::SubAssign<&Felt> for Felt {
-        fn sub_assign(&mut self, _rhs: &Felt) {
-            todo!()
+        fn sub_assign(&mut self, rhs: &Felt) {
+            self.0 = self.0 - rhs.0
         }
     }
 
@@ -283,8 +283,8 @@ mod arithmetic {
     impl ops::Sub<Felt> for Felt {
         type Output = Felt;
 
-        fn sub(self, _rhs: Felt) -> Self::Output {
-            todo!()
+        fn sub(self, rhs: Felt) -> Self::Output {
+            Self(self.0 - rhs.0)
         }
     }
 
@@ -292,8 +292,8 @@ mod arithmetic {
     impl ops::Sub<&Felt> for Felt {
         type Output = Felt;
 
-        fn sub(self, _rhs: &Felt) -> Self::Output {
-            todo!()
+        fn sub(self, rhs: &Felt) -> Self::Output {
+            Self(self.0 - rhs.0)
         }
     }
 
@@ -301,8 +301,8 @@ mod arithmetic {
     impl ops::Sub<Felt> for &Felt {
         type Output = Felt;
 
-        fn sub(self, _rhs: Felt) -> Self::Output {
-            todo!()
+        fn sub(self, rhs: Felt) -> Self::Output {
+            Felt(self.0 - rhs.0)
         }
     }
 
@@ -310,22 +310,22 @@ mod arithmetic {
     impl ops::Sub<&Felt> for &Felt {
         type Output = Felt;
 
-        fn sub(self, _rhs: &Felt) -> Self::Output {
-            todo!()
+        fn sub(self, rhs: &Felt) -> Self::Output {
+            Felt(self.0 - rhs.0)
         }
     }
 
     /// Field multiplication. Never overflows/underflows.
     impl ops::MulAssign<Felt> for Felt {
-        fn mul_assign(&mut self, _rhs: Felt) {
-            todo!()
+        fn mul_assign(&mut self, rhs: Felt) {
+            self.0 = self.0 * rhs.0
         }
     }
 
     /// Field multiplication. Never overflows/underflows.
     impl ops::MulAssign<&Felt> for Felt {
-        fn mul_assign(&mut self, _rhs: &Felt) {
-            todo!()
+        fn mul_assign(&mut self, rhs: &Felt) {
+            self.0 = self.0 * rhs.0
         }
     }
 
@@ -333,8 +333,8 @@ mod arithmetic {
     impl ops::Mul<Felt> for Felt {
         type Output = Felt;
 
-        fn mul(self, _rhs: Felt) -> Self::Output {
-            todo!()
+        fn mul(self, rhs: Felt) -> Self::Output {
+            Self(self.0 * rhs.0)
         }
     }
 
@@ -342,8 +342,8 @@ mod arithmetic {
     impl ops::Mul<&Felt> for Felt {
         type Output = Felt;
 
-        fn mul(self, _rhs: &Felt) -> Self::Output {
-            todo!()
+        fn mul(self, rhs: &Felt) -> Self::Output {
+            Self(self.0 * rhs.0)
         }
     }
 
@@ -351,8 +351,8 @@ mod arithmetic {
     impl ops::Mul<Felt> for &Felt {
         type Output = Felt;
 
-        fn mul(self, _rhs: Felt) -> Self::Output {
-            todo!()
+        fn mul(self, rhs: Felt) -> Self::Output {
+            Felt(self.0 * rhs.0)
         }
     }
 
@@ -360,8 +360,8 @@ mod arithmetic {
     impl ops::Mul<&Felt> for &Felt {
         type Output = Felt;
 
-        fn mul(self, _rhs: &Felt) -> Self::Output {
-            todo!()
+        fn mul(self, rhs: &Felt) -> Self::Output {
+            Felt(self.0 * rhs.0)
         }
     }
 
