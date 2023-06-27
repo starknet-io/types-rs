@@ -158,47 +158,55 @@ impl Felt {
 /// Defaults to [Felt::ZERO].
 impl Default for Felt {
     fn default() -> Self {
-        todo!()
+        Self(FieldElement::<Stark252PrimeField>::zero())
     }
 }
 
 impl AsRef<Felt> for Felt {
     fn as_ref(&self) -> &Felt {
-        todo!()
+        &self
     }
 }
 
 impl From<NonZeroFelt> for Felt {
-    fn from(_value: NonZeroFelt) -> Self {
-        todo!()
+    fn from(value: NonZeroFelt) -> Self {
+        Self(value.0)
     }
 }
 
 impl From<&NonZeroFelt> for Felt {
-    fn from(_value: &NonZeroFelt) -> Self {
-        todo!()
+    fn from(value: &NonZeroFelt) -> Self {
+        Self(value.0)
     }
 }
 
 impl AsRef<NonZeroFelt> for NonZeroFelt {
     fn as_ref(&self) -> &NonZeroFelt {
-        todo!()
+        &self
     }
 }
 
 impl TryFrom<Felt> for NonZeroFelt {
-    type Error = NonZeroFelt;
+    type Error = FeltIsZeroError;
 
-    fn try_from(_value: Felt) -> Result<Self, Self::Error> {
-        todo!()
+    fn try_from(value: Felt) -> Result<Self, Self::Error> {
+        if value.is_zero() {
+            Ok(Self(value.0))
+        } else {
+            Err(FeltIsZeroError)
+        }
     }
 }
 
 impl TryFrom<&Felt> for NonZeroFelt {
-    type Error = NonZeroFelt;
+    type Error = FeltIsZeroError;
 
-    fn try_from(_value: &Felt) -> Result<Self, Self::Error> {
-        todo!()
+    fn try_from(value: &Felt) -> Result<Self, Self::Error> {
+        if value.is_zero() {
+            Ok(Self(value.0))
+        } else {
+            Err(FeltIsZeroError)
+        }
     }
 }
 
