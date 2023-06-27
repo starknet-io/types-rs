@@ -16,8 +16,22 @@ use lambdaworks_math::{
 };
 
 /// Definition of the Field Element type.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+// TODO: Derive/Implement Copy
+// TODO: See if we can move PartialOrd & Ord to lambdaworks crate
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Felt(FieldElement<Stark252PrimeField>);
+
+impl PartialOrd for Felt {
+    fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Felt {
+    fn cmp(&self, other: &Self) -> core::cmp::Ordering {
+        self.0.representative().cmp(&other.0.representative())
+    }
+}
 
 /// A non-zero [Felt].
 pub struct NonZeroFelt {}
