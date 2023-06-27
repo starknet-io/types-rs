@@ -217,15 +217,15 @@ mod arithmetic {
 
     /// Field addition. Never overflows/underflows.
     impl ops::AddAssign<Felt> for Felt {
-        fn add_assign(&mut self, _rhs: Felt) {
-            todo!()
+        fn add_assign(&mut self, rhs: Felt) {
+            self.0 += rhs.0
         }
     }
 
     /// Field addition. Never overflows/underflows.
     impl ops::AddAssign<&Felt> for Felt {
-        fn add_assign(&mut self, _rhs: &Felt) {
-            todo!()
+        fn add_assign(&mut self, rhs: &Felt) {
+            self.0 += rhs.0
         }
     }
 
@@ -233,8 +233,8 @@ mod arithmetic {
     impl ops::Add<Felt> for Felt {
         type Output = Felt;
 
-        fn add(self, _rhs: Felt) -> Self::Output {
-            todo!()
+        fn add(self, rhs: Felt) -> Self::Output {
+            Self(self.0 + rhs.0)
         }
     }
 
@@ -242,8 +242,8 @@ mod arithmetic {
     impl ops::Add<&Felt> for Felt {
         type Output = Felt;
 
-        fn add(self, _rhs: &Felt) -> Self::Output {
-            todo!()
+        fn add(self, rhs: &Felt) -> Self::Output {
+            Self(self.0 + rhs.0)
         }
     }
 
@@ -251,8 +251,8 @@ mod arithmetic {
     impl ops::Add<Felt> for &Felt {
         type Output = Felt;
 
-        fn add(self, _rhs: Felt) -> Self::Output {
-            todo!()
+        fn add(self, rhs: Felt) -> Self::Output {
+            Felt(self.0 + rhs.0)
         }
     }
 
@@ -260,8 +260,8 @@ mod arithmetic {
     impl ops::Add<&Felt> for &Felt {
         type Output = Felt;
 
-        fn add(self, _rhs: &Felt) -> Self::Output {
-            todo!()
+        fn add(self, rhs: &Felt) -> Self::Output {
+            Felt(self.0 + rhs.0)
         }
     }
 
