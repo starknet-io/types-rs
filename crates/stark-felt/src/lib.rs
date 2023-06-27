@@ -15,6 +15,7 @@ use lambdaworks_math::{
         element::FieldElement, fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
     },
     traits::ByteConversion,
+    unsigned_integer::element::UnsignedInteger,
 };
 
 /// Definition of the Field Element type.
@@ -35,21 +36,30 @@ pub struct FromStrError;
 pub struct FromBytesError;
 
 impl Felt {
-    // TODO: check if its ok to use lazy_static here
-    // /// [Felt] constant that's equal to 0.
-    // pub const ZERO: Self = Self(FieldElement::<Stark252PrimeField>::zero());
+    /// [Felt] constant that's equal to 0.
+    pub const ZERO: Self = Self(FieldElement::<Stark252PrimeField>::const_from_raw(
+        UnsignedInteger::from_u64(0),
+    ));
 
-    // /// [Felt] constant that's equal to 1.
-    // pub const ONE: Self = Self(FieldElement::<Stark252PrimeField>::one());
+    /// [Felt] constant that's equal to 1.
+    pub const ONE: Self = Self(FieldElement::<Stark252PrimeField>::const_from_raw(
+        UnsignedInteger::from_u64(1),
+    ));
 
-    // /// [Felt] constant that's equal to 2.
-    // pub const TWO: Self = Self(FieldElement::<Stark252PrimeField>::from(2));
+    /// [Felt] constant that's equal to 2.
+    pub const TWO: Self = Self(FieldElement::<Stark252PrimeField>::const_from_raw(
+        UnsignedInteger::from_u64(2),
+    ));
 
-    // /// [Felt] constant that's equal to 3.
-    // pub const THREE: Self = Self(FieldElement::<Stark252PrimeField>::from(3));
+    /// [Felt] constant that's equal to 3.
+    pub const THREE: Self = Self(FieldElement::<Stark252PrimeField>::const_from_raw(
+        UnsignedInteger::from_u64(3),
+    ));
 
-    // /// Maximum value of [Felt]. Equals to 2^251 + 17 * 2^192.
-    // pub const MAX: Self = Self(FieldElement::<Stark252PrimeField>::zero() - FieldElement::<Stark252PrimeField>::one());
+    /// Maximum value of [Felt]. Equals to 2^251 + 17 * 2^192.
+    pub const MAX: Self = Self(FieldElement::<Stark252PrimeField>::const_from_raw(
+        UnsignedInteger::from_limbs([544, 0, 0, 32]),
+    ));
 
     // TODO: const was removed from all methods, check if this is ok/ if we can make these const in lambdaworks
     /// Creates a new [Felt] from its big-endian representation in a [u8] slice.
