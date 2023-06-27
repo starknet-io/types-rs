@@ -1,5 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use core::ops::Mul;
+
 use bitvec::array::BitArray;
 
 #[cfg(target_pointer_width = "64")]
@@ -132,13 +134,18 @@ impl Felt {
     }
 
     /// Raises `self` to the power of `exponent`.
-    pub const fn pow(&self, _exponent: u128) -> Self {
-        todo!()
+    pub fn pow(&self, exponent: u128) -> Self {
+        Self(self.0.pow(exponent))
     }
 
+    // Question: Is mul_mod necessary in this crate?
+    // Isn't multiplication mod CAIRO_PRIME more useful?
+    // Possible bug: If one wanted to do multiplication modulo CAIRO_PRIME this method would be useless as Felt(CAIRO_PRIME) = 0
+    // CHANGE: removed p argument from mul_mod -> doing modulo cairo prime is more useful for the crate
+    // Suggestion: leave only mul for multiplication operation within the field and then discuss if mul_mod a different prime is needed and if implementing mod would't be a better solution in that case
     /// Modular multiplication.
-    pub const fn mul_mod(&self, _rhs: &Self, _p: &Self) -> Self {
-        todo!()
+    pub fn mul_mod(&self, rhs: &Self) -> Self {
+        Self(self.0.mul(rhs.0))
     }
 
     /// Modular multiplicative inverse.
