@@ -19,7 +19,6 @@ use lambdaworks_math::{
 };
 
 /// Definition of the Field Element type.
-// TODO: See if we can move PartialOrd & Ord to lambdaworks crate
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Felt(FieldElement<Stark252PrimeField>);
 
