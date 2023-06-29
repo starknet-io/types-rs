@@ -202,9 +202,9 @@ impl TryFrom<Felt> for NonZeroFelt {
 
     fn try_from(value: Felt) -> Result<Self, Self::Error> {
         if value.is_zero() {
-            Ok(Self(value.0))
-        } else {
             Err(FeltIsZeroError)
+        } else {
+            Ok(Self(value.0))
         }
     }
 }
@@ -214,9 +214,9 @@ impl TryFrom<&Felt> for NonZeroFelt {
 
     fn try_from(value: &Felt) -> Result<Self, Self::Error> {
         if value.is_zero() {
-            Ok(Self(value.0))
-        } else {
             Err(FeltIsZeroError)
+        } else {
+            Ok(Self(value.0))
         }
     }
 }
