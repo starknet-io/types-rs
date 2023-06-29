@@ -135,12 +135,8 @@ impl Felt {
     }
 
     // Question: Is mul_mod necessary in this crate?
-    // Isn't multiplication mod CAIRO_PRIME more useful?
-    // Possible bug: If one wanted to do multiplication modulo CAIRO_PRIME this method would be useless as Felt(CAIRO_PRIME) = 0
-    // CHANGE: removed p argument from mul_mod -> doing modulo cairo prime is more useful for the crate
-    // Suggestion: leave only mul for multiplication operation within the field and then discuss if mul_mod a different prime is needed and if implementing mod would't be a better solution in that case
     /// Modular multiplication.
-    pub fn mul_mod(&self, rhs: &Self) -> Self {
+    pub fn mul_mod(&self, rhs: &Self, _p: &Self) -> Self {
         Self(self.0.mul(rhs.0))
     }
 
