@@ -64,14 +64,14 @@ impl Felt {
     /// Creates a new [Felt] from its big-endian representation in a [u8] slice.
     pub fn from_bytes_be(bytes: &[u8]) -> Result<Self, FromBytesError> {
         FieldElement::from_bytes_be(bytes)
-            .map(|x| Self(x))
+            .map(Self)
             .map_err(|_| FromBytesError)
     }
 
     /// Creates a new [Felt] from its little-endian representation in a [u8] slice.
     pub fn from_bytes_le(bytes: &[u8]) -> Result<Self, FromBytesError> {
         FieldElement::from_bytes_le(bytes)
-            .map(|x| Self(x))
+            .map(Self)
             .map_err(|_| FromBytesError)
     }
 
@@ -105,12 +105,12 @@ impl Felt {
     // Question: What is the difference between field_div & floor_div?
     /// Finite field division.
     pub fn field_div(&self, rhs: &NonZeroFelt) -> Self {
-        Self(&self.0 / &rhs.0)
+        Self(self.0 / rhs.0)
     }
 
     /// Floor division.
     pub fn floor_div(&self, rhs: &NonZeroFelt) -> Self {
-        Self(&self.0 / &rhs.0)
+        Self(self.0 / rhs.0)
     }
 
     /// Multiplicative inverse.
@@ -161,7 +161,7 @@ impl Default for Felt {
 
 impl AsRef<Felt> for Felt {
     fn as_ref(&self) -> &Felt {
-        &self
+        self
     }
 }
 
@@ -179,7 +179,7 @@ impl From<&NonZeroFelt> for Felt {
 
 impl AsRef<NonZeroFelt> for NonZeroFelt {
     fn as_ref(&self) -> &NonZeroFelt {
-        &self
+        self
     }
 }
 
