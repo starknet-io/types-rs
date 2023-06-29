@@ -86,8 +86,10 @@ impl Felt {
     }
 
     /// Converts to big-endian bit representation.
-    pub const fn to_bits_be(&self) -> BitArray<BitArrayStore> {
-        todo!()
+    pub fn to_bits_be(&self) -> BitArray<BitArrayStore> {
+        let mut limbs = self.0.representative().limbs;
+        limbs.reverse();
+        BitArray::new(limbs)
     }
 
     /// Converts to little-endian bit representation.
