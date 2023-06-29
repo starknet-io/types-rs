@@ -91,7 +91,13 @@ impl Felt {
         limbs.reverse();
 
         #[cfg(not(target_pointer_width = "64"))]
-        let limbs = limbs.iter().map(|n| [n >> 32 as u32, n as u32]).collect();
+        let limbs: [u32; 8] = limbs
+            .map(|n| [(n >> 32) as u32, n as u32])
+            .into_iter()
+            .flatten()
+            .collect::<Vec<u32>>()
+            .try_into()
+            .unwrap();
 
         BitArray::new(limbs)
     }
@@ -101,7 +107,13 @@ impl Felt {
         let limbs = self.0.representative().limbs;
 
         #[cfg(not(target_pointer_width = "64"))]
-        let limbs = limbs.iter().map(|n| [n as u32, n >> 32 as u32]).collect();
+        let limbs: [u32; 8] = limbs
+            .map(|n| [n as u32, n >> 32 as u32])
+            .into_iter()
+            .flatten()
+            .collect::<Vec<u32>>()
+            .try_into()
+            .unwrap();
 
         BitArray::new(limbs)
     }
