@@ -91,8 +91,8 @@ impl Felt {
     }
 
     /// Converts to little-endian bit representation.
-    pub const fn to_bits_le(&self) -> BitArray<BitArrayStore> {
-        todo!()
+    pub fn to_bits_le(&self) -> BitArray<BitArrayStore> {
+        BitArray::new(self.0.representative().limbs)
     }
 
     /// Checks if `self` is equal to [Felt::Zero].
