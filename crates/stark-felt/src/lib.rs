@@ -99,7 +99,7 @@ impl Felt {
 
     /// Checks if `self` is equal to [Felt::Zero].
     pub fn is_zero(&self) -> bool {
-        self.0 == FieldElement::from_raw(&Stark252PrimeField::ZERO)
+        self.0 == FieldElement::<Stark252PrimeField>::zero()
     }
 
     // Question: What is the difference between field_div & floor_div?
