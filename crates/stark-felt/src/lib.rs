@@ -446,22 +446,22 @@ mod formatting {
 
     /// Represents [Felt] in decimal by default.
     impl fmt::Display for Felt {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            fmt::Display::fmt(&self, f)
+        fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            todo!()
         }
     }
 
     /// Represents [Felt] in lowercase hexadecimal format.
     impl fmt::LowerHex for Felt {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            fmt::LowerHex::fmt(&self, f)
+            fmt::Display::fmt(&self.0, f)
         }
     }
 
     /// Represents [Felt] in uppercase hexadecimal format.
     impl fmt::UpperHex for Felt {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            fmt::UpperHex::fmt(&self, f)
+            todo!()
         }
     }
 }
