@@ -482,8 +482,8 @@ mod formatting {
 
     /// Represents [Felt] in uppercase hexadecimal format.
     impl fmt::UpperHex for Felt {
-        fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            todo!()
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            write!(f, "{}", self.0.to_string().to_uppercase())
         }
     }
 }
