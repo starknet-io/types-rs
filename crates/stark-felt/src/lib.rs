@@ -410,16 +410,14 @@ mod arithmetic {
     }
 }
 
-// Serialization & Deserialization differs between projects and objectives
-// For example: In cairo 0 programs, instructions are Felts in hexadecimal format, but constants are Felts in decimal value
-// It doesn't make much sense to have a universal serialization
 #[cfg(feature = "serde")]
 mod serde {
-    use ::serde::{Deserialize, Serialize};
+    use core::fmt;
+
+    use ::serde::{de, Deserialize, Serialize};
 
     use super::*;
 
-    // Serialization to decimal value
     impl Serialize for Felt {
         fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where
@@ -430,11 +428,35 @@ mod serde {
     }
 
     impl<'de> Deserialize<'de> for Felt {
-        fn deserialize<D>(_deserializer: D) -> Result<Self, D::Error>
+        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
         where
             D: ::serde::Deserializer<'de>,
         {
-            todo!()
+            deserializer.deserialize_str(FeltVisitor)
+        }
+    }
+
+    struct FeltVisitor;
+
+    impl<'de> de::Visitor<'de> for FeltVisitor {
+        type Value = Felt;
+
+        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            formatter.write_str("Failed to deserialize hexadecimal string")
+        }
+
+        fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            // Strip the '0x' prefix from the encoded hex string
+            if let Some(no_prefix_hex) = value.strip_prefix("0x") {
+                Ok(Felt(FieldElement::<Stark252PrimeField>::const_from_raw(
+                    UnsignedInteger::from(no_prefix_hex),
+                )))
+            } else {
+                Err(String::from("Extected hex string to be prefixed by '0x'")).map_err(de::Error::custom)
+            }
         }
     }
 }
@@ -460,7 +482,7 @@ mod formatting {
 
     /// Represents [Felt] in uppercase hexadecimal format.
     impl fmt::UpperHex for Felt {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
             todo!()
         }
     }
