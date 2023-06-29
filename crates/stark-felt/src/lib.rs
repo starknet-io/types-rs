@@ -89,12 +89,21 @@ impl Felt {
     pub fn to_bits_be(&self) -> BitArray<BitArrayStore> {
         let mut limbs = self.0.representative().limbs;
         limbs.reverse();
+
+        #[cfg(not(target_pointer_width = "64"))]
+        let limbs = limbs.iter().map(|n| [n >> 32 as u32, n as u32]).collect();
+
         BitArray::new(limbs)
     }
 
     /// Converts to little-endian bit representation.
     pub fn to_bits_le(&self) -> BitArray<BitArrayStore> {
-        BitArray::new(self.0.representative().limbs)
+        let limbs = self.0.representative().limbs;
+
+        #[cfg(not(target_pointer_width = "64"))]
+        let limbs = limbs.iter().map(|n| [n as u32, n >> 32 as u32]).collect();
+
+        BitArray::new(limbs)
     }
 
     /// Checks if `self` is equal to [Felt::Zero].
