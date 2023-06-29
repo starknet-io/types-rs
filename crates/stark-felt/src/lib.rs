@@ -122,16 +122,14 @@ impl Felt {
     pub fn is_zero(&self) -> bool {
         self.0 == FieldElement::<Stark252PrimeField>::zero()
     }
-
-    // Question: What is the difference between field_div & floor_div?
     /// Finite field division.
     pub fn field_div(&self, rhs: &NonZeroFelt) -> Self {
         Self(self.0 / rhs.0)
     }
 
     /// Floor division.
-    pub fn floor_div(&self, rhs: &NonZeroFelt) -> Self {
-        Self(self.0 / rhs.0)
+    pub fn floor_div(&self, _rhs: &NonZeroFelt) -> Self {
+        todo!()
     }
 
     /// Multiplicative inverse.
