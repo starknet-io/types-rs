@@ -1,7 +1,5 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use core::ops::Mul;
-
 use bitvec::array::BitArray;
 
 #[cfg(target_pointer_width = "64")]
@@ -60,7 +58,6 @@ impl Felt {
         UnsignedInteger::from_limbs([544, 0, 0, 32]),
     ));
 
-    // TODO: const was removed from all methods, check if this is ok/ if we can make these const in lambdaworks
     /// Creates a new [Felt] from its big-endian representation in a [u8] slice.
     pub fn from_bytes_be(bytes: &[u8]) -> Result<Self, FromBytesError> {
         FieldElement::from_bytes_be(bytes)
@@ -153,13 +150,11 @@ impl Felt {
         Self(self.0.pow(exponent))
     }
 
-    // Question: Is mul_mod necessary in this crate?
     /// Modular multiplication.
-    pub fn mul_mod(&self, rhs: &Self, _p: &Self) -> Self {
-        Self(self.0.mul(rhs.0))
+    pub fn mul_mod(&self, _rhs: &Self, _p: &Self) -> Self {
+        todo!()
     }
 
-    // Question: Why is this method needed?
     /// Modular multiplicative inverse.
     pub const fn inverse_mod(&self, _p: &Self) -> Self {
         todo!()
@@ -395,8 +390,6 @@ mod arithmetic {
         }
     }
 
-    // Are these two impls needed?
-
     impl iter::Sum for Felt {
         fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
             iter.sum()
@@ -455,7 +448,8 @@ mod serde {
                     UnsignedInteger::from(no_prefix_hex),
                 )))
             } else {
-                Err(String::from("Extected hex string to be prefixed by '0x'")).map_err(de::Error::custom)
+                Err(String::from("Extected hex string to be prefixed by '0x'"))
+                    .map_err(de::Error::custom)
             }
         }
     }
