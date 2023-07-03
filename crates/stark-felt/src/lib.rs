@@ -534,6 +534,8 @@ mod errors {
 
 #[cfg(test)]
 mod test {
+    use crate::arbitrary::nonzero_felt;
+
     use super::*;
 
     use proptest::prelude::*;
@@ -603,6 +605,130 @@ mod test {
             }
             let y = &Felt::from_bytes_le(&bytes).unwrap();
             prop_assert_eq!(x, y);
+        }
+
+        #[test]
+        // Property-based test that ensures, for 100 felt values that are randomly
+        // generated each time tests are run, that a felt created using Felt252::from_bytes_be doesn't
+        // fall outside the range [0, p].
+        // In this and some of the following tests, The value of {x} can be either [0] or a very large number,
+        // in order to try to overflow the value of {p} and thus ensure the modular arithmetic is working correctly.
+        fn from_bytes_be_in_range(ref x in any::<[u8; 40]>()) {
+            let x = Felt::from_bytes_be(x).unwrap();
+            prop_assert!(x <= Felt::MAX);
+        }
+
+        #[test]
+        // Property-based test that ensures, for 100 felt values that are randomly generated each time
+        // tests are run, that the negative of a felt doesn't fall outside the range [0, p].
+        fn neg_in_range(x in any::<Felt>()) {
+            prop_assert!(-x <= Felt::MAX);
+        }
+
+        #[test]
+        // Property-based test that ensures, for 100 {x} and {y} values that are randomly generated
+        // each time tests are run, that a subtraction between two felts {x} and {y} and doesn't fall
+        // outside the range [0, p]. The values of {x} and {y} can be either [0] or a very large number.
+        fn sub(ref x in any::<Felt>(), ref y in any::<Felt>()) {
+            // x - y
+            prop_assert!(x - y <= Felt::MAX);
+            prop_assert_eq!(Felt::MAX + x - y + Felt::ONE, x - y);
+            // y - x
+            prop_assert!(y - x <= Felt::MAX);
+            prop_assert_eq!(Felt::MAX + y - x + Felt::ONE, y - x);
+        }
+
+        #[test]
+        // Property-based test that ensures, for 100 {x} and {y} values that are randomly generated
+        // each time tests are run, that a subtraction with assignment between two felts {x} and {y}
+        // and doesn't fall outside the range [0, p]. The values of {x} and {y} can be either [0] or a very large number.
+        fn sub_assign_in_range(mut x in any::<Felt>(), y in any::<Felt>()) {
+            x -= y;
+            prop_assert!(x <= Felt::MAX);
+            // test reference variant
+            x -= &y;
+            prop_assert!(x <= Felt::MAX);
+        }
+
+        #[test]
+        // Property-based test that ensures, for 100 {x} and {y} values that are randomly
+        // generated each time tests are run, that a multiplication between two felts {x}
+        // and {y} and doesn't fall outside the range [0, p]. The values of {x} and {y}
+        // can be either [0] or a very large number.
+        fn mul(ref x in any::<Felt>(), ref y in any::<Felt>()) {
+            prop_assert_eq!(x * y, y * x);
+            prop_assert!(x * y <= Felt::MAX);
+        }
+
+        #[test]
+        // Property-based test that ensures, for 100 pairs of {x} and {y} values that
+        // are randomly generated each time tests are run, that a multiplication with
+        // assignment between two felts {x} and {y} and doesn't fall outside the range [0, p].
+        // The values of {x} and {y} can be either [0] or a very large number.
+        fn mul_assign_in_range(mut x in any::<Felt>(), y in any::<Felt>()) {
+            x *= y;
+            prop_assert!(x <= Felt::MAX);
+            // test reference variant
+            x *= &y;
+            prop_assert!(x <= Felt::MAX);
+        }
+
+        #[test]
+        // Property-based test that ensures, for 100 pairs of {x} and {y} values that are
+        // randomly generated each time tests are run, that the result of the division of
+        // {x} by {y} is the inverse multiplicative of {x} --that is, multiplying the result
+        // by {y} returns the original number {x}. The values of {x} and {y} can be either
+        // [0] or a very large number.
+        fn field_div_is_mul_inv(x in any::<Felt>(), y in nonzero_felt()) {
+            let q = x.field_div(&NonZeroFelt(y.0));
+            prop_assert!(q <= Felt::MAX);
+            prop_assert_eq!(q * y, x);
+        }
+
+        #[test]
+        // Property-based test that ensures, for 100 values {x} that are randomly
+        // generated each time tests are run, that raising {x} to the {y}th power
+        // returns a result that is inside of the range [0, p].
+        fn pow_in_range(base in any::<Felt>(), exp in 0..u128::MAX){
+            prop_assert!(base.pow(exp) <= Felt::MAX);
+        }
+
+        #[test]
+        // Property based test that ensures, for 100 pairs of values {x} and {y}
+        // generated at random each time tests are run, that performing an Add operation
+        // between them returns a result that is inside of the range [0, p].
+        fn add_in_range(x in any::<Felt>(), y in any::<Felt>()){
+            prop_assert!(x + y <= Felt::MAX);
+        }
+
+        /// Tests the additive identity of the implementation of Zero trait for felts
+        ///
+        /// ```{.text}
+        /// x + 0 = x       ∀ x
+        /// 0 + x = x       ∀ x
+        /// ```
+        #[test]
+        fn zero_additive_identity(x in any::<Felt>()) {
+            prop_assert_eq!(x, x + Felt::ZERO);
+            prop_assert_eq!(x, Felt::ZERO + x);
+        }
+
+        /// Tests the multiplicative identity of the implementation of One trait for felts
+        ///
+        /// ```{.text}
+        /// x * 1 = x       ∀ x
+        /// 1 * x = x       ∀ x
+        /// ```
+        #[test]
+        fn one_multiplicative_identity(x in any::<Felt>()) {
+            prop_assert_eq!(x, x * Felt::ONE);
+            prop_assert_eq!(x, Felt::ONE * x);
+        }
+
+        #[test]
+        fn sqrt_in_range(x in any::<Felt>()) {
+            // we use x = x' * x' so x has a square root
+            prop_assert!((x * x).sqrt().unwrap() <= Felt::MAX);
         }
     }
 }
