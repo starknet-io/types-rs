@@ -39,19 +39,13 @@ impl Felt {
     ));
 
     /// [Felt] constant that's equal to 1.
-    pub const ONE: Self = Self(FieldElement::<Stark252PrimeField>::const_from_raw(
-        UnsignedInteger::from_u64(1),
-    ));
+    pub const ONE: Self = Self(FieldElement::<Stark252PrimeField>::from_hex_unchecked("1"));
 
     /// [Felt] constant that's equal to 2.
-    pub const TWO: Self = Self(FieldElement::<Stark252PrimeField>::const_from_raw(
-        UnsignedInteger::from_u64(2),
-    ));
+    pub const TWO: Self = Self(FieldElement::<Stark252PrimeField>::from_hex_unchecked("2"));
 
     /// [Felt] constant that's equal to 3.
-    pub const THREE: Self = Self(FieldElement::<Stark252PrimeField>::const_from_raw(
-        UnsignedInteger::from_u64(3),
-    ));
+    pub const THREE: Self = Self(FieldElement::<Stark252PrimeField>::from_hex_unchecked("3"));
 
     /// Maximum value of [Felt]. Equals to 2^251 + 17 * 2^192.
     pub const MAX: Self = Self(FieldElement::<Stark252PrimeField>::const_from_raw(
