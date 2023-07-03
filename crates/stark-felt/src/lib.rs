@@ -125,8 +125,10 @@ impl Felt {
     }
 
     /// Floor division.
-    pub fn floor_div(&self, _rhs: &NonZeroFelt) -> Self {
-        todo!()
+    pub fn floor_div(&self, rhs: &NonZeroFelt) -> Self {
+        Self(FieldElement::const_from_raw(
+            (self.0.representative().div_rem(&rhs.0.representative())).0,
+        ))
     }
 
     /// Multiplicative inverse.
