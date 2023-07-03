@@ -573,5 +573,29 @@ mod test {
             let y = &Felt::from_bytes_be(&res).unwrap();
             prop_assert_eq!(x, y);
         }
+
+        #[test]
+        fn to_bits_le(ref x in any::<Felt>()) {
+            let bits: Vec<bool> = x.to_bits_le().into_iter().collect();
+            let mut res = [0;4];
+            let mut acc: u64 = 0;
+            for (i, bits64) in bits.chunks(64).enumerate() {
+                for bit in bits64.iter().rev() {
+                    acc <<= 1;
+                    acc += *bit as u64;
+                }
+                res[i] = acc;
+                acc = 0;
+            }
+            let mut bytes = [0u8; 32];
+            for i in (0..4).rev() {
+                let limb_bytes = res[i].to_le_bytes();
+                for j in 0..8 {
+                    bytes[(3 - i) * 8 + j] = limb_bytes[j]
+                }
+            }
+            let y = &Felt::from_bytes_le(&bytes).unwrap();
+            prop_assert_eq!(x, y);
+        }
     }
 }
