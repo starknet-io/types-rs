@@ -151,13 +151,24 @@ impl Felt {
     }
 
     /// Modular multiplication.
-    pub fn mul_mod(&self, _rhs: &Self, _p: &Self) -> Self {
-        todo!()
+    pub fn mul_mod(&self, rhs: &Self, p: &Self) -> Self {
+        Self(FieldElement::const_from_raw(
+            (self.0 * rhs.0)
+                .representative()
+                .div_rem(&p.0.representative())
+                .1,
+        ))
     }
 
     /// Modular multiplicative inverse.
-    pub const fn inverse_mod(&self, _p: &Self) -> Self {
-        todo!()
+    pub fn inverse_mod(&self, p: &Self) -> Self {
+        Self(FieldElement::const_from_raw(
+            self.0
+                .inv()
+                .representative()
+                .div_rem(&p.0.representative())
+                .1,
+        ))
     }
 }
 
