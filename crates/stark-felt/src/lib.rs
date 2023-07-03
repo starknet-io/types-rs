@@ -730,5 +730,28 @@ mod test {
             // we use x = x' * x' so x has a square root
             prop_assert!((x * x).sqrt().unwrap() <= Felt::MAX);
         }
+
+        #[test]
+        fn sqrt_is_inv_square(x in any::<Felt>()) {
+            // we use x = x' * x' so x has a square root
+            let sqrt = (x * x).sqrt().unwrap();
+            prop_assert!( sqrt == x || -sqrt == x)
+        }
+
+        #[test]
+        fn square_in_range(x in any::<Felt>()) {
+            prop_assert!(x.square() <= Felt::MAX);
+        }
+
+        #[test]
+        fn square_x_is_x_mul_x(x in any::<Felt>()) {
+            prop_assert_eq!(x.square(), x * x);
+        }
+
+        #[test]
+        fn square_is_inv_sqrt(x in any::<Felt>()) {
+            let sqrt = x.square().sqrt().unwrap();
+            prop_assert!( sqrt == x || -sqrt == x)
+        }
     }
 }
