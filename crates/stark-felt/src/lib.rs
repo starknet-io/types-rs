@@ -83,7 +83,6 @@ impl Felt {
     pub fn to_bits_be(&self) -> BitArray<BitArrayStore> {
         let mut limbs = self.0.representative().limbs;
         limbs.reverse();
-
         #[cfg(not(target_pointer_width = "64"))]
         let limbs: [u32; 8] = limbs
             .map(|n| [(n >> 32) as u32, n as u32])
@@ -123,9 +122,12 @@ impl Felt {
 
     /// Floor division.
     pub fn floor_div(&self, rhs: &NonZeroFelt) -> Self {
-        Self(FieldElement::const_from_raw(
-            (self.0.representative().div_rem(&rhs.0.representative())).0,
-        ))
+        Self::from_bytes_be(
+            &(self.0.representative().div_rem(&rhs.0.representative()))
+                .0
+                .to_bytes_be(),
+        )
+        .unwrap_or_default()
     }
 
     /// Multiplicative inverse.
@@ -151,23 +153,28 @@ impl Felt {
 
     /// Modular multiplication.
     pub fn mul_mod(&self, rhs: &Self, p: &Self) -> Self {
-        Self(FieldElement::const_from_raw(
-            (self.0 * rhs.0)
+        Self::from_bytes_be(
+            &(self.0 * rhs.0)
                 .representative()
                 .div_rem(&p.0.representative())
-                .1,
-        ))
+                .1
+                .to_bytes_be(),
+        )
+        .unwrap_or_default()
     }
 
     /// Modular multiplicative inverse.
     pub fn inverse_mod(&self, p: &Self) -> Self {
-        Self(FieldElement::const_from_raw(
-            self.0
+        Self::from_bytes_be(
+            &self
+                .0
                 .inv()
                 .representative()
                 .div_rem(&p.0.representative())
-                .1,
-        ))
+                .1
+                .to_bytes_be(),
+        )
+        .unwrap_or_default()
     }
 }
 
