@@ -2,6 +2,9 @@
 
 use bitvec::array::BitArray;
 
+#[cfg(test)]
+mod arbitrary;
+
 #[cfg(target_pointer_width = "64")]
 pub type BitArrayStore = [u64; 4];
 
@@ -518,6 +521,57 @@ mod errors {
     impl fmt::Display for FromBytesError {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             "Failed to create Felt from bytes".fmt(f)
+        }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    use proptest::prelude::*;
+
+    proptest! {
+        #[test]
+        // Property-based test that ensures, for 100 felt values that are randomly generated
+        // each time tests are run, that a new felt doesn't fall outside the range [0, p].
+        // In this and some of the following tests, The value of {x} can be either [0] or a
+        // very large number, in order to try to overflow the value of {p} and thus ensure the
+        // modular arithmetic is working correctly.
+        fn new_in_range(ref x in any::<[u8; 40]>()) {
+            let x = Felt::from_bytes_be(x).unwrap();
+            prop_assert!(x < Felt::MAX);
+        }
+
+        #[test]
+        fn to_be_bytes(ref x in any::<Felt>()) {
+            let bytes = x.to_bytes_be();
+            let y = &Felt::from_bytes_be(&bytes).unwrap();
+            prop_assert_eq!(x, y);
+        }
+
+        #[test]
+        fn to_le_bytes(ref x in any::<Felt>()) {
+            let bytes = x.to_bytes_le();
+            let y = &Felt::from_bytes_le(&bytes).unwrap();
+            prop_assert_eq!(x, y);
+        }
+
+        #[test]
+        fn to_bits_be(ref x in any::<Felt>()) {
+            let bits: Vec<bool> = x.to_bits_be().into_iter().rev().collect();
+            let mut res = [0;32];
+            let mut acc: u8 = 0;
+            for (i, bits64) in bits.chunks(8).enumerate() {
+                for bit in bits64.iter() {
+                    acc <<= 1;
+                    acc += *bit as u8;
+                }
+                res[i] = acc;
+                acc = 0;
+            }
+            let y = &Felt::from_bytes_be(&res).unwrap();
+            prop_assert_eq!(x, y);
         }
     }
 }
