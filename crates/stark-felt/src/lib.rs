@@ -113,7 +113,7 @@ impl Felt {
 
     /// Checks if `self` is equal to [Felt::Zero].
     pub fn is_zero(&self) -> bool {
-        self.0 == FieldElement::<Stark252PrimeField>::zero()
+        *self == Felt::ZERO
     }
     /// Finite field division.
     pub fn field_div(&self, rhs: &NonZeroFelt) -> Self {
@@ -546,8 +546,10 @@ mod test {
         // very large number, in order to try to overflow the value of {p} and thus ensure the
         // modular arithmetic is working correctly.
         fn new_in_range(ref x in any::<[u8; 40]>()) {
-            let x = Felt::from_bytes_be(x).unwrap();
-            prop_assert!(x < Felt::MAX);
+            let x_be = Felt::from_bytes_be(x).unwrap();
+            prop_assert!(x_be < Felt::MAX);
+            let x_le = Felt::from_bytes_le(x).unwrap();
+            prop_assert!(x_le < Felt::MAX);
         }
 
         #[test]
@@ -751,6 +753,11 @@ mod test {
             let sqrt = x.square().sqrt().unwrap();
             prop_assert!( sqrt == x || -sqrt == x)
         }
+
+        #[test]
+        fn non_zero_is_not_zero(x in nonzero_felt()) {
+            prop_assert!(!x.is_zero())
+        }
     }
 
     #[test]
@@ -785,5 +792,10 @@ mod test {
     fn constant_max() {
         let max_bytes = [8, 0, 0, 0, 0, 0, 0, 17, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; //3618502788666131213697322783095070105623107215331596699973092056135872020481
         assert_eq!(Felt::MAX.to_bytes_be(), max_bytes);
+    }
+
+    #[test]
+    fn zero_is_zero() {
+        assert!(Felt::ZERO.is_zero());
     }
 }
