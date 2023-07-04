@@ -490,9 +490,9 @@ mod formatting {
 
             loop {
                 let digit = if current < ten {
-                    current.limbs[0] as u8
+                    current.limbs[3] as u8
                 } else {
-                    (current.div_rem(&ten).1).limbs[0] as u8
+                    (current.div_rem(&ten).1).limbs[3] as u8
                 };
                 buf[i] = digit + b'0';
                 current = current.div_rem(&ten).0;
@@ -922,10 +922,28 @@ mod test {
         assert_eq!(format!("{:#X}", Felt::ZERO), format!("{:#X}", 0_u64));
         assert_eq!(format!("{:#X}", Felt::TWO), format!("{:#X}", 2_u64));
         assert_eq!(format!("{:#X}", Felt::THREE), format!("{:#X}", 3_u64));
-        assert_eq!(format!("{:#X}", Felt(FieldElement::from(200))), format!("{:#X}", 200_u64));
+        assert_eq!(
+            format!("{:#X}", Felt(FieldElement::from(200))),
+            format!("{:#X}", 200_u64)
+        );
         assert_eq!(
             format!("{:#X}", Felt::MAX),
             String::from("0x800000000000011000000000000000000000000000000000000000000000000")
+        );
+    }
+
+    #[test]
+    fn display_decimal() {
+        assert_eq!(format!("{}", Felt::ZERO), format!("{}", 0_u64));
+        assert_eq!(format!("{}", Felt::TWO), format!("{}", 2_u64));
+        assert_eq!(format!("{}", Felt::THREE), format!("{}", 3_u64));
+        assert_eq!(
+            format!("{}", Felt(FieldElement::from(200))),
+            format!("{}", 200_u64)
+        );
+        assert_eq!(
+            format!("{}", Felt::MAX),
+            String::from("3618502788666131213697322783095070105623107215331596699973092056135872020480")
         );
     }
 }
