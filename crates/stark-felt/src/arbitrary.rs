@@ -29,7 +29,7 @@ fn any_felt() -> impl Strategy<Value = Felt> {
             ];
             FieldElement::new(UnsignedInteger::from_limbs(limbs))
         })
-        .prop_map(|value| Felt(value))
+        .prop_map(Felt)
 }
 
 /// Returns a [`Strategy`] that generates any nonzero Felt
