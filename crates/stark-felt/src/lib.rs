@@ -460,14 +460,12 @@ mod serde {
             E: de::Error,
         {
             // Strip the '0x' prefix from the encoded hex string
-            if let Some(no_prefix_hex) = value.strip_prefix("0x") {
-                Ok(Felt(FieldElement::<Stark252PrimeField>::const_from_raw(
-                    UnsignedInteger::from(no_prefix_hex),
-                )))
-            } else {
-                Err(String::from("Extected hex string to be prefixed by '0x'"))
-                    .map_err(de::Error::custom)
-            }
+            value
+                .strip_prefix("0x")
+                .and_then(|v| FieldElement::<Stark252PrimeField>::from_hex(v).ok())
+                .map(Felt)
+                .ok_or(String::from("Extected hex string to be prefixed by '0x'"))
+                .map_err(de::Error::custom)
         }
     }
 }
