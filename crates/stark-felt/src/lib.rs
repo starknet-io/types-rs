@@ -773,4 +773,10 @@ mod test {
         three_bytes.extend_from_slice(&[0; 24]);
         assert_eq!(Felt::THREE.to_bytes_le().to_vec(), three_bytes);
     }
+
+    #[test]
+    fn constant_max() {
+        let max_bytes = [8, 0, 0, 0, 0, 0, 0, 17, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; //3618502788666131213697322783095070105623107215331596699973092056135872020481
+        assert_eq!(Felt::MAX.to_bytes_be(), max_bytes);
+    }
 }
