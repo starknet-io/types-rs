@@ -758,6 +758,23 @@ mod test {
         fn non_zero_is_not_zero(x in nonzero_felt()) {
             prop_assert!(!x.is_zero())
         }
+
+        #[test]
+        fn multiplying_by_inverse_yields_multiplicative_neutral(x in nonzero_felt()) {
+            prop_assert_eq!(x * x.inverse().unwrap(), Felt::ONE )
+        }
+
+        #[test]
+        fn inverse_mod_in_range(x in any::<Felt>(), p in any::<Felt>()) {
+            prop_assert!(x.inverse_mod(&p) <= Felt::MAX);
+            prop_assert!(x.inverse_mod(&p) < p);
+        }
+
+        #[test]
+        fn mul_mod_in_range(x in any::<Felt>(), y in any::<Felt>(), p in any::<Felt>()) {
+            prop_assert!(x.mul_mod(&y, &p) <= Felt::MAX);
+            prop_assert!(x.mul_mod(&y, &p) < p);
+        }
     }
 
     #[test]
@@ -790,7 +807,10 @@ mod test {
 
     #[test]
     fn constant_max() {
-        let max_bytes = [8, 0, 0, 0, 0, 0, 0, 17, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; //3618502788666131213697322783095070105623107215331596699973092056135872020481
+        let max_bytes = [
+            8, 0, 0, 0, 0, 0, 0, 17, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0,
+        ];
         assert_eq!(Felt::MAX.to_bytes_be(), max_bytes);
     }
 
