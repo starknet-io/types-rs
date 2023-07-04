@@ -496,7 +496,7 @@ mod formatting {
             }
 
             // sequence of `'0'..'9'` chars is guaranteed to be a valid UTF8 string
-            let s = std::str::from_utf8(&buf[i..]).unwrap();
+            let s = core::str::from_utf8(&buf[i..]).unwrap();
             fmt::Display::fmt(s, f)
         }
     }
