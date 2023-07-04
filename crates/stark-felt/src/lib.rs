@@ -882,6 +882,7 @@ mod test {
         assert_eq!(format!("{:#x}", Felt::ZERO), format!("{:#x}", 0_u64));
         assert_eq!(format!("{:#x}", Felt::TWO), format!("{:#x}", 2_u64));
         assert_eq!(format!("{:#x}", Felt::THREE), format!("{:#x}", 3_u64));
+        assert_eq!(format!("{:#x}", Felt(FieldElement::from(200))), format!("{:#x}", 200_u64));
         assert_eq!(
             format!("{:#x}", Felt::MAX),
             String::from("0x800000000000011000000000000000000000000000000000000000000000000")
@@ -890,9 +891,10 @@ mod test {
 
     #[test]
     fn display_upper_hex() {
-        assert_eq!(format!("{:#X}", Felt::ZERO), format!("{:#x}", 0_u64));
-        assert_eq!(format!("{:#X}", Felt::TWO), format!("{:#x}", 2_u64));
-        assert_eq!(format!("{:#X}", Felt::THREE), format!("{:#x}", 3_u64));
+        assert_eq!(format!("{:#X}", Felt::ZERO), format!("{:#X}", 0_u64));
+        assert_eq!(format!("{:#X}", Felt::TWO), format!("{:#X}", 2_u64));
+        assert_eq!(format!("{:#X}", Felt::THREE), format!("{:#X}", 3_u64));
+        assert_eq!(format!("{:#X}", Felt(FieldElement::from(200))), format!("{:#X}", 200_u64));
         assert_eq!(
             format!("{:#X}", Felt::MAX),
             String::from("0x800000000000011000000000000000000000000000000000000000000000000")
