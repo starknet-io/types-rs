@@ -493,7 +493,15 @@ mod formatting {
     /// Represents [Felt] in uppercase hexadecimal format.
     impl fmt::UpperHex for Felt {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            write!(f, "{}", self.0.to_string().to_uppercase())
+            write!(
+                f,
+                "0x{}",
+                self.0
+                    .to_string()
+                    .strip_prefix("0x")
+                    .unwrap()
+                    .to_uppercase()
+            )
         }
     }
 }
@@ -866,6 +874,28 @@ mod test {
             &[Token::String(
                 "0x800000000000011000000000000000000000000000000000000000000000000",
             )],
+        );
+    }
+
+    #[test]
+    fn display_lower_hex() {
+        assert_eq!(format!("{:#x}", Felt::ZERO), format!("{:#x}", 0_u64));
+        assert_eq!(format!("{:#x}", Felt::TWO), format!("{:#x}", 2_u64));
+        assert_eq!(format!("{:#x}", Felt::THREE), format!("{:#x}", 3_u64));
+        assert_eq!(
+            format!("{:#x}", Felt::MAX),
+            String::from("0x800000000000011000000000000000000000000000000000000000000000000")
+        );
+    }
+
+    #[test]
+    fn display_upper_hex() {
+        assert_eq!(format!("{:#X}", Felt::ZERO), format!("{:#x}", 0_u64));
+        assert_eq!(format!("{:#X}", Felt::TWO), format!("{:#x}", 2_u64));
+        assert_eq!(format!("{:#X}", Felt::THREE), format!("{:#x}", 3_u64));
+        assert_eq!(
+            format!("{:#X}", Felt::MAX),
+            String::from("0x800000000000011000000000000000000000000000000000000000000000000")
         );
     }
 }
