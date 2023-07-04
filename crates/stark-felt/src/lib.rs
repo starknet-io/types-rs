@@ -83,6 +83,7 @@ impl Felt {
     pub fn to_bits_be(&self) -> BitArray<BitArrayStore> {
         let mut limbs = self.0.representative().limbs;
         limbs.reverse();
+
         #[cfg(not(target_pointer_width = "64"))]
         let limbs: [u32; 8] = limbs
             .map(|n| [(n >> 32) as u32, n as u32])
@@ -409,13 +410,13 @@ mod arithmetic {
 
     impl iter::Sum for Felt {
         fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
-            iter.sum()
+            iter.fold(Self::ZERO, |augend, addend| augend + addend)
         }
     }
 
     impl<'a> iter::Sum<&'a Felt> for Felt {
         fn sum<I: Iterator<Item = &'a Felt>>(iter: I) -> Self {
-            iter.sum()
+            iter.fold(Self::ZERO, |augend, addend| augend + addend)
         }
     }
 }
@@ -433,7 +434,7 @@ mod serde {
         where
             S: ::serde::Serializer,
         {
-            serializer.serialize_str(&self.to_string())
+            serializer.serialize_str(&format!("{:x}", self))
         }
     }
 
@@ -464,7 +465,7 @@ mod serde {
                 .strip_prefix("0x")
                 .and_then(|v| FieldElement::<Stark252PrimeField>::from_hex(v).ok())
                 .map(Felt)
-                .ok_or(String::from("Extected hex string to be prefixed by '0x'"))
+                .ok_or(String::from("Expected hex string to be prefixed by '0x'"))
                 .map_err(de::Error::custom)
         }
     }
@@ -537,6 +538,7 @@ mod test {
     use super::*;
 
     use proptest::prelude::*;
+    use serde_test::{assert_de_tokens, assert_ser_tokens, Token};
 
     proptest! {
         #[test]
@@ -775,6 +777,18 @@ mod test {
             prop_assert!(x.mul_mod(&y, &p) <= Felt::MAX);
             prop_assert!(x.mul_mod(&y, &p) < p);
         }
+
+        #[test]
+        fn non_zero_felt_new_is_ok_when_not_zero(x in nonzero_felt()) {
+            prop_assert!(NonZeroFelt::try_from(x).is_ok());
+            prop_assert_eq!(NonZeroFelt::try_from(x).unwrap().0, x.0);
+        }
+
+        #[test]
+        fn iter_sum(a in any::<Felt>(), b in any::<Felt>(), c in any::<Felt>()) {
+            prop_assert_eq!([a, b, c].iter().sum::<Felt>(), a + b + c);
+            prop_assert_eq!([a, b, c].iter().map(Clone::clone).sum::<Felt>(), a + b + c);
+        }
     }
 
     #[test]
@@ -817,5 +831,41 @@ mod test {
     #[test]
     fn zero_is_zero() {
         assert!(Felt::ZERO.is_zero());
+    }
+
+    #[test]
+    fn non_zero_felt_from_zero_should_fail() {
+        assert!(NonZeroFelt::try_from(Felt::ZERO).is_err());
+    }
+
+    #[test]
+    fn default_is_zero() {
+        assert!(Felt::default().is_zero());
+    }
+
+    #[test]
+    fn deserialize() {
+        assert_de_tokens(&Felt::ZERO, &[Token::String("0x0")]);
+        assert_de_tokens(&Felt::TWO, &[Token::String("0x2")]);
+        assert_de_tokens(&Felt::THREE, &[Token::String("0x3")]);
+        assert_de_tokens(
+            &Felt::MAX,
+            &[Token::String(
+                "0x800000000000011000000000000000000000000000000000000000000000000",
+            )],
+        );
+    }
+
+    #[test]
+    fn serialize() {
+        assert_ser_tokens(&Felt::ZERO, &[Token::String("0x0")]);
+        assert_ser_tokens(&Felt::TWO, &[Token::String("0x2")]);
+        assert_ser_tokens(&Felt::THREE, &[Token::String("0x3")]);
+        assert_ser_tokens(
+            &Felt::MAX,
+            &[Token::String(
+                "0x800000000000011000000000000000000000000000000000000000000000000",
+            )],
+        );
     }
 }
