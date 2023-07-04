@@ -832,6 +832,39 @@ mod test {
     }
 
     #[test]
+    fn mul_operations() {
+        assert_eq!(Felt::ONE * Felt::THREE, Felt::THREE);
+        assert_eq!(Felt::ZERO * Felt::MAX, Felt::ZERO);
+        assert_eq!(
+            Felt(FieldElement::from(200)) * Felt::THREE,
+            Felt(FieldElement::from(600))
+        );
+        assert_eq!(Felt::MAX * Felt::TWO, Felt::MAX - Felt::ONE);
+    }
+
+    #[test]
+    fn add_operations() {
+        assert_eq!(Felt::ONE + Felt::TWO, Felt::THREE);
+        assert_eq!(Felt::ZERO + Felt::MAX, Felt::MAX);
+        assert_eq!(
+            Felt(FieldElement::from(200)) + Felt::THREE,
+            Felt(FieldElement::from(203))
+        );
+        assert_eq!(Felt::MAX + Felt::TWO, Felt::ONE);
+    }
+
+    #[test]
+    fn sub_operations() {
+        assert_eq!(Felt::TWO - Felt::ONE, Felt::ONE);
+        assert_eq!(Felt::MAX - Felt::ZERO, Felt::MAX);
+        assert_eq!(
+            Felt(FieldElement::from(200)) - Felt::THREE,
+            Felt(FieldElement::from(197))
+        );
+        assert_eq!(Felt::ZERO - Felt::ONE, Felt::MAX);
+    }
+
+    #[test]
     fn deserialize() {
         assert_de_tokens(&Felt::ZERO, &[Token::String("0x0")]);
         assert_de_tokens(&Felt::TWO, &[Token::String("0x2")]);
