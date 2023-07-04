@@ -865,6 +865,18 @@ mod test {
     }
 
     #[test]
+    fn pow_operations() {
+        assert_eq!(Felt::ONE.pow(5), Felt::ONE);
+        assert_eq!(Felt::ZERO.pow(5), Felt::ZERO);
+        assert_eq!(Felt::THREE.pow(0), Felt::ONE);
+        assert_eq!(
+            Felt(FieldElement::from(200)).pow(4),
+            Felt(FieldElement::from(1600000000))
+        );
+        assert_eq!(Felt::MAX.pow(9), Felt::MAX);
+    }
+
+    #[test]
     fn deserialize() {
         assert_de_tokens(&Felt::ZERO, &[Token::String("0x0")]);
         assert_de_tokens(&Felt::TWO, &[Token::String("0x2")]);
