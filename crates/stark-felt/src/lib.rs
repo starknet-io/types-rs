@@ -123,12 +123,9 @@ impl Felt {
 
     /// Floor division.
     pub fn floor_div(&self, rhs: &NonZeroFelt) -> Self {
-        Self::from_bytes_be(
-            &(self.0.representative().div_rem(&rhs.0.representative()))
-                .0
-                .to_bytes_be(),
-        )
-        .unwrap_or_default()
+        Self(FieldElement::from(
+            &(self.0.representative().div_rem(&rhs.0.representative())).0,
+        ))
     }
 
     /// Multiplicative inverse.
@@ -154,28 +151,24 @@ impl Felt {
 
     /// Modular multiplication.
     pub fn mul_mod(&self, rhs: &Self, p: &Self) -> Self {
-        Self::from_bytes_be(
+        Self(FieldElement::from(
             &(self.0 * rhs.0)
                 .representative()
                 .div_rem(&p.0.representative())
                 .1
-                .to_bytes_be(),
-        )
-        .unwrap_or_default()
+        ))
     }
 
     /// Modular multiplicative inverse.
     pub fn inverse_mod(&self, p: &Self) -> Self {
-        Self::from_bytes_be(
+        Self(FieldElement::from(
             &self
                 .0
                 .inv()
                 .representative()
                 .div_rem(&p.0.representative())
                 .1
-                .to_bytes_be(),
-        )
-        .unwrap_or_default()
+        ))
     }
 }
 
