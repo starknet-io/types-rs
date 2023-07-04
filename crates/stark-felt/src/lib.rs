@@ -559,6 +559,8 @@ mod errors {
 
 #[cfg(test)]
 mod test {
+    use core::ops::Shl;
+
     use crate::arbitrary::nonzero_felt;
 
     use super::*;
@@ -677,6 +679,15 @@ mod test {
 
         #[test]
         fn field_div_is_mul_inv(x in any::<Felt>(), y in nonzero_felt()) {
+            let q = x.field_div(&NonZeroFelt(y.0));
+            prop_assert!(q <= Felt::MAX);
+            prop_assert_eq!(q * y, x);
+        }
+
+        #[test]
+        fn floor_div_is_mul_inv(x in any::<Felt>(), y in nonzero_felt()) {
+            let x = Felt(FieldElement::from(&x.0.representative().shl(127)));
+            let y = Felt(FieldElement::from(&y.0.representative().shl(127)));
             let q = x.field_div(&NonZeroFelt(y.0));
             prop_assert!(q <= Felt::MAX);
             prop_assert_eq!(q * y, x);
