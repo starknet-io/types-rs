@@ -754,6 +754,13 @@ mod test {
     }
 
     #[test]
+    fn constant_zero() {
+        let mut zero_bytes = 0_u64.to_le_bytes().to_vec();
+        zero_bytes.extend_from_slice(&[0; 24]);
+        assert_eq!(Felt::ZERO.to_bytes_le().to_vec(), zero_bytes);
+    }
+
+    #[test]
     fn constant_one() {
         let mut one_bytes = 1_u64.to_le_bytes().to_vec();
         one_bytes.extend_from_slice(&[0; 24]);
