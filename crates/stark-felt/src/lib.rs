@@ -478,8 +478,33 @@ mod formatting {
 
     /// Represents [Felt] in decimal by default.
     impl fmt::Display for Felt {
-        fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            todo!()
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            if self.is_zero() {
+                return write!(f, "0");
+            }
+
+            let mut buf = [0u8; 4 * 20];
+            let mut i = buf.len() - 1;
+            let mut current = self.0.representative();
+            let ten = UnsignedInteger::from(10_u16);
+
+            loop {
+                let digit = if current < ten {
+                    current.limbs[0] as u8
+                } else {
+                    (current.div_rem(&ten).1).limbs[0] as u8
+                };
+                buf[i] = digit + b'0';
+                current = current.div_rem(&ten).0;
+                if current == UnsignedInteger::from(0_u16) {
+                    break;
+                }
+                i -= 1;
+            }
+
+            // sequence of `'0'..'9'` chars is guaranteed to be a valid UTF8 string
+            let s = std::str::from_utf8(&buf[i..]).unwrap();
+            fmt::Display::fmt(s, f)
         }
     }
 
@@ -882,7 +907,10 @@ mod test {
         assert_eq!(format!("{:#x}", Felt::ZERO), format!("{:#x}", 0_u64));
         assert_eq!(format!("{:#x}", Felt::TWO), format!("{:#x}", 2_u64));
         assert_eq!(format!("{:#x}", Felt::THREE), format!("{:#x}", 3_u64));
-        assert_eq!(format!("{:#x}", Felt(FieldElement::from(200))), format!("{:#x}", 200_u64));
+        assert_eq!(
+            format!("{:#x}", Felt(FieldElement::from(200))),
+            format!("{:#x}", 200_u64)
+        );
         assert_eq!(
             format!("{:#x}", Felt::MAX),
             String::from("0x800000000000011000000000000000000000000000000000000000000000000")
