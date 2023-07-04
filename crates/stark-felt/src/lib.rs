@@ -752,4 +752,25 @@ mod test {
             prop_assert!( sqrt == x || -sqrt == x)
         }
     }
+
+    #[test]
+    fn constant_one() {
+        let mut one_bytes = 1_u64.to_le_bytes().to_vec();
+        one_bytes.extend_from_slice(&[0; 24]);
+        assert_eq!(Felt::ONE.to_bytes_le().to_vec(), one_bytes);
+    }
+
+    #[test]
+    fn constant_two() {
+        let mut two_bytes = 2_u64.to_le_bytes().to_vec();
+        two_bytes.extend_from_slice(&[0; 24]);
+        assert_eq!(Felt::TWO.to_bytes_le().to_vec(), two_bytes);
+    }
+
+    #[test]
+    fn constant_three() {
+        let mut three_bytes = 3_u64.to_le_bytes().to_vec();
+        three_bytes.extend_from_slice(&[0; 24]);
+        assert_eq!(Felt::THREE.to_bytes_le().to_vec(), three_bytes);
+    }
 }
