@@ -20,7 +20,7 @@ use lambdaworks_math::{
 };
 
 /// Definition of the Field Element type.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Felt(FieldElement<Stark252PrimeField>);
 
 /// A non-zero [Felt].
