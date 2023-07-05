@@ -195,6 +195,10 @@ impl Felt {
         limbs.reverse();
         limbs
     }
+
+    pub fn bits(&self) -> u32 {
+        self.0.representative().bits()
+    }
 }
 
 /// Defaults to [Felt::ZERO].
