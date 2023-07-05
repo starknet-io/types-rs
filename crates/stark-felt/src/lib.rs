@@ -187,7 +187,9 @@ impl Felt {
     }
 
     pub fn from_hex(hex_string: &str) -> Result<Self, FromStrError> {
-        FieldElement::from_hex(hex_string).map(Self).map_err(|_| FromStrError)
+        FieldElement::from_hex(hex_string)
+            .map(Self)
+            .map_err(|_| FromStrError)
     }
 
     pub fn to_le_digits(&self) -> [u64; 4] {
@@ -289,7 +291,10 @@ impl From<i32> for Felt {
 impl From<i64> for Felt {
     fn from(value: i64) -> Self {
         if value.is_negative() {
-            Self::ZERO - Self(FieldElement::from(&UnsignedInteger::from(value.abs() as u64)))
+            Self::ZERO
+                - Self(FieldElement::from(&UnsignedInteger::from(
+                    value.abs() as u64
+                )))
         } else {
             Self(FieldElement::from(&UnsignedInteger::from(value as u64)))
         }
@@ -299,7 +304,10 @@ impl From<i64> for Felt {
 impl From<i128> for Felt {
     fn from(value: i128) -> Self {
         if value.is_negative() {
-            Self::ZERO - Self(FieldElement::from(&UnsignedInteger::from(value.abs() as u128)))
+            Self::ZERO
+                - Self(FieldElement::from(&UnsignedInteger::from(
+                    value.abs() as u128
+                )))
         } else {
             Self(FieldElement::from(&UnsignedInteger::from(value as u128)))
         }
@@ -586,7 +594,9 @@ mod arithmetic {
     impl ops::BitAnd<Felt> for Felt {
         type Output = Felt;
         fn bitand(self, rhs: Felt) -> Self::Output {
-            Self(FieldElement::from(&self.0.representative().bitand(rhs.0.representative())))
+            Self(FieldElement::from(
+                &self.0.representative().bitand(rhs.0.representative()),
+            ))
         }
     }
 
@@ -594,7 +604,104 @@ mod arithmetic {
         type Output = Felt;
 
         fn bitand(self, rhs: Felt) -> Self::Output {
-            Felt(FieldElement::from(&self.0.representative().bitand(rhs.0.representative())))
+            Felt(FieldElement::from(
+                &self.0.representative().bitand(rhs.0.representative()),
+            ))
+        }
+    }
+
+    impl ops::BitAnd<&Felt> for Felt {
+        type Output = Felt;
+        fn bitand(self, rhs: &Felt) -> Self::Output {
+            Self(FieldElement::from(
+                &self.0.representative().bitand(rhs.0.representative()),
+            ))
+        }
+    }
+
+    impl ops::BitAnd<&Felt> for &Felt {
+        type Output = Felt;
+
+        fn bitand(self, rhs: &Felt) -> Self::Output {
+            Felt(FieldElement::from(
+                &self.0.representative().bitand(rhs.0.representative()),
+            ))
+        }
+    }
+
+    impl ops::BitOr<Felt> for Felt {
+        type Output = Felt;
+        fn bitor(self, rhs: Felt) -> Self::Output {
+            Self(FieldElement::from(
+                &self.0.representative().bitor(rhs.0.representative()),
+            ))
+        }
+    }
+
+    impl ops::BitOr<Felt> for &Felt {
+        type Output = Felt;
+
+        fn bitor(self, rhs: Felt) -> Self::Output {
+            Felt(FieldElement::from(
+                &self.0.representative().bitor(rhs.0.representative()),
+            ))
+        }
+    }
+
+    impl ops::BitOr<&Felt> for Felt {
+        type Output = Felt;
+        fn bitor(self, rhs: &Felt) -> Self::Output {
+            Self(FieldElement::from(
+                &self.0.representative().bitor(rhs.0.representative()),
+            ))
+        }
+    }
+
+    impl ops::BitOr<&Felt> for &Felt {
+        type Output = Felt;
+
+        fn bitor(self, rhs: &Felt) -> Self::Output {
+            Felt(FieldElement::from(
+                &self.0.representative().bitor(rhs.0.representative()),
+            ))
+        }
+    }
+
+    impl ops::BitXor<Felt> for Felt {
+        type Output = Felt;
+        fn bitxor(self, rhs: Felt) -> Self::Output {
+            Self(FieldElement::from(
+                &self.0.representative().bitxor(rhs.0.representative()),
+            ))
+        }
+    }
+
+    impl ops::BitXor<Felt> for &Felt {
+        type Output = Felt;
+
+        fn bitxor(self, rhs: Felt) -> Self::Output {
+            Felt(FieldElement::from(
+                &self.0.representative().bitxor(rhs.0.representative()),
+            ))
+        }
+    }
+
+    impl ops::BitXor<&Felt> for Felt {
+        type Output = Felt;
+        fn bitxor(self, rhs: &Felt) -> Self::Output {
+            Self(FieldElement::from(
+                &self.0.representative().bitxor(rhs.0.representative()),
+            ))
+        }
+    }
+
+    impl ops::BitXor<&Felt> for &Felt {
+        type Output = Felt;
+
+        fn bitxor(self, rhs: &Felt) -> Self::Output {
+            Felt(FieldElement::from(
+                &self.0.representative().bitxor(rhs.0.representative()),
+            ))
         }
     }
 
