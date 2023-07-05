@@ -170,6 +170,17 @@ impl Felt {
                 .1,
         ))
     }
+
+    pub fn to_u64(&self) -> Option<u64> {
+        match self.0.representative().limbs {
+            [0, 0, 0, val] => Some(val),
+            _ => None,
+        }
+    }
+
+    pub fn to_usize(&self) -> Option<usize> {
+        self.to_u64()?.try_into().ok()
+    }
 }
 
 /// Defaults to [Felt::ZERO].
