@@ -249,8 +249,21 @@ impl From<u128> for Felt {
     }
 }
 
+impl From<i128> for Felt {
+    fn from(value: i128) -> Self {
+        if value.is_negative() {
+            Self::ZERO - Self(FieldElement::from(&UnsignedInteger::from(value as u128)))
+        } else {
+            Self(FieldElement::from(&UnsignedInteger::from(value as u128)))
+        }
+    }
+}
+
 mod arithmetic {
-    use core::{iter, ops};
+    use core::{
+        iter,
+        ops::{self, Neg},
+    };
 
     use super::*;
 
@@ -304,6 +317,42 @@ mod arithmetic {
         }
     }
 
+    /// Field addition. Never overflows/underflows.
+    impl ops::Add<u64> for Felt {
+        type Output = Felt;
+
+        fn add(self, rhs: u64) -> Self::Output {
+            self + Felt::from(rhs)
+        }
+    }
+
+    /// Field addition. Never overflows/underflows.
+    impl ops::Add<u64> for &Felt {
+        type Output = Felt;
+
+        fn add(self, rhs: u64) -> Self::Output {
+            self + Felt::from(rhs)
+        }
+    }
+
+    /// Field addition. Never overflows/underflows.
+    impl ops::Add<usize> for Felt {
+        type Output = Felt;
+
+        fn add(self, rhs: usize) -> Self::Output {
+            self + rhs as u64
+        }
+    }
+
+    /// Field addition. Never overflows/underflows.
+    impl ops::Add<usize> for &Felt {
+        type Output = Felt;
+
+        fn add(self, rhs: usize) -> Self::Output {
+            self + rhs as u64
+        }
+    }
+
     /// Field subtraction. Never overflows/underflows.
     impl ops::SubAssign<Felt> for Felt {
         fn sub_assign(&mut self, rhs: Felt) {
@@ -351,6 +400,40 @@ mod arithmetic {
 
         fn sub(self, rhs: &Felt) -> Self::Output {
             Felt(self.0 - rhs.0)
+        }
+    }
+
+    /// Field subtraction. Never overflows/underflows.
+    #[allow(clippy::suspicious_arithmetic_impl)]
+    impl ops::Sub<Felt> for u64 {
+        type Output = Felt;
+        fn sub(self, rhs: Felt) -> Self::Output {
+            rhs.neg() + self
+        }
+    }
+
+    /// Field subtraction. Never overflows/underflows.
+    #[allow(clippy::suspicious_arithmetic_impl)]
+    impl ops::Sub<&Felt> for u64 {
+        type Output = Felt;
+        fn sub(self, rhs: &Felt) -> Self::Output {
+            rhs.neg() + self
+        }
+    }
+
+    /// Field subtraction. Never overflows/underflows.
+    impl ops::Sub<Felt> for usize {
+        type Output = Felt;
+        fn sub(self, rhs: Felt) -> Self::Output {
+            self as u64 - rhs
+        }
+    }
+
+    /// Field subtraction. Never overflows/underflows.
+    impl ops::Sub<&Felt> for usize {
+        type Output = Felt;
+        fn sub(self, rhs: &Felt) -> Self::Output {
+            self as u64 - rhs
         }
     }
 
