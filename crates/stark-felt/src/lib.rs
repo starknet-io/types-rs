@@ -237,6 +237,17 @@ impl TryFrom<&Felt> for NonZeroFelt {
         }
     }
 }
+impl From<u64> for Felt {
+    fn from(value: u64) -> Self {
+        Self(FieldElement::from(value))
+    }
+}
+
+impl From<u128> for Felt {
+    fn from(value: u128) -> Self {
+        Self(FieldElement::from(&UnsignedInteger::from(value)))
+    }
+}
 
 mod arithmetic {
     use core::{iter, ops};
