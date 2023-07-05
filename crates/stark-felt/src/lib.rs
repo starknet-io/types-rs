@@ -171,6 +171,10 @@ impl Felt {
         ))
     }
 
+    pub fn to_u32(&self) -> Option<u32> {
+        self.to_u64().and_then(|n| n.try_into().ok())
+    }
+
     pub fn to_u64(&self) -> Option<u64> {
         match self.0.representative().limbs {
             [0, 0, 0, val] => Some(val),
@@ -180,6 +184,16 @@ impl Felt {
 
     pub fn to_usize(&self) -> Option<usize> {
         self.to_u64()?.try_into().ok()
+    }
+
+    pub fn from_hex(hex_string: &str) -> Result<Self, FromStrError> {
+        FieldElement::from_hex(hex_string).map(Self).map_err(|_| FromStrError)
+    }
+
+    pub fn to_le_digits(&self) -> [u64; 4] {
+        let mut limbs = self.0.representative().limbs;
+        limbs.reverse();
+        limbs
     }
 }
 
@@ -237,6 +251,19 @@ impl TryFrom<&Felt> for NonZeroFelt {
         }
     }
 }
+
+impl From<usize> for Felt {
+    fn from(value: usize) -> Self {
+        Self::from(value as u64)
+    }
+}
+
+impl From<u32> for Felt {
+    fn from(value: u32) -> Self {
+        Self::from(value as u64)
+    }
+}
+
 impl From<u64> for Felt {
     fn from(value: u64) -> Self {
         Self(FieldElement::from(value))
@@ -249,10 +276,26 @@ impl From<u128> for Felt {
     }
 }
 
+impl From<i32> for Felt {
+    fn from(value: i32) -> Self {
+        Self::from(value as i64)
+    }
+}
+
+impl From<i64> for Felt {
+    fn from(value: i64) -> Self {
+        if value.is_negative() {
+            Self::ZERO - Self(FieldElement::from(&UnsignedInteger::from(value.abs() as u64)))
+        } else {
+            Self(FieldElement::from(&UnsignedInteger::from(value as u64)))
+        }
+    }
+}
+
 impl From<i128> for Felt {
     fn from(value: i128) -> Self {
         if value.is_negative() {
-            Self::ZERO - Self(FieldElement::from(&UnsignedInteger::from(value as u128)))
+            Self::ZERO - Self(FieldElement::from(&UnsignedInteger::from(value.abs() as u128)))
         } else {
             Self(FieldElement::from(&UnsignedInteger::from(value as u128)))
         }
@@ -503,6 +546,51 @@ mod arithmetic {
 
         fn neg(self) -> Self::Output {
             Felt(self.0.neg())
+        }
+    }
+
+    impl ops::Shl<usize> for Felt {
+        type Output = Felt;
+        fn shl(self, rhs: usize) -> Self::Output {
+            Self(FieldElement::from(&self.0.representative().shl(rhs)))
+        }
+    }
+
+    impl ops::Shl<usize> for &Felt {
+        type Output = Felt;
+
+        fn shl(self, rhs: usize) -> Self::Output {
+            Felt(FieldElement::from(&self.0.representative().shl(rhs)))
+        }
+    }
+
+    impl ops::Shr<usize> for Felt {
+        type Output = Felt;
+        fn shr(self, rhs: usize) -> Self::Output {
+            Self(FieldElement::from(&self.0.representative().shr(rhs)))
+        }
+    }
+
+    impl ops::Shr<usize> for &Felt {
+        type Output = Felt;
+
+        fn shr(self, rhs: usize) -> Self::Output {
+            Felt(FieldElement::from(&self.0.representative().shr(rhs)))
+        }
+    }
+
+    impl ops::BitAnd<Felt> for Felt {
+        type Output = Felt;
+        fn bitand(self, rhs: Felt) -> Self::Output {
+            Self(FieldElement::from(&self.0.representative().bitand(rhs.0.representative())))
+        }
+    }
+
+    impl ops::BitAnd<Felt> for &Felt {
+        type Output = Felt;
+
+        fn bitand(self, rhs: Felt) -> Self::Output {
+            Felt(FieldElement::from(&self.0.representative().bitand(rhs.0.representative())))
         }
     }
 
