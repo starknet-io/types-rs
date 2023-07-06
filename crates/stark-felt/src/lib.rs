@@ -97,6 +97,7 @@ impl Felt {
         limbs.reverse();
 
         #[cfg(not(target_pointer_width = "64"))]
+        // Split limbs to adjust to BitArrayStore = [u32; 8]
         let limbs: [u32; 8] = limbs
             .map(|n| [(n >> 32) as u32, n as u32])
             .into_iter()
@@ -114,6 +115,7 @@ impl Felt {
         let limbs = self.0.representative().limbs;
 
         #[cfg(not(target_pointer_width = "64"))]
+        // Split limbs to adjust to BitArrayStore = [u32; 8]
         let limbs: [u32; 8] = limbs
             .map(|n| [n as u32, (n >> 32) as u32])
             .into_iter()
