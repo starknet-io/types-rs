@@ -11,6 +11,13 @@ pub type BitArrayStore = [u64; 4];
 #[cfg(not(target_pointer_width = "64"))]
 pub type BitArrayStore = [u32; 8];
 
+#[cfg(not(feature = "std"))]
+extern crate alloc;
+#[cfg(not(feature = "std"))]
+use alloc::string::ToString;
+#[cfg(not(feature = "std"))]
+use alloc::vec::Vec;
+
 use lambdaworks_math::{
     field::{
         element::FieldElement, fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
@@ -108,7 +115,7 @@ impl Felt {
 
         #[cfg(not(target_pointer_width = "64"))]
         let limbs: [u32; 8] = limbs
-            .map(|n| [n as u32, n >> 32 as u32])
+            .map(|n| [n as u32, (n >> 32) as u32])
             .into_iter()
             .flatten()
             .collect::<Vec<u32>>()
