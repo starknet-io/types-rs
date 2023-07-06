@@ -56,6 +56,7 @@ impl Felt {
     ));
 
     /// Creates a new [Felt] from its big-endian representation in a [u8] slice.
+    /// This is as performant as [from_bytes_le](Felt::from_bytes_le)
     pub fn from_bytes_be(bytes: &[u8]) -> Result<Self, FromBytesError> {
         FieldElement::from_bytes_be(bytes)
             .map(Self)
@@ -63,6 +64,7 @@ impl Felt {
     }
 
     /// Creates a new [Felt] from its little-endian representation in a [u8] slice.
+    /// This is as performant as [from_bytes_be](Felt::from_bytes_be)
     pub fn from_bytes_le(bytes: &[u8]) -> Result<Self, FromBytesError> {
         FieldElement::from_bytes_le(bytes)
             .map(Self)
@@ -70,16 +72,19 @@ impl Felt {
     }
 
     /// Converts to big-endian byte representation in a [u8] array.
+    /// This is as performant as [to_bytes_le](Felt::to_bytes_le)
     pub fn to_bytes_be(&self) -> [u8; 32] {
         self.0.to_bytes_be()
     }
 
     /// Converts to little-endian byte representation in a [u8] array.
+    /// This is as performant as [to_bytes_be](Felt::to_bytes_be)
     pub fn to_bytes_le(&self) -> [u8; 32] {
         self.0.to_bytes_le()
     }
 
     /// Converts to big-endian bit representation.
+    /// This is as performant as [to_bits_le](Felt::to_bits_le)
     pub fn to_bits_be(&self) -> BitArray<BitArrayStore> {
         let mut limbs = self.0.representative().limbs;
         limbs.reverse();
@@ -97,6 +102,7 @@ impl Felt {
     }
 
     /// Converts to little-endian bit representation.
+    /// This is as performant as [to_bits_be](Felt::to_bits_be)
     pub fn to_bits_le(&self) -> BitArray<BitArrayStore> {
         let limbs = self.0.representative().limbs;
 
