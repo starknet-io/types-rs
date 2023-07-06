@@ -136,7 +136,7 @@ impl Felt {
     /// Finds the square root. There may be 2 roots for each square, and the lower one is returned.
     pub fn sqrt(&self) -> Option<Self> {
         let (root_1, root_2) = self.0.sqrt()?;
-        Some(Self(if root_1 < root_2 { root_1 } else { root_2 }))
+        Some(Self(core::cmp::min(root_1, root_2)))
     }
 
     /// Raises `self` to the power of 2.
