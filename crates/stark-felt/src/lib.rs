@@ -128,6 +128,11 @@ impl Felt {
         ))
     }
 
+    pub fn div_rem(&self, rhs: &NonZeroFelt) -> (Self, Self) {
+        let (q, r) = self.0.representative().div_rem(&rhs.0.representative());
+        (Self(FieldElement::from(&q)), Self(FieldElement::from(&r)))
+    }
+
     /// Multiplicative inverse.
     pub fn inverse(&self) -> Option<Self> {
         Some(Self(self.0.inv()))
@@ -171,6 +176,12 @@ impl Felt {
         ))
     }
 
+    pub fn mod_floor(&self, p: &Self) -> Self {
+        Self(FieldElement::from(
+            &self.0.representative().div_rem(&p.0.representative()).1,
+        ))
+    }
+
     pub fn to_u32(&self) -> Option<u32> {
         self.to_u64().and_then(|n| n.try_into().ok())
     }
@@ -189,6 +200,12 @@ impl Felt {
     pub fn from_hex(hex_string: &str) -> Result<Self, FromStrError> {
         FieldElement::from_hex(hex_string)
             .map(Self)
+            .map_err(|_| FromStrError)
+    }
+
+    pub fn from_dec_str(dec_string: &str) -> Result<Self, FromStrError> {
+        UnsignedInteger::from_dec_str(dec_string)
+            .map(|x| Self(FieldElement::from(&x)))
             .map_err(|_| FromStrError)
     }
 
@@ -260,6 +277,12 @@ impl TryFrom<&Felt> for NonZeroFelt {
 
 impl From<usize> for Felt {
     fn from(value: usize) -> Self {
+        Self::from(value as u64)
+    }
+}
+
+impl From<u8> for Felt {
+    fn from(value: u8) -> Self {
         Self::from(value as u64)
     }
 }
@@ -489,6 +512,22 @@ mod arithmetic {
         type Output = Felt;
         fn sub(self, rhs: &Felt) -> Self::Output {
             self as u64 - rhs
+        }
+    }
+
+    /// Field subtraction. Never overflows/underflows.
+    impl ops::Sub<u64> for Felt {
+        type Output = Felt;
+        fn sub(self, rhs: u64) -> Self::Output {
+            self - Self::from(rhs)
+        }
+    }
+
+    /// Field subtraction. Never overflows/underflows.
+    impl ops::Sub<u64> for &Felt {
+        type Output = Felt;
+        fn sub(self, rhs: u64) -> Self::Output {
+            self - Felt::from(rhs)
         }
     }
 
