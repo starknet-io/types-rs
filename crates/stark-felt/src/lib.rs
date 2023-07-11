@@ -216,7 +216,7 @@ impl Felt {
     }
 
     pub fn bits(&self) -> u32 {
-        self.0.representative().bits()
+        self.0.representative().bits_le() as u32
     }
 }
 
