@@ -30,7 +30,7 @@ As a crates.io dependency:
 
 ```toml
 [dependencies]
-stark-felt = "0.0.2"
+stark-felt = "0.0.3"
 ```
 
 As a git dependency:
