@@ -99,9 +99,8 @@ impl Felt {
         #[cfg(not(target_pointer_width = "64"))]
         // Split limbs to adjust to BitArrayStore = [u32; 8]
         let limbs: [u32; 8] = limbs
-            .map(|n| [(n >> 32) as u32, n as u32])
             .into_iter()
-            .flatten()
+            .flat_map(|n| [(n >> 32) as u32, n as u32])
             .collect::<Vec<u32>>()
             .try_into()
             .unwrap();
@@ -117,9 +116,8 @@ impl Felt {
         #[cfg(not(target_pointer_width = "64"))]
         // Split limbs to adjust to BitArrayStore = [u32; 8]
         let limbs: [u32; 8] = limbs
-            .map(|n| [n as u32, (n >> 32) as u32])
             .into_iter()
-            .flatten()
+            .flat_map(|n| [n as u32, (n >> 32) as u32])
             .collect::<Vec<u32>>()
             .try_into()
             .unwrap();
