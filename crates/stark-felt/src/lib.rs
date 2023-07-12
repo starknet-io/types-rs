@@ -416,13 +416,17 @@ mod arithmetic {
 
     impl iter::Sum for Felt {
         fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
-            iter.fold(Self::ZERO, |augend, addend| augend + addend)
+            let mut base = Self::ZERO;
+            iter.for_each(|addend| base += addend);
+            base
         }
     }
 
     impl<'a> iter::Sum<&'a Felt> for Felt {
         fn sum<I: Iterator<Item = &'a Felt>>(iter: I) -> Self {
-            iter.fold(Self::ZERO, |augend, addend| augend + addend)
+            let mut base = Self::ZERO;
+            iter.for_each(|addend| base += addend);
+            base
         }
     }
 }
