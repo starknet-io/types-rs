@@ -497,13 +497,10 @@ mod formatting {
             let ten = UnsignedInteger::from(10_u16);
 
             loop {
-                let digit = if current < ten {
-                    current.limbs[3] as u8
-                } else {
-                    (current.div_rem(&ten).1).limbs[3] as u8
-                };
+                let (quotient, remainder) = current.div_rem(&ten);
+                let digit = remainder.limbs[3] as u8;
                 buf[i] = digit + b'0';
-                current = current.div_rem(&ten).0;
+                current = quotient;
                 if current == UnsignedInteger::from(0_u16) {
                     break;
                 }
