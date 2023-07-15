@@ -162,25 +162,10 @@ impl Felt {
         Self(self.0.pow(exponent))
     }
 
-    /// Modular multiplication.
-    pub fn mul_mod(&self, rhs: &Self, p: &Self) -> Self {
+    /// Performs self modulo n, with n being smaller that the stark field prime.
+    pub fn mod_floor(&self, n: &Self) -> Self {
         Self(FieldElement::from(
-            &(self.0 * rhs.0)
-                .representative()
-                .div_rem(&p.0.representative())
-                .1,
-        ))
-    }
-
-    /// Modular multiplicative inverse.
-    pub fn inverse_mod(&self, p: &Self) -> Self {
-        Self(FieldElement::from(
-            &self
-                .0
-                .inv()
-                .representative()
-                .div_rem(&p.0.representative())
-                .1,
+            &(self.0).representative().div_rem(&n.0.representative()).1,
         ))
     }
 }
@@ -700,6 +685,13 @@ mod test {
         }
 
         #[test]
+        fn mod_floor_in_range(x in any::<Felt>(), n in any::<Felt>()) {
+            let x_mod_n = x.mod_floor(&n);
+            prop_assert!(x_mod_n <= Felt::MAX);
+            prop_assert!(x_mod_n < n);
+        }
+
+        #[test]
         fn field_div_is_mul_inv(x in any::<Felt>(), y in nonzero_felt()) {
             let q = x.field_div(&NonZeroFelt(y.0));
             prop_assert!(q <= Felt::MAX);
@@ -774,18 +766,6 @@ mod test {
         #[test]
         fn multiplying_by_inverse_yields_multiplicative_neutral(x in nonzero_felt()) {
             prop_assert_eq!(x * x.inverse().unwrap(), Felt::ONE )
-        }
-
-        #[test]
-        fn inverse_mod_in_range(x in any::<Felt>(), p in any::<Felt>()) {
-            prop_assert!(x.inverse_mod(&p) <= Felt::MAX);
-            prop_assert!(x.inverse_mod(&p) < p);
-        }
-
-        #[test]
-        fn mul_mod_in_range(x in any::<Felt>(), y in any::<Felt>(), p in any::<Felt>()) {
-            prop_assert!(x.mul_mod(&y, &p) <= Felt::MAX);
-            prop_assert!(x.mul_mod(&y, &p) < p);
         }
 
         #[test]
