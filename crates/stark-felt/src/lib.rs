@@ -1,5 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use core::ops::Neg;
+
 use bitvec::array::BitArray;
 
 #[cfg(test)]
@@ -204,9 +206,15 @@ impl Felt {
     }
 
     pub fn from_dec_str(dec_string: &str) -> Result<Self, FromStrError> {
-        UnsignedInteger::from_dec_str(dec_string)
-            .map(|x| Self(FieldElement::from(&x)))
-            .map_err(|_| FromStrError)
+        if dec_string.starts_with('-') {
+            UnsignedInteger::from_dec_str(dec_string)
+                .map(|x| Self(FieldElement::from(&x)))
+                .map_err(|_| FromStrError)
+        } else {
+            UnsignedInteger::from_dec_str(dec_string.strip_prefix('-').unwrap())
+                .map(|x| Self(FieldElement::from(&x)).neg())
+                .map_err(|_| FromStrError)
+        }
     }
 
     pub fn to_le_digits(&self) -> [u64; 4] {
