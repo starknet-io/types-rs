@@ -25,7 +25,7 @@ Include `stark-felt` in your library by adding the following to your `Cargo.toml
 
 ```toml
 [dependencies]
-stark-felt = { version = "0.0.2", git = "https://github.com/starknet-io/types-rs" }
+stark-felt = { version = "0.0.3", git = "https://github.com/starknet-io/types-rs" }
 ```
 
 ## Build from source
