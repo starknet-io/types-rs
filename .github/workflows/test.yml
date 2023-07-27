@@ -1,4 +1,4 @@
-on: [push]
+on: [push, pull_request]
 
 name: Test
 
@@ -7,46 +7,32 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Install latest nightly
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly
-          override: true
-          components: rustfmt, clippy
+      - uses: actions/checkout@v3
+      - name: Install toolchain
+        run: rustup show
 
       - name: Run cargo fmt
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: -- --check
+        run: cargo fmt -- --check
 
       - name: Run cargo clippy
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: -- -D warnings
+        run: cargo clippy --all-features -- -D warnings
 
+      - name: Run cargo clippy alloc
+        run: >
+          cargo clippy --no-default-features  --features alloc,serde -- -D warnings
       - name: Run cargo test
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
+        run: cargo test --all-features
+
+      - name: Run cargo test alloc
+        run: cargo test --no-default-features --features alloc,serde
 
   no-std-build:
     name: Test no_std support
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Install latest nightly
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly
-          override: true
-          components: rustfmt, clippy
-          target: thumbv6m-none-eabi
-
-      - name: Build stark-felt
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --package stark-felt --target thumbv6m-none-eabi --no-default-features
+      - uses: actions/checkout@v3
+      - name: Check wasm compatibility
+        run: |-
+          cd ensure_no_std
+          rustup show
+          cargo build -r

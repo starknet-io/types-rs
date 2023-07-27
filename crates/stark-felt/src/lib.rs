@@ -12,10 +12,10 @@ pub type BitArrayStore = [u64; 4];
 pub type BitArrayStore = [u32; 8];
 
 #[cfg(not(feature = "std"))]
-extern crate alloc;
+pub extern crate alloc;
 #[cfg(not(feature = "std"))]
 use alloc::string::ToString;
-#[cfg(not(feature = "std"))]
+#[cfg(all(not(feature = "std"), not(target_pointer_width = "64")))]
 use alloc::vec::Vec;
 
 use lambdaworks_math::{
@@ -418,9 +418,10 @@ mod arithmetic {
 
 #[cfg(feature = "serde")]
 mod serde {
-    use core::fmt;
-
     use ::serde::{de, ser::SerializeSeq, Deserialize, Serialize};
+    #[cfg(not(feature = "std"))]
+    use alloc::{format, string::String};
+    use core::fmt;
 
     use super::*;
 
@@ -475,6 +476,7 @@ mod serde {
 }
 
 mod formatting {
+
     use core::fmt;
 
     use super::*;
@@ -566,13 +568,15 @@ mod errors {
 
 #[cfg(test)]
 mod test {
-    use core::ops::Shl;
-
+    #[cfg(not(feature = "std"))]
+    use super::alloc::{format, string::String, vec::Vec};
     use crate::arbitrary::nonzero_felt;
+    use core::ops::Shl;
 
     use super::*;
 
     use proptest::prelude::*;
+    #[cfg(feature = "serde")]
     use serde_test::{assert_de_tokens, assert_ser_tokens, Configure, Token};
 
     proptest! {
@@ -879,6 +883,7 @@ mod test {
     }
 
     #[test]
+    #[cfg(feature = "serde")]
     fn deserialize() {
         assert_de_tokens(&Felt::ZERO, &[Token::String("0x0")]);
         assert_de_tokens(&Felt::TWO, &[Token::String("0x2")]);
@@ -892,6 +897,7 @@ mod test {
     }
 
     #[test]
+    #[cfg(feature = "serde")]
     fn serialize() {
         assert_ser_tokens(&Felt::ZERO.readable(), &[Token::String("0x0")]);
         assert_ser_tokens(&Felt::TWO.readable(), &[Token::String("0x2")]);
