@@ -11,11 +11,10 @@ pub type BitArrayStore = [u64; 4];
 #[cfg(not(target_pointer_width = "64"))]
 pub type BitArrayStore = [u32; 8];
 
-#[cfg(not(feature = "std"))]
 pub extern crate alloc;
-#[cfg(not(feature = "std"))]
+
 use alloc::string::ToString;
-#[cfg(all(not(feature = "std"), not(target_pointer_width = "64")))]
+#[cfg(not(target_pointer_width = "64"))]
 use alloc::vec::Vec;
 
 use lambdaworks_math::{
@@ -419,7 +418,6 @@ mod arithmetic {
 #[cfg(feature = "serde")]
 mod serde {
     use ::serde::{de, ser::SerializeSeq, Deserialize, Serialize};
-    #[cfg(not(feature = "std"))]
     use alloc::{format, string::String};
     use core::fmt;
 
@@ -568,7 +566,6 @@ mod errors {
 
 #[cfg(test)]
 mod test {
-    #[cfg(not(feature = "std"))]
     use super::alloc::{format, string::String, vec::Vec};
     use crate::arbitrary::nonzero_felt;
     use core::ops::Shl;
