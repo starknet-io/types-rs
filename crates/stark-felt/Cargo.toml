@@ -13,9 +13,8 @@ readme = "README.md"
 [dependencies]
 bitvec = { version = "1.0.1", default-features = false }
 serde = { version = "1.0.163", optional = true, default-features = false }
-# TODO: use version once published
-# lambdaworks-math = { version = "0.1.1", default-features = false }
-lambdaworks-math = { git = "https://github.com/lambdaclass/lambdaworks.git", rev = "60ba0fdb76496995b062d4e9943d7bb96d94ee37", default_features = false}
+lambdaworks-math = { git = "https://github.com/lambdaclass/lambdaworks.git", rev = "4c73e8578fc69b8a548b9a3d9657afe97e089811", default_features = false}
+
 [features]
 default = ["std", "serde"]
 std = []

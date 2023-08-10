@@ -13,6 +13,13 @@ pub type BitArrayStore = [u64; 4];
 #[cfg(not(target_pointer_width = "64"))]
 pub type BitArrayStore = [u32; 8];
 
+#[cfg(not(feature = "std"))]
+extern crate alloc;
+#[cfg(not(feature = "std"))]
+use alloc::string::ToString;
+#[cfg(not(feature = "std"))]
+use alloc::vec::Vec;
+
 use lambdaworks_math::{
     field::{
         element::FieldElement, fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
@@ -58,6 +65,7 @@ impl Felt {
     ));
 
     /// Creates a new [Felt] from its big-endian representation in a [u8] slice.
+    /// This is as performant as [from_bytes_le](Felt::from_bytes_le)
     pub fn from_bytes_be(bytes: &[u8]) -> Result<Self, FromBytesError> {
         FieldElement::from_bytes_be(bytes)
             .map(Self)
@@ -65,6 +73,7 @@ impl Felt {
     }
 
     /// Creates a new [Felt] from its little-endian representation in a [u8] slice.
+    /// This is as performant as [from_bytes_be](Felt::from_bytes_be)
     pub fn from_bytes_le(bytes: &[u8]) -> Result<Self, FromBytesError> {
         FieldElement::from_bytes_le(bytes)
             .map(Self)
@@ -72,25 +81,28 @@ impl Felt {
     }
 
     /// Converts to big-endian byte representation in a [u8] array.
+    /// This is as performant as [to_bytes_le](Felt::to_bytes_le)
     pub fn to_bytes_be(&self) -> [u8; 32] {
         self.0.to_bytes_be()
     }
 
     /// Converts to little-endian byte representation in a [u8] array.
+    /// This is as performant as [to_bytes_be](Felt::to_bytes_be)
     pub fn to_bytes_le(&self) -> [u8; 32] {
         self.0.to_bytes_le()
     }
 
     /// Converts to big-endian bit representation.
+    /// This is as performant as [to_bits_le](Felt::to_bits_le)
     pub fn to_bits_be(&self) -> BitArray<BitArrayStore> {
         let mut limbs = self.0.representative().limbs;
         limbs.reverse();
 
         #[cfg(not(target_pointer_width = "64"))]
+        // Split limbs to adjust to BitArrayStore = [u32; 8]
         let limbs: [u32; 8] = limbs
-            .map(|n| [(n >> 32) as u32, n as u32])
             .into_iter()
-            .flatten()
+            .flat_map(|n| [(n >> 32) as u32, n as u32])
             .collect::<Vec<u32>>()
             .try_into()
             .unwrap();
@@ -99,14 +111,15 @@ impl Felt {
     }
 
     /// Converts to little-endian bit representation.
+    /// This is as performant as [to_bits_be](Felt::to_bits_be)
     pub fn to_bits_le(&self) -> BitArray<BitArrayStore> {
         let limbs = self.0.representative().limbs;
 
         #[cfg(not(target_pointer_width = "64"))]
+        // Split limbs to adjust to BitArrayStore = [u32; 8]
         let limbs: [u32; 8] = limbs
-            .map(|n| [n as u32, n >> 32 as u32])
             .into_iter()
-            .flatten()
+            .flat_map(|n| [n as u32, (n >> 32) as u32])
             .collect::<Vec<u32>>()
             .try_into()
             .unwrap();
@@ -143,7 +156,7 @@ impl Felt {
     /// Finds the square root. There may be 2 roots for each square, and the lower one is returned.
     pub fn sqrt(&self) -> Option<Self> {
         let (root_1, root_2) = self.0.sqrt()?;
-        Some(Self(if root_1 < root_2 { root_1 } else { root_2 }))
+        Some(Self(core::cmp::min(root_1, root_2)))
     }
 
     /// Raises `self` to the power of 2.
@@ -178,9 +191,9 @@ impl Felt {
         ))
     }
 
-    pub fn mod_floor(&self, p: &Self) -> Self {
+    pub fn mod_floor(&self, n: &Self) -> Self {
         Self(FieldElement::from(
-            &self.0.representative().div_rem(&p.0.representative()).1,
+            &(self.0).representative().div_rem(&n.0.representative()).1,
         ))
     }
 
@@ -754,13 +767,17 @@ mod arithmetic {
 
     impl iter::Sum for Felt {
         fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
-            iter.fold(Self::ZERO, |augend, addend| augend + addend)
+            let mut base = Self::ZERO;
+            iter.for_each(|addend| base += addend);
+            base
         }
     }
 
     impl<'a> iter::Sum<&'a Felt> for Felt {
         fn sum<I: Iterator<Item = &'a Felt>>(iter: I) -> Self {
-            iter.fold(Self::ZERO, |augend, addend| augend + addend)
+            let mut base = Self::ZERO;
+            iter.for_each(|addend| base += addend);
+            base
         }
     }
 }
@@ -769,7 +786,7 @@ mod arithmetic {
 mod serde {
     use core::fmt;
 
-    use ::serde::{de, Deserialize, Serialize};
+    use ::serde::{de, ser::SerializeSeq, Deserialize, Serialize};
 
     use super::*;
 
@@ -778,7 +795,15 @@ mod serde {
         where
             S: ::serde::Serializer,
         {
-            serializer.serialize_str(&format!("{:x}", self))
+            if serializer.is_human_readable() {
+                serializer.serialize_str(&format!("{:x}", self))
+            } else {
+                let mut seq = serializer.serialize_seq(Some(32))?;
+                for b in self.to_bytes_be() {
+                    seq.serialize_element(&b)?;
+                }
+                seq.end()
+            }
         }
     }
 
@@ -833,13 +858,10 @@ mod formatting {
             let ten = UnsignedInteger::from(10_u16);
 
             loop {
-                let digit = if current < ten {
-                    current.limbs[3] as u8
-                } else {
-                    (current.div_rem(&ten).1).limbs[3] as u8
-                };
+                let (quotient, remainder) = current.div_rem(&ten);
+                let digit = remainder.limbs[3] as u8;
                 buf[i] = digit + b'0';
-                current = current.div_rem(&ten).0;
+                current = quotient;
                 if current == UnsignedInteger::from(0_u16) {
                     break;
                 }
@@ -917,7 +939,7 @@ mod test {
     use super::*;
 
     use proptest::prelude::*;
-    use serde_test::{assert_de_tokens, assert_ser_tokens, Token};
+    use serde_test::{assert_de_tokens, assert_ser_tokens, Configure, Token};
 
     proptest! {
         #[test]
@@ -1026,6 +1048,13 @@ mod test {
             // test reference variant
             x *= &y;
             prop_assert!(x <= Felt::MAX);
+        }
+
+        #[test]
+        fn mod_floor_in_range(x in any::<Felt>(), n in any::<Felt>()) {
+            let x_mod_n = x.mod_floor(&n);
+            prop_assert!(x_mod_n <= Felt::MAX);
+            prop_assert!(x_mod_n < n);
         }
 
         #[test]
@@ -1242,14 +1271,171 @@ mod test {
 
     #[test]
     fn serialize() {
-        assert_ser_tokens(&Felt::ZERO, &[Token::String("0x0")]);
-        assert_ser_tokens(&Felt::TWO, &[Token::String("0x2")]);
-        assert_ser_tokens(&Felt::THREE, &[Token::String("0x3")]);
+        assert_ser_tokens(&Felt::ZERO.readable(), &[Token::String("0x0")]);
+        assert_ser_tokens(&Felt::TWO.readable(), &[Token::String("0x2")]);
+        assert_ser_tokens(&Felt::THREE.readable(), &[Token::String("0x3")]);
         assert_ser_tokens(
-            &Felt::MAX,
+            &Felt::MAX.readable(),
             &[Token::String(
                 "0x800000000000011000000000000000000000000000000000000000000000000",
             )],
+        );
+
+        assert_ser_tokens(
+            &Felt::ZERO.compact(),
+            &[
+                Token::Seq { len: Some(32) },
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::SeqEnd,
+            ],
+        );
+        assert_ser_tokens(
+            &Felt::TWO.compact(),
+            &[
+                Token::Seq { len: Some(32) },
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(2),
+                Token::SeqEnd,
+            ],
+        );
+        assert_ser_tokens(
+            &Felt::THREE.compact(),
+            &[
+                Token::Seq { len: Some(32) },
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(3),
+                Token::SeqEnd,
+            ],
+        );
+        assert_ser_tokens(
+            &Felt::MAX.compact(),
+            &[
+                Token::Seq { len: Some(32) },
+                Token::U8(8),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(17),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::SeqEnd,
+            ],
         );
     }
 

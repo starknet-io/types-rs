@@ -6,6 +6,7 @@ const FIELD_HIGH: u128 = (1 << 123) + (17 << 64); // this is equal to 1063382396
 const FIELD_LOW: u128 = 1;
 
 /// Returns a [`Strategy`] that generates any valid Felt
+/// This is used to generate input values for proptests
 fn any_felt() -> impl Strategy<Value = Felt> {
     (0..=FIELD_HIGH)
         // turn range into `impl Strategy`
@@ -33,6 +34,7 @@ fn any_felt() -> impl Strategy<Value = Felt> {
 }
 
 /// Returns a [`Strategy`] that generates any nonzero Felt
+/// This is used to generate input values for proptests
 pub fn nonzero_felt() -> impl Strategy<Value = Felt> {
     any_felt().prop_filter("is zero", |x| !x.is_zero())
 }
