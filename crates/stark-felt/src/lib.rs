@@ -169,6 +169,10 @@ impl Felt {
         Self(self.0.pow(exponent))
     }
 
+    pub fn pow_felt(&self, exponent: &Felt) -> Self {
+        Self(self.0.pow(exponent.0.representative()))
+    }
+
     /// Modular multiplication.
     pub fn mul_mod(&self, rhs: &Self, p: &Self) -> Self {
         Self(FieldElement::from(
