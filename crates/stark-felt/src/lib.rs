@@ -1,6 +1,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use core::ops::Neg;
+use core::ops::{Add, Neg};
 
 use bitvec::array::BitArray;
 
@@ -240,6 +240,10 @@ impl Felt {
         limbs
     }
 
+    pub fn to_be_digits(&self) -> [u64; 4] {
+        self.0.representative().limbs
+    }
+
     pub fn bits(&self) -> u32 {
         self.0.representative().bits_le() as u32
     }
@@ -358,6 +362,50 @@ impl From<i128> for Felt {
                 )))
         } else {
             Self(FieldElement::from(&UnsignedInteger::from(value as u128)))
+        }
+    }
+}
+
+impl Add<&Felt> for u64 {
+    type Output = Option<u64>;
+
+    fn add(self, rhs: &Felt) -> Option<u64> {
+        const PRIME_DIGITS_BE_HI: [u64; 3] =
+            [0x0800000000000011, 0x0000000000000000, 0x0000000000000000];
+        const PRIME_MINUS_U64_MAX_DIGITS_BE_HI: [u64; 3] =
+            [0x0800000000000010, 0xffffffffffffffff, 0xffffffffffffffff];
+
+        // Match with the 64 bits digits in big-endian order to
+        // characterize how the sum will behave.
+        match rhs.to_be_digits() {
+            // All digits are `0`, so the sum is simply `self`.
+            [0, 0, 0, 0] => Some(self),
+            // A single digit means this is effectively the sum of two `u64` numbers.
+            [0, 0, 0, low] => self.checked_add(low),
+            // Now we need to compare the 3 most significant digits.
+            // There are two relevant cases from now on, either `rhs` behaves like a
+            // substraction of a `u64` or the result of the sum falls out of range.
+
+            // The 3 MSB only match the prime for Felt::max_value(), which is -1
+            // in the signed field, so this is equivalent to substracting 1 to `self`.
+            [hi @ .., _] if hi == PRIME_DIGITS_BE_HI => self.checked_sub(1),
+
+            // For the remaining values between `[-u64::MAX..0]` (where `{0, -1}` have
+            // already been covered) the MSB matches that of `PRIME - u64::MAX`.
+            // Because we're in the negative number case, we count down. Because `0`
+            // and `-1` correspond to different MSBs, `0` and `1` in the LSB are less
+            // than `-u64::MAX`, the smallest value we can add to (read, substract its
+            // magnitude from) a `u64` number, meaning we exclude them from the valid
+            // case.
+            // For the remaining range, we take the absolute value module-2 while
+            // correcting by substracting `1` (note we actually substract `2` because
+            // the absolute value itself requires substracting `1`.
+            [hi @ .., low] if hi == PRIME_MINUS_U64_MAX_DIGITS_BE_HI && low >= 2 => {
+                (self).checked_sub(u64::MAX - (low - 2))
+            }
+            // Any other case will result in an addition that is out of bounds, so
+            // the addition fails, returning `None`.
+            _ => None,
         }
     }
 }
