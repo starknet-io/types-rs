@@ -5,7 +5,7 @@ use core::ops::{Add, Neg};
 use bitvec::array::BitArray;
 
 #[cfg(test)]
-mod arbitrary;
+mod arbitrary_proptest;
 
 #[cfg(target_pointer_width = "64")]
 pub type BitArrayStore = [u64; 4];
@@ -27,6 +27,9 @@ use lambdaworks_math::{
     traits::ByteConversion,
     unsigned_integer::element::UnsignedInteger,
 };
+
+#[cfg(feature = "arbitrary")]
+use arbitrary::{self, Arbitrary, Unstructured};
 
 /// Definition of the Field Element type.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -246,6 +249,21 @@ impl Felt {
 
     pub fn bits(&self) -> u32 {
         self.0.representative().bits_le() as u32
+    }
+}
+
+#[cfg(feature = "arbitrary")]
+impl<'a> Arbitrary<'a> for Felt {
+    fn arbitrary(u: &mut Unstructured) -> arbitrary::Result<Self> {
+        let hex_chars = [
+            "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f",
+        ];
+        let mut hex_string = String::new();
+        for _ in 0..63 {
+            hex_string.push_str(u.choose(&hex_chars)?);
+        }
+        let felt = FieldElement::<Stark252PrimeField>::from_hex_unchecked(&hex_string);
+        Ok(Felt(felt))
     }
 }
 
