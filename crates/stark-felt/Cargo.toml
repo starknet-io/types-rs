@@ -13,7 +13,7 @@ readme = "README.md"
 [dependencies]
 bitvec = { version = "1.0.1", default-features = false }
 serde = { version = "1.0.163", optional = true, default-features = false }
-lambdaworks-math = { git = "https://github.com/lambdaclass/lambdaworks.git", rev = "4964ccf29e3cfac97e4ca1a97e500cde6fed143c", default_features = false}
+lambdaworks-math = { git = "https://github.com/lambdaclass/lambdaworks.git", rev = "731e27c2c8ed3de66bceacd15e2b6595a2acdc83", default_features = false}
 
 [features]
 default = ["std", "serde"]
