@@ -1002,7 +1002,10 @@ mod errors {
 
 #[cfg(test)]
 mod test {
-    use super::alloc::{format, string::String, vec::Vec};
+    use super::{
+        alloc::{format, string::String, vec::Vec},
+        Felt, FieldElement, NonZeroFelt,
+    };
     use crate::arbitrary_proptest::nonzero_felt;
     use core::ops::Shl;
     use proptest::prelude::*;
