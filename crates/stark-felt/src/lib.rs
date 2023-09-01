@@ -363,7 +363,7 @@ impl From<i64> for Felt {
         if value.is_negative() {
             Self::ZERO
                 - Self(FieldElement::from(&UnsignedInteger::from(
-                    value.abs() as u64
+                    value.unsigned_abs(),
                 )))
         } else {
             Self(FieldElement::from(&UnsignedInteger::from(value as u64)))
@@ -376,7 +376,7 @@ impl From<i128> for Felt {
         if value.is_negative() {
             Self::ZERO
                 - Self(FieldElement::from(&UnsignedInteger::from(
-                    value.abs() as u128
+                    value.unsigned_abs(),
                 )))
         } else {
             Self(FieldElement::from(&UnsignedInteger::from(value as u128)))
@@ -1004,9 +1004,8 @@ mod errors {
 mod test {
     use core::ops::Shl;
 
-    use crate::arbitrary::nonzero_felt;
-
     use super::*;
+    use crate::arbitrary_proptest::nonzero_felt;
 
     use proptest::prelude::*;
     use serde_test::{assert_de_tokens, assert_ser_tokens, Configure, Token};
