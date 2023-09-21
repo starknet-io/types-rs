@@ -152,7 +152,7 @@ impl Felt {
 
     /// Multiplicative inverse.
     pub fn inverse(&self) -> Option<Self> {
-        Some(Self(self.0.inv()))
+        self.0.inv().map(Self).ok()
     }
 
     /// Finds the square root. There may be 2 roots for each square, and the lower one is returned.
@@ -176,31 +176,17 @@ impl Felt {
     }
 
     /// Modular multiplication.
-    pub fn mul_mod(&self, rhs: &Self, p: &Self) -> Self {
-        Self(FieldElement::from(
-            &(self.0 * rhs.0)
-                .representative()
-                .div_rem(&p.0.representative())
-                .1,
-        ))
+    pub fn mul_mod(&self, rhs: &Self, p: &NonZeroFelt) -> Self {
+        (self * rhs).div_rem(p).1
     }
 
     /// Modular multiplicative inverse.
-    pub fn inverse_mod(&self, p: &Self) -> Self {
-        Self(FieldElement::from(
-            &self
-                .0
-                .inv()
-                .representative()
-                .div_rem(&p.0.representative())
-                .1,
-        ))
+    pub fn inverse_mod(&self, p: &NonZeroFelt) -> Option<Self> {
+        self.inverse().map(|x| x.div_rem(p).1)
     }
 
-    pub fn mod_floor(&self, n: &Self) -> Self {
-        Self(FieldElement::from(
-            &(self.0).representative().div_rem(&n.0.representative()).1,
-        ))
+    pub fn mod_floor(&self, n: &NonZeroFelt) -> Self {
+        self.div_rem(n).1
     }
 
     pub fn to_u32(&self) -> Option<u32> {
@@ -1123,8 +1109,9 @@ mod test {
         }
 
         #[test]
-        fn mod_floor_in_range(x in any::<Felt>(), n in any::<Felt>()) {
-            let x_mod_n = x.mod_floor(&n);
+        fn mod_floor_in_range(x in any::<Felt>(), n in nonzero_felt()) {
+            let nzn = NonZeroFelt(n.0);
+            let x_mod_n = x.mod_floor(&nzn);
             prop_assert!(x_mod_n <= Felt::MAX);
             prop_assert!(x_mod_n < n);
         }
@@ -1207,15 +1194,23 @@ mod test {
         }
 
         #[test]
-        fn inverse_mod_in_range(x in any::<Felt>(), p in any::<Felt>()) {
-            prop_assert!(x.inverse_mod(&p) <= Felt::MAX);
-            prop_assert!(x.inverse_mod(&p) < p);
+        fn inverse_mod_of_zero_is_none(p in nonzero_felt()) {
+            let nzp = NonZeroFelt(p.0);
+            prop_assert!(Felt::ZERO.inverse_mod(&nzp).is_none());
         }
 
         #[test]
-        fn mul_mod_in_range(x in any::<Felt>(), y in any::<Felt>(), p in any::<Felt>()) {
-            prop_assert!(x.mul_mod(&y, &p) <= Felt::MAX);
-            prop_assert!(x.mul_mod(&y, &p) < p);
+        fn inverse_mod_in_range(x in nonzero_felt(), p in nonzero_felt()) {
+            let nzp = NonZeroFelt(p.0);
+            prop_assert!(x.inverse_mod(&nzp) <= Some(Felt::MAX));
+            prop_assert!(x.inverse_mod(&nzp) < Some(p));
+        }
+
+        #[test]
+        fn mul_mod_in_range(x in any::<Felt>(), y in any::<Felt>(), p in nonzero_felt()) {
+            let nzp = NonZeroFelt(p.0);
+            prop_assert!(x.mul_mod(&y, &nzp) <= Felt::MAX);
+            prop_assert!(x.mul_mod(&y, &nzp) < p);
         }
 
         #[test]
