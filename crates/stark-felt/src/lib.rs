@@ -3,6 +3,7 @@
 use core::ops::{Add, Neg};
 
 use bitvec::array::BitArray;
+use num_traits::FromPrimitive;
 
 #[cfg(test)]
 mod arbitrary_proptest;
@@ -307,67 +308,61 @@ impl TryFrom<&Felt> for NonZeroFelt {
     }
 }
 
-impl From<usize> for Felt {
-    fn from(value: usize) -> Self {
-        Self::from(value as u64)
+impl FromPrimitive for Felt {
+    fn from_i64(value: i64) -> Option<Self> {
+        Self::from_i128(value as i128)
     }
-}
 
-impl From<u8> for Felt {
-    fn from(value: u8) -> Self {
-        Self::from(value as u64)
+    fn from_u64(value: u64) -> Option<Self> {
+        Self::from_u128(value as u128)
     }
-}
 
-impl From<u32> for Felt {
-    fn from(value: u32) -> Self {
-        Self::from(value as u64)
-    }
-}
-
-impl From<u64> for Felt {
-    fn from(value: u64) -> Self {
-        Self(FieldElement::from(value))
-    }
-}
-
-impl From<u128> for Felt {
-    fn from(value: u128) -> Self {
-        Self(FieldElement::from(&UnsignedInteger::from(value)))
-    }
-}
-
-impl From<i32> for Felt {
-    fn from(value: i32) -> Self {
-        Self::from(value as i64)
-    }
-}
-
-impl From<i64> for Felt {
-    fn from(value: i64) -> Self {
+    fn from_i128(value: i128) -> Option<Self> {
+        let mut res = Self(FieldElement::from(&UnsignedInteger::from(value.unsigned_abs())));
         if value.is_negative() {
-            Self::ZERO
-                - Self(FieldElement::from(&UnsignedInteger::from(
-                    value.unsigned_abs(),
-                )))
-        } else {
-            Self(FieldElement::from(&UnsignedInteger::from(value as u64)))
+            res = -res;
+        }
+        Some(res)
+    }
+
+    fn from_u128(value: u128) -> Option<Self> {
+        Some(Self(FieldElement::from(&UnsignedInteger::from(value))))
+    }
+}
+
+macro_rules! impl_from_u128 {
+    ($type:ty) => {
+        impl From<$type> for Felt {
+            fn from(value: $type) -> Self {
+                Self::from_u128(value as u128).expect("conversion from primitive is infallible")
+            }
         }
     }
 }
 
-impl From<i128> for Felt {
-    fn from(value: i128) -> Self {
-        if value.is_negative() {
-            Self::ZERO
-                - Self(FieldElement::from(&UnsignedInteger::from(
-                    value.unsigned_abs(),
-                )))
-        } else {
-            Self(FieldElement::from(&UnsignedInteger::from(value as u128)))
+impl_from_u128!(u8);
+impl_from_u128!(u16);
+impl_from_u128!(u32);
+impl_from_u128!(u64);
+impl_from_u128!(u128);
+impl_from_u128!(usize);
+
+macro_rules! impl_from_i128 {
+    ($type:ty) => {
+        impl From<$type> for Felt {
+            fn from(value: $type) -> Self {
+                Self::from_i128(value as i128).expect("conversion from primitive is infallible")
+            }
         }
     }
 }
+
+impl_from_i128!(i8);
+impl_from_i128!(i16);
+impl_from_i128!(i32);
+impl_from_i128!(i64);
+impl_from_i128!(i128);
+impl_from_i128!(isize);
 
 impl Add<&Felt> for u64 {
     type Output = Option<u64>;
