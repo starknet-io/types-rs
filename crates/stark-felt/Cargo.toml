@@ -13,7 +13,7 @@ readme = "README.md"
 [dependencies]
 bitvec = { version = "1.0.1", default-features = false }
 serde = { version = "1.0.163", optional = true, default-features = false }
-lambdaworks-math = { version = "=0.1.3", default-features = false }
+lambdaworks-math = { version = "0.1.3", default-features = false }
 
 [features]
 default = ["std", "serde"]
