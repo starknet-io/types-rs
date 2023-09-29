@@ -3,7 +3,7 @@
 use core::ops::{Add, Neg};
 
 use bitvec::array::BitArray;
-use num_traits::FromPrimitive;
+use num_traits::{FromPrimitive, ToPrimitive};
 
 #[cfg(test)]
 mod arbitrary_proptest;
@@ -193,24 +193,6 @@ impl Felt {
         self.div_rem(n).1
     }
 
-    /// Checked cast `self` to `u32`.
-    pub fn to_u32(&self) -> Option<u32> {
-        self.to_u64().and_then(|n| n.try_into().ok())
-    }
-
-    /// Checked cast `self` to `u64`.
-    pub fn to_u64(&self) -> Option<u64> {
-        match self.0.representative().limbs {
-            [0, 0, 0, val] => Some(val),
-            _ => None,
-        }
-    }
-
-    /// Checked cast `self` to `usize`.
-    pub fn to_usize(&self) -> Option<usize> {
-        self.to_u64()?.try_into().ok()
-    }
-
     /// Parse a hex-encoded number into `Felt`.
     pub fn from_hex(hex_string: &str) -> Result<Self, FromStrError> {
         FieldElement::from_hex(hex_string)
@@ -340,6 +322,29 @@ impl FromPrimitive for Felt {
 
     fn from_u128(value: u128) -> Option<Self> {
         Some(Self(FieldElement::from(&UnsignedInteger::from(value))))
+    }
+}
+
+// TODO: we need to decide whether we want conversions to signed primitives
+// will support converting the high end of the field to negative.
+impl ToPrimitive for Felt {
+    fn to_u64(&self) -> Option<u64> {
+        self.to_u128().and_then(|x| u64::try_from(x).ok())
+    }
+
+    fn to_i64(&self) -> Option<i64> {
+        self.to_u128().and_then(|x| i64::try_from(x).ok())
+    }
+
+    fn to_u128(&self) -> Option<u128> {
+        match self.0.representative().limbs {
+            [0, 0, hi, lo] => Some((lo as u128) | ((hi as u128) << 64)),
+            _ => None,
+        }
+    }
+
+    fn to_i128(&self) -> Option<i128> {
+        self.to_u128().and_then(|x| i128::try_from(x).ok())
     }
 }
 
