@@ -130,7 +130,7 @@ impl Felt {
         BitArray::new(limbs)
     }
 
-    /// Checks if `self` is equal to [Felt::Zero].
+    /// Checks if `self` is equal to [Felt::ZERO].
     pub fn is_zero(&self) -> bool {
         *self == Felt::ZERO
     }
@@ -139,19 +139,20 @@ impl Felt {
         Self(self.0 / rhs.0)
     }
 
-    /// Floor division.
+    /// Truncated quotient between `self` and `rhs`.
     pub fn floor_div(&self, rhs: &NonZeroFelt) -> Self {
         Self(FieldElement::from(
             &(self.0.representative().div_rem(&rhs.0.representative())).0,
         ))
     }
 
+    /// Quotient and remainder between `self` and `rhs`.
     pub fn div_rem(&self, rhs: &NonZeroFelt) -> (Self, Self) {
         let (q, r) = self.0.representative().div_rem(&rhs.0.representative());
         (Self(FieldElement::from(&q)), Self(FieldElement::from(&r)))
     }
 
-    /// Multiplicative inverse.
+    /// Multiplicative inverse inside field.
     pub fn inverse(&self) -> Option<Self> {
         self.0.inv().map(Self).ok()
     }
@@ -172,28 +173,32 @@ impl Felt {
         Self(self.0.pow(exponent))
     }
 
+    /// Raises `self` to the power of `exponent`.
     pub fn pow_felt(&self, exponent: &Felt) -> Self {
         Self(self.0.pow(exponent.0.representative()))
     }
 
-    /// Modular multiplication.
+    /// Modular multiplication between `self` and `rhs` modulo `p`.
     pub fn mul_mod(&self, rhs: &Self, p: &NonZeroFelt) -> Self {
         (self * rhs).div_rem(p).1
     }
 
-    /// Modular multiplicative inverse.
+    /// Modular inverse of `self` modulo `p`.
     pub fn inverse_mod(&self, p: &NonZeroFelt) -> Option<Self> {
         self.inverse().map(|x| x.div_rem(p).1)
     }
 
+    /// Remainder of dividing `self` by `n` as integers.
     pub fn mod_floor(&self, n: &NonZeroFelt) -> Self {
         self.div_rem(n).1
     }
 
+    /// Checked cast `self` to `u32`.
     pub fn to_u32(&self) -> Option<u32> {
         self.to_u64().and_then(|n| n.try_into().ok())
     }
 
+    /// Checked cast `self` to `u64`.
     pub fn to_u64(&self) -> Option<u64> {
         match self.0.representative().limbs {
             [0, 0, 0, val] => Some(val),
@@ -201,16 +206,19 @@ impl Felt {
         }
     }
 
+    /// Checked cast `self` to `usize`.
     pub fn to_usize(&self) -> Option<usize> {
         self.to_u64()?.try_into().ok()
     }
 
+    /// Parse a hex-encoded number into `Felt`.
     pub fn from_hex(hex_string: &str) -> Result<Self, FromStrError> {
         FieldElement::from_hex(hex_string)
             .map(Self)
             .map_err(|_| FromStrError)
     }
 
+    /// Parse a decimal-encoded number into `Felt`.
     pub fn from_dec_str(dec_string: &str) -> Result<Self, FromStrError> {
         if dec_string.starts_with('-') {
             UnsignedInteger::from_dec_str(dec_string.strip_prefix('-').unwrap())
@@ -223,16 +231,21 @@ impl Felt {
         }
     }
 
+    /// Convert `self`'s representative into an array of `u64` digits,
+    /// least significant digits first.
     pub fn to_le_digits(&self) -> [u64; 4] {
         let mut limbs = self.0.representative().limbs;
         limbs.reverse();
         limbs
     }
 
+    /// Convert `self`'s representative into an array of `u64` digits,
+    /// most significant digits first.
     pub fn to_be_digits(&self) -> [u64; 4] {
         self.0.representative().limbs
     }
 
+    /// Count the minimum number of bits needed to express `self`'s representative.
     pub fn bits(&self) -> u32 {
         self.0.representative().bits_le() as u32
     }
