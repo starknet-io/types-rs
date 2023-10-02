@@ -313,7 +313,9 @@ impl FromPrimitive for Felt {
     }
 
     fn from_i128(value: i128) -> Option<Self> {
-        let mut res = Self(FieldElement::from(&UnsignedInteger::from(value.unsigned_abs())));
+        let mut res = Self(FieldElement::from(&UnsignedInteger::from(
+            value.unsigned_abs(),
+        )));
         if value.is_negative() {
             res = -res;
         }
@@ -355,7 +357,7 @@ macro_rules! impl_from_u128 {
                 Self::from_u128(value as u128).expect("conversion from primitive is infallible")
             }
         }
-    }
+    };
 }
 
 impl_from_u128!(u8);
@@ -372,7 +374,7 @@ macro_rules! impl_from_i128 {
                 Self::from_i128(value as i128).expect("conversion from primitive is infallible")
             }
         }
-    }
+    };
 }
 
 impl_from_i128!(i8);
