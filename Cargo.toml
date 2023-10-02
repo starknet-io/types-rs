@@ -6,6 +6,7 @@ members = [
 ]
 
 exclude = ["ensure_no_std"]
+resolver = "2"
 
 [workspace.package]
 authors = [
