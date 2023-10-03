@@ -303,27 +303,60 @@ impl TryFrom<&Felt> for NonZeroFelt {
     }
 }
 
-impl FromPrimitive for Felt {
-    fn from_i64(value: i64) -> Option<Self> {
-        Self::from_i128(value as i128)
+impl From<u128> for Felt {
+    fn from(value: u128) -> Felt {
+        Self(FieldElement::from(&UnsignedInteger::from(value)))
     }
+}
 
-    fn from_u64(value: u64) -> Option<Self> {
-        Self::from_u128(value as u128)
-    }
-
-    fn from_i128(value: i128) -> Option<Self> {
+impl From<i128> for Felt {
+    fn from(value: i128) -> Felt {
         let mut res = Self(FieldElement::from(&UnsignedInteger::from(
             value.unsigned_abs(),
         )));
         if value.is_negative() {
             res = -res;
         }
-        Some(res)
+        res
+    }
+}
+
+macro_rules! impl_from {
+    ($from:ty, $with:ty) => {
+        impl From<$from> for Felt {
+            fn from(value: $from) -> Self {
+                (value as $with).into()
+            }
+        }
+    };
+}
+
+impl_from!(u8, u128);
+impl_from!(u16, u128);
+impl_from!(u32, u128);
+impl_from!(u64, u128);
+impl_from!(usize, u128);
+impl_from!(i8, i128);
+impl_from!(i16, i128);
+impl_from!(i32, i128);
+impl_from!(i64, i128);
+impl_from!(isize, i128);
+
+impl FromPrimitive for Felt {
+    fn from_i64(value: i64) -> Option<Self> {
+        Some(value.into())
+    }
+
+    fn from_u64(value: u64) -> Option<Self> {
+        Some(value.into())
+    }
+
+    fn from_i128(value: i128) -> Option<Self> {
+        Some(value.into())
     }
 
     fn from_u128(value: u128) -> Option<Self> {
-        Some(Self(FieldElement::from(&UnsignedInteger::from(value))))
+        Some(value.into())
     }
 }
 
@@ -349,40 +382,6 @@ impl ToPrimitive for Felt {
         self.to_u128().and_then(|x| i128::try_from(x).ok())
     }
 }
-
-macro_rules! impl_from_u128 {
-    ($type:ty) => {
-        impl From<$type> for Felt {
-            fn from(value: $type) -> Self {
-                Self::from_u128(value as u128).expect("conversion from primitive is infallible")
-            }
-        }
-    };
-}
-
-impl_from_u128!(u8);
-impl_from_u128!(u16);
-impl_from_u128!(u32);
-impl_from_u128!(u64);
-impl_from_u128!(u128);
-impl_from_u128!(usize);
-
-macro_rules! impl_from_i128 {
-    ($type:ty) => {
-        impl From<$type> for Felt {
-            fn from(value: $type) -> Self {
-                Self::from_i128(value as i128).expect("conversion from primitive is infallible")
-            }
-        }
-    };
-}
-
-impl_from_i128!(i8);
-impl_from_i128!(i16);
-impl_from_i128!(i32);
-impl_from_i128!(i64);
-impl_from_i128!(i128);
-impl_from_i128!(isize);
 
 impl Add<&Felt> for u64 {
     type Output = Option<u64>;
