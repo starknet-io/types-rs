@@ -239,9 +239,9 @@ impl<'a> Arbitrary<'a> for Felt {
     // It uses the default implementation to create the internal limbs and then
     // uses the usual constructors from `lambdaworks-math`.
     fn arbitrary(u: &mut Unstructured) -> arbitrary::Result<Self> {
-        let limbs = <[u64; 4]>::arbitrary(u);
+        let limbs = <[u64; 4]>::arbitrary(u)?;
         let uint = UnsignedInteger::from_limbs(limbs);
-        let felt = FieldElement::from(uint);
+        let felt = FieldElement::new(uint);
         Ok(Felt(felt))
     }
 }
