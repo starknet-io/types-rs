@@ -503,24 +503,6 @@ mod arithmetic {
         }
     }
 
-    /// Field addition. Never overflows/underflows.
-    impl ops::Add<usize> for Felt {
-        type Output = Felt;
-
-        fn add(self, rhs: usize) -> Self::Output {
-            self + rhs as u64
-        }
-    }
-
-    /// Field addition. Never overflows/underflows.
-    impl ops::Add<usize> for &Felt {
-        type Output = Felt;
-
-        fn add(self, rhs: usize) -> Self::Output {
-            self + rhs as u64
-        }
-    }
-
     /// Field subtraction. Never overflows/underflows.
     impl ops::SubAssign<Felt> for Felt {
         fn sub_assign(&mut self, rhs: Felt) {
@@ -586,22 +568,6 @@ mod arithmetic {
         type Output = Felt;
         fn sub(self, rhs: &Felt) -> Self::Output {
             rhs.neg() + self
-        }
-    }
-
-    /// Field subtraction. Never overflows/underflows.
-    impl ops::Sub<Felt> for usize {
-        type Output = Felt;
-        fn sub(self, rhs: Felt) -> Self::Output {
-            self as u64 - rhs
-        }
-    }
-
-    /// Field subtraction. Never overflows/underflows.
-    impl ops::Sub<&Felt> for usize {
-        type Output = Felt;
-        fn sub(self, rhs: &Felt) -> Self::Output {
-            self as u64 - rhs
         }
     }
 
