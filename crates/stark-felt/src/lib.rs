@@ -235,15 +235,13 @@ impl Felt {
 
 #[cfg(feature = "arbitrary")]
 impl<'a> Arbitrary<'a> for Felt {
+    // Creates an arbitrary `Felt` from unstructured input for fuzzing.
+    // It uses the default implementation to create the internal limbs and then
+    // uses the usual constructors from `lambdaworks-math`.
     fn arbitrary(u: &mut Unstructured) -> arbitrary::Result<Self> {
-        let hex_chars = [
-            "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f",
-        ];
-        let mut hex_string = String::new();
-        for _ in 0..63 {
-            hex_string.push_str(u.choose(&hex_chars)?);
-        }
-        let felt = FieldElement::<Stark252PrimeField>::from_hex_unchecked(&hex_string);
+        let limbs = <[u64; 4]>::arbitrary(u);
+        let uint = UnsignedInteger::from_limbs(limbs);
+        let felt = FieldElement::from(uint);
         Ok(Felt(felt))
     }
 }
