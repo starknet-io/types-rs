@@ -556,18 +556,18 @@ mod arithmetic {
     /// Field subtraction. Never overflows/underflows.
     #[allow(clippy::suspicious_arithmetic_impl)]
     impl ops::Sub<Felt> for u64 {
-        type Output = Felt;
+        type Output = Option<u64>;
         fn sub(self, rhs: Felt) -> Self::Output {
-            rhs.neg() + self
+            self + &rhs.neg()
         }
     }
 
     /// Field subtraction. Never overflows/underflows.
     #[allow(clippy::suspicious_arithmetic_impl)]
     impl ops::Sub<&Felt> for u64 {
-        type Output = Felt;
+        type Output = Option<u64>;
         fn sub(self, rhs: &Felt) -> Self::Output {
-            rhs.neg() + self
+            self + &rhs.neg()
         }
     }
 
