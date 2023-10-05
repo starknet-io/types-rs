@@ -224,8 +224,8 @@ impl Felt {
     }
 
     /// Count the minimum number of bits needed to express `self`'s representative.
-    pub fn bits(&self) -> u32 {
-        self.0.representative().bits_le() as u32
+    pub fn bits(&self) -> usize {
+        self.0.representative().bits_le()
     }
 }
 
