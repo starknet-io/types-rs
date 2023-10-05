@@ -3,7 +3,7 @@
 use core::ops::{Add, Neg};
 
 use bitvec::array::BitArray;
-use num_traits::{FromPrimitive, ToPrimitive};
+use num_traits::{FromPrimitive, ToPrimitive, Zero};
 
 #[cfg(test)]
 mod arbitrary_proptest;
@@ -130,10 +130,6 @@ impl Felt {
         BitArray::new(limbs)
     }
 
-    /// Checks if `self` is equal to [Felt::ZERO].
-    pub fn is_zero(&self) -> bool {
-        *self == Felt::ZERO
-    }
     /// Finite field division.
     pub fn field_div(&self, rhs: &NonZeroFelt) -> Self {
         Self(self.0 / rhs.0)
@@ -378,6 +374,16 @@ impl ToPrimitive for Felt {
 
     fn to_i128(&self) -> Option<i128> {
         self.to_u128().and_then(|x| i128::try_from(x).ok())
+    }
+}
+
+impl Zero for Felt {
+    fn is_zero(&self) -> bool {
+        *self == Felt::ZERO
+    }
+
+    fn zero() -> Felt {
+        Felt::ZERO
     }
 }
 
@@ -822,10 +828,7 @@ mod errors {
 
 #[cfg(test)]
 mod test {
-    use super::{
-        alloc::{format, string::String, vec::Vec},
-        Felt, FieldElement, NonZeroFelt,
-    };
+    use super::*;
     use crate::arbitrary_proptest::nonzero_felt;
     use core::ops::Shl;
     use proptest::prelude::*;

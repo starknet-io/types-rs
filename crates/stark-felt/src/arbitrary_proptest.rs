@@ -1,4 +1,5 @@
 use lambdaworks_math::{field::element::FieldElement, unsigned_integer::element::UnsignedInteger};
+use num_traits::Zero;
 use proptest::prelude::*;
 
 use crate::Felt;
