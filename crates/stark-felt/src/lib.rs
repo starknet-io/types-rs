@@ -165,8 +165,8 @@ impl Felt {
     }
 
     /// Raises `self` to the power of `exponent`.
-    pub fn pow(&self, exponent: u128) -> Self {
-        Self(self.0.pow(exponent))
+    pub fn pow(&self, exponent: impl Into<u128>) -> Self {
+        Self(self.0.pow(exponent.into()))
     }
 
     /// Raises `self` to the power of `exponent`.
@@ -1150,14 +1150,14 @@ mod test {
 
     #[test]
     fn pow_operations() {
-        assert_eq!(Felt::ONE.pow(5), Felt::ONE);
-        assert_eq!(Felt::ZERO.pow(5), Felt::ZERO);
-        assert_eq!(Felt::THREE.pow(0), Felt::ONE);
+        assert_eq!(Felt::ONE.pow(5u32), Felt::ONE);
+        assert_eq!(Felt::ZERO.pow(5u32), Felt::ZERO);
+        assert_eq!(Felt::THREE.pow(0u32), Felt::ONE);
         assert_eq!(
-            Felt(FieldElement::from(200)).pow(4),
+            Felt(FieldElement::from(200)).pow(4u32),
             Felt(FieldElement::from(1600000000))
         );
-        assert_eq!(Felt::MAX.pow(9), Felt::MAX);
+        assert_eq!(Felt::MAX.pow(9u32), Felt::MAX);
     }
 
     #[test]
