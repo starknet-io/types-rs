@@ -829,6 +829,7 @@ mod errors {
 #[cfg(test)]
 mod test {
     use super::*;
+    use super::alloc::{format, string::String, vec::Vec};
     use crate::arbitrary_proptest::nonzero_felt;
     use core::ops::Shl;
     use proptest::prelude::*;
