@@ -24,9 +24,17 @@ impl ProjectivePoint {
         projective_point: &ProjectivePoint,
     ) -> Result<AffinePoint, EllipticCurveError> {
         Ok(AffinePoint(ShortWeierstrassProjectivePoint::from_affine(
-            projective_point.0.x().clone(),
-            projective_point.0.y().clone(),
+            *projective_point.0.x(),
+            *projective_point.0.y(),
         )?))
+    }
+}
+
+impl ops::Add<&ProjectivePoint> for &ProjectivePoint {
+    type Output = ProjectivePoint;
+
+    fn add(self, rhs: &ProjectivePoint) -> ProjectivePoint {
+        ProjectivePoint(self.0.operate_with(&rhs.0))
     }
 }
 
