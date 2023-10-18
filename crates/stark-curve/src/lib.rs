@@ -2,10 +2,14 @@ use core::ops;
 use lambdaworks_math::cyclic_group::IsGroup;
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::stark_curve::StarkCurve;
 use lambdaworks_math::elliptic_curve::short_weierstrass::point::ShortWeierstrassProjectivePoint;
+use lambdaworks_math::elliptic_curve::traits::{EllipticCurveError, FromAffine};
 use stark_felt::Felt;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ProjectivePoint(ShortWeierstrassProjectivePoint<StarkCurve>);
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AffinePoint(ShortWeierstrassProjectivePoint<StarkCurve>);
 
 impl ProjectivePoint {
     pub fn new(x: Felt, y: Felt, z: Felt) -> ProjectivePoint {
@@ -20,5 +24,35 @@ impl ProjectivePoint {
 impl ops::AddAssign<&ProjectivePoint> for ProjectivePoint {
     fn add_assign(&mut self, rhs: &ProjectivePoint) {
         self.0 = self.0.operate_with(&rhs.0);
+    }
+}
+
+impl AffinePoint {
+    pub fn new(x: Felt, y: Felt) -> Result<AffinePoint, EllipticCurveError> {
+        Ok(Self(ShortWeierstrassProjectivePoint::from_affine(
+            x.0, y.0,
+        )?))
+    }
+}
+
+impl ops::Add<&AffinePoint> for &AffinePoint {
+    type Output = AffinePoint;
+
+    fn add(self, rhs: &AffinePoint) -> AffinePoint {
+        AffinePoint(self.0.operate_with(&rhs.0))
+    }
+}
+
+impl ops::AddAssign<&AffinePoint> for AffinePoint {
+    fn add_assign(&mut self, rhs: &AffinePoint) {
+        self.0 = self.0.operate_with(&rhs.0);
+    }
+}
+
+impl ops::Mul<&Felt> for &AffinePoint {
+    type Output = AffinePoint;
+
+    fn mul(self, rhs: &Felt) -> AffinePoint {
+        AffinePoint(self.0.operate_with_self(rhs.0.representative()))
     }
 }
