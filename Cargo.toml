@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "crates/stark-felt",
+    "crates/stark-curve",
     "crates/starknet-types-core",
     "crates/starknet-types-rpc",
 ]

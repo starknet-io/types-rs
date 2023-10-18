@@ -33,7 +33,7 @@ use arbitrary::{self, Arbitrary, Unstructured};
 
 /// Definition of the Field Element type.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Felt(FieldElement<Stark252PrimeField>);
+pub struct Felt(pub FieldElement<Stark252PrimeField>);
 
 /// A non-zero [Felt].
 pub struct NonZeroFelt(FieldElement<Stark252PrimeField>);
