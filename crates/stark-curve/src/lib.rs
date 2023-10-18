@@ -19,6 +19,15 @@ impl ProjectivePoint {
     pub fn identity() -> ProjectivePoint {
         Self(ShortWeierstrassProjectivePoint::neutral_element())
     }
+
+    pub fn to_affine_point(
+        projective_point: &ProjectivePoint,
+    ) -> Result<AffinePoint, EllipticCurveError> {
+        Ok(AffinePoint(ShortWeierstrassProjectivePoint::from_affine(
+            projective_point.0.x().clone(),
+            projective_point.0.y().clone(),
+        )?))
+    }
 }
 
 impl ops::AddAssign<&ProjectivePoint> for ProjectivePoint {
@@ -54,5 +63,11 @@ impl ops::Mul<&Felt> for &AffinePoint {
 
     fn mul(self, rhs: &Felt) -> AffinePoint {
         AffinePoint(self.0.operate_with_self(rhs.0.representative()))
+    }
+}
+
+impl From<AffinePoint> for ProjectivePoint {
+    fn from(affine_point: AffinePoint) -> ProjectivePoint {
+        ProjectivePoint(affine_point.0)
     }
 }
