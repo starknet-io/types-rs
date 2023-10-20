@@ -1,10 +1,11 @@
+use crate::felt::Felt;
 use core::ops;
 use lambdaworks_math::cyclic_group::IsGroup;
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::stark_curve::StarkCurve;
 use lambdaworks_math::elliptic_curve::short_weierstrass::point::ShortWeierstrassProjectivePoint;
 use lambdaworks_math::elliptic_curve::traits::{EllipticCurveError, FromAffine};
-use stark_felt::Felt;
 
+// TODO sacar pub
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ProjectivePoint(ShortWeierstrassProjectivePoint<StarkCurve>);
 

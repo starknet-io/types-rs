@@ -11,7 +11,7 @@ description = "A stark curve type for Cairo."
 readme = "README.md"
 
 [dependencies]
-lambdaworks-math = { git = "https://github.com/Lambdaclass/lambdaworks.git" ,rev = "23154c1b2b7c1cb1620e40ee53fbb446a2923923", default_features = true }
+lambdaworks-math = { git = "https://github.com/Lambdaclass/lambdaworks.git" ,rev = "340045b631e7465cc66cc9140dff9c2d41b7839f", default_features = false }
 num-traits = { version = "0.2.16", default-features = false }
 
 stark-felt = {path = "../stark-felt"}
