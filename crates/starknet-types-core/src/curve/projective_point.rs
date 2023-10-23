@@ -4,8 +4,6 @@ use lambdaworks_math::cyclic_group::IsGroup;
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::stark_curve::StarkCurve;
 use lambdaworks_math::elliptic_curve::short_weierstrass::point::ShortWeierstrassProjectivePoint;
 use lambdaworks_math::elliptic_curve::traits::{EllipticCurveError, FromAffine};
-use lambdaworks_math::field::element::FieldElement;
-use lambdaworks_math::field::fields::fft_friendly::stark_252_prime_field::Stark252PrimeField;
 use lambdaworks_math::unsigned_integer::traits::IsUnsignedInteger;
 
 use crate::curve::affine_point::AffinePoint;
@@ -32,18 +30,18 @@ impl ProjectivePoint {
     }
 
     /// Returns the `x` coordinate of the point.
-    pub fn x(&self) -> &FieldElement<Stark252PrimeField> {
-        self.0.x()
+    pub fn x(&self) -> Felt {
+        Felt(*self.0.x())
     }
 
     /// Returns the `y` coordinate of the point.
-    pub fn y(&self) -> &FieldElement<Stark252PrimeField> {
-        self.0.y()
+    pub fn y(&self) -> Felt {
+        Felt(*self.0.y())
     }
 
     /// Returns the `z` coordinate of the point.
-    pub fn z(&self) -> &FieldElement<Stark252PrimeField> {
-        self.0.z()
+    pub fn z(&self) -> Felt {
+        Felt(*self.0.z())
     }
 }
 
@@ -61,10 +59,10 @@ impl ops::AddAssign<&ProjectivePoint> for ProjectivePoint {
     }
 }
 
-impl ops::Mul<&Felt> for &ProjectivePoint {
+impl ops::Mul<Felt> for &ProjectivePoint {
     type Output = ProjectivePoint;
 
-    fn mul(self, rhs: &Felt) -> ProjectivePoint {
+    fn mul(self, rhs: Felt) -> ProjectivePoint {
         ProjectivePoint(self.0.operate_with_self(rhs.0.representative()))
     }
 }
