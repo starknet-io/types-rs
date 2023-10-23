@@ -4,7 +4,8 @@ use lambdaworks_math::cyclic_group::IsGroup;
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::stark_curve::StarkCurve;
 use lambdaworks_math::elliptic_curve::short_weierstrass::point::ShortWeierstrassProjectivePoint;
 use lambdaworks_math::elliptic_curve::traits::{EllipticCurveError, FromAffine};
-
+use lambdaworks_math::field::element::FieldElement;
+use lambdaworks_math::field::fields::fft_friendly::stark_252_prime_field::Stark252PrimeField;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ProjectivePoint(ShortWeierstrassProjectivePoint<StarkCurve>);
 
@@ -28,6 +29,21 @@ impl ProjectivePoint {
             *projective_point.0.y(),
         )?))
     }
+
+    /// Returns the `x` coordinate of the point.
+    pub fn x(&self) -> &FieldElement<Stark252PrimeField> {
+        self.0.y()
+    }
+
+    /// Returns the `y` coordinate of the point.
+    pub fn y(&self) -> &FieldElement<Stark252PrimeField> {
+        self.0.y()
+    }
+
+    /// Returns the `z` coordinate of the point.
+    pub fn z(&self) -> &FieldElement<Stark252PrimeField> {
+        self.0.y()
+    }
 }
 
 impl ops::Add<&ProjectivePoint> for &ProjectivePoint {
@@ -49,6 +65,20 @@ impl AffinePoint {
         Ok(Self(ShortWeierstrassProjectivePoint::from_affine(
             x.0, y.0,
         )?))
+    }
+
+    pub fn identity() -> AffinePoint {
+        Self(ShortWeierstrassProjectivePoint::neutral_element())
+    }
+
+    /// Returns the `x` coordinate of the point.
+    pub fn x(&self) -> &FieldElement<Stark252PrimeField> {
+        self.0.y()
+    }
+
+    /// Returns the `y` coordinate of the point.
+    pub fn y(&self) -> &FieldElement<Stark252PrimeField> {
+        self.0.y()
     }
 }
 
