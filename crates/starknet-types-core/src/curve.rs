@@ -32,7 +32,7 @@ impl ProjectivePoint {
 
     /// Returns the `x` coordinate of the point.
     pub fn x(&self) -> &FieldElement<Stark252PrimeField> {
-        self.0.y()
+        self.0.x()
     }
 
     /// Returns the `y` coordinate of the point.
@@ -42,7 +42,7 @@ impl ProjectivePoint {
 
     /// Returns the `z` coordinate of the point.
     pub fn z(&self) -> &FieldElement<Stark252PrimeField> {
-        self.0.y()
+        self.0.z()
     }
 }
 
@@ -73,7 +73,7 @@ impl AffinePoint {
 
     /// Returns the `x` coordinate of the point.
     pub fn x(&self) -> &FieldElement<Stark252PrimeField> {
-        self.0.y()
+        self.0.x()
     }
 
     /// Returns the `y` coordinate of the point.
