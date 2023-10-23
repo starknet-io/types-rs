@@ -1,10 +1,12 @@
-# stark-felt
+# starknet-types-core
 
-Field element representation for Cairo and STARK proofs.
+Core types representation for Cairo and STARK proofs.
 
 ## Overview
 
-The `stark-felt` crate provides the universal `Felt` (Field Element) type for Cairo and STARK proofs. It was created to reduce the fragmentation in the Starknet Rust ecosystem by providing a standardized representation of the `Felt` type.
+The `starknet-types-core` crate provides:
+* The universal `Felt` (Field Element) type for Cairo and STARK proofs. It was created to reduce the fragmentation in the Starknet Rust ecosystem by providing a standardized representation of the `Felt` type.
+* The `AffinePoint` and `ProjectivePoint` structs, that represent a point in the Stark curve with which you can operate
 
 ## Features
 
@@ -16,21 +18,21 @@ The `stark-felt` crate provides the universal `Felt` (Field Element) type for Ca
 Here are some examples of how to use the `Felt` type:
 
 ```rust
-// example code here
+    let x = Felt::from(18)
 ```
 
 ## Usage
 
-Include `stark-felt` in your library by adding the following to your `Cargo.toml`:
+Include `starknet-types-core` in your library by adding the following to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-stark-felt = { version = "0.0.3", git = "https://github.com/starknet-io/types-rs" }
+starknet-types-core = { version = "0.0.3", git = "https://github.com/starknet-io/types-rs" }
 ```
 
 ## Build from source
 
-Clone the repository and navigate to the stark-felt directory. Then run:
+Clone the repository and navigate to the starknet-types-core directory. Then run:
 
 ```bash
 cargo build --release
@@ -38,7 +40,7 @@ cargo build --release
 
 ## Testing
 
-Clone the repository and navigate to the stark-felt directory. Then run:
+Clone the repository and navigate to the starknet-types-core directory. Then run:
 
 ```bash
 cargo test
