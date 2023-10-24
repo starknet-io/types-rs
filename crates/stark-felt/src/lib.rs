@@ -1,3 +1,7 @@
+//! A crate that defines Starknet's [Field Element] type.
+//!
+//! [Field Element]: https://docs.starknet.io/documentation/architecture_and_concepts/Cryptography/p-value/
+
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use core::ops::{Add, Neg};
@@ -25,78 +29,104 @@ use lambdaworks_math::{
         element::FieldElement, fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
     },
     traits::ByteConversion,
-    unsigned_integer::element::UnsignedInteger,
+    unsigned_integer::{element::UnsignedInteger, traits::IsUnsignedInteger},
 };
 
 #[cfg(feature = "arbitrary")]
 use arbitrary::{self, Arbitrary, Unstructured};
 
-/// Definition of the Field Element type.
+/// Definition of the Field Element (commonly referred to as `Felt`).
+///
+/// This is an element of the Cairo VM field, which is a prime field of order
+/// 2^251 + 17 * 2^192 + 1. This does mean that the maximum value of a [`Felt`] is
+/// 2^251 + 17 * 2^192 (see [`Felt::MAX`]).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Felt(FieldElement<Stark252PrimeField>);
 
-/// A non-zero [Felt].
+/// A non-zero [`Felt`].
 pub struct NonZeroFelt(FieldElement<Stark252PrimeField>);
 
+/// Occurs when trying to create a [`NonZeroFelt`] from a [`Felt`] equal to 0.
 #[derive(Debug)]
 pub struct FeltIsZeroError;
 
+/// Occurs when trying to parse a invalid string into a [`Felt`].
+///
+/// That can happen when any of the following conditions occur:
+///
+/// - The string is not a valid hexadecimal number.
+/// - The number represented by the string is strictly greater than [`Felt::MAX`].
 #[derive(Debug)]
 pub struct FromStrError;
 
+/// An error that might occur when trying to convert a collection of bytes into a [`Felt`]
+/// instance.
+///
+/// It occurs when trying to create a [`Felt`] with a byte array that's not 32 bytes long.
 #[derive(Debug)]
 pub struct FromBytesError;
 
 impl Felt {
-    /// [Felt] constant that's equal to 0.
+    /// [`Felt`] constant that's equal to 0.
     pub const ZERO: Self = Self(FieldElement::<Stark252PrimeField>::const_from_raw(
         UnsignedInteger::from_u64(0),
     ));
 
-    /// [Felt] constant that's equal to 1.
+    /// [`Felt`] constant that's equal to 1.
     pub const ONE: Self = Self(FieldElement::<Stark252PrimeField>::from_hex_unchecked("1"));
 
-    /// [Felt] constant that's equal to 2.
+    /// [`Felt`] constant that's equal to 2.
     pub const TWO: Self = Self(FieldElement::<Stark252PrimeField>::from_hex_unchecked("2"));
 
-    /// [Felt] constant that's equal to 3.
+    /// [`Felt`] constant that's equal to 3.
     pub const THREE: Self = Self(FieldElement::<Stark252PrimeField>::from_hex_unchecked("3"));
 
-    /// Maximum value of [Felt]. Equals to 2^251 + 17 * 2^192.
+    /// Maximum value of [`Felt`]. Equals to 2^251 + 17 * 2^192.
     pub const MAX: Self = Self(FieldElement::<Stark252PrimeField>::const_from_raw(
         UnsignedInteger::from_limbs([544, 0, 0, 32]),
     ));
 
-    /// Creates a new [Felt] from its big-endian representation in a [u8] slice.
-    /// This is as performant as [from_bytes_le](Felt::from_bytes_le)
+    /// Creates a new [`Felt`] from its big-endian representation in a [u8] slice.
+    ///
+    /// If the provided slice has a length smaller than 32, an error will be returned. However,
+    /// larger arrays are accepted and will be truncated to 32 bytes.
+    ///
+    /// This is as performant as [`from_bytes_le`](Felt::from_bytes_le).
     pub fn from_bytes_be(bytes: &[u8]) -> Result<Self, FromBytesError> {
         FieldElement::from_bytes_be(bytes)
             .map(Self)
             .map_err(|_| FromBytesError)
     }
 
-    /// Creates a new [Felt] from its little-endian representation in a [u8] slice.
-    /// This is as performant as [from_bytes_be](Felt::from_bytes_be)
+    /// Creates a new [`Felt`] from its little-endian representation in a [u8] slice.
+    ///
+    /// If the provided slice has a length smaller than 32, an error will be returned. However,
+    /// larger arrays are accepted and will be truncated to 32 bytes.
+    ///
+    /// This is as performant as [`from_bytes_be`](Felt::from_bytes_be).
     pub fn from_bytes_le(bytes: &[u8]) -> Result<Self, FromBytesError> {
         FieldElement::from_bytes_le(bytes)
             .map(Self)
             .map_err(|_| FromBytesError)
     }
 
-    /// Converts to big-endian byte representation in a [u8] array.
-    /// This is as performant as [to_bytes_le](Felt::to_bytes_le)
+    /// Converts to big-endian byte representation in a [`u8`] array.
+    ///
+    /// This is as performant as [`to_bytes_le`](Felt::to_bytes_le).
     pub fn to_bytes_be(&self) -> [u8; 32] {
         self.0.to_bytes_be()
     }
 
-    /// Converts to little-endian byte representation in a [u8] array.
-    /// This is as performant as [to_bytes_be](Felt::to_bytes_be)
+    /// Converts to little-endian byte representation in a [`u8`] array.
+    ///
+    /// This is as performant as [`to_bytes_be`](Felt::to_bytes_be).
     pub fn to_bytes_le(&self) -> [u8; 32] {
         self.0.to_bytes_le()
     }
 
     /// Converts to big-endian bit representation.
-    /// This is as performant as [to_bits_le](Felt::to_bits_le)
+    ///
+    /// This is as performant as [`to_bits_le`](Felt::to_bits_le).
     pub fn to_bits_be(&self) -> BitArray<BitArrayStore> {
         let mut limbs = self.0.representative().limbs;
         limbs.reverse();
@@ -114,7 +144,8 @@ impl Felt {
     }
 
     /// Converts to little-endian bit representation.
-    /// This is as performant as [to_bits_be](Felt::to_bits_be)
+    ///
+    /// This is as performant as [`to_bits_be`](Felt::to_bits_be).
     pub fn to_bits_le(&self) -> BitArray<BitArrayStore> {
         let limbs = self.0.representative().limbs;
 
@@ -130,73 +161,223 @@ impl Felt {
         BitArray::new(limbs)
     }
 
-    /// Finite field division.
+    /// Performs the finite field division of `self` by `rhs`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use stark_felt::{Felt, NonZeroFelt};
+    /// let a = Felt::from(10);
+    /// let b = Felt::from(3);
+    ///
+    /// let c = a.field_div(&b.try_into().unwrap());
+    /// ```
     pub fn field_div(&self, rhs: &NonZeroFelt) -> Self {
         Self(self.0 / rhs.0)
     }
 
-    /// Truncated quotient between `self` and `rhs`.
+    /// Computes the truncated quotient of `self` when divided by `rhs`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use stark_felt::{Felt, NonZeroFelt};
+    /// let a = Felt::from(10);
+    /// let b = Felt::from(3);
+    ///
+    /// let c = a.floor_div(&b.try_into().unwrap());
+    /// assert_eq!(c, Felt::from(3));
+    /// ```
     pub fn floor_div(&self, rhs: &NonZeroFelt) -> Self {
         Self(FieldElement::from(
             &(self.0.representative().div_rem(&rhs.0.representative())).0,
         ))
     }
 
-    /// Quotient and remainder between `self` and `rhs`.
+    /// Computes the quotient and remainder of `self` when divided by `rhs`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use stark_felt::{Felt, NonZeroFelt};
+    /// let a = Felt::from(10);
+    /// let b = Felt::from(3);
+    ///
+    /// let (q, r) = a.div_rem(&b.try_into().unwrap());
+    /// assert_eq!(q, Felt::from(3));
+    /// assert_eq!(r, Felt::from(1));
+    /// ```
     pub fn div_rem(&self, rhs: &NonZeroFelt) -> (Self, Self) {
         let (q, r) = self.0.representative().div_rem(&rhs.0.representative());
         (Self(FieldElement::from(&q)), Self(FieldElement::from(&r)))
     }
 
-    /// Multiplicative inverse inside field.
+    /// Computes the multiplicative inverse of this [`Felt`] inside the field used by the Cairo VM.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use stark_felt::Felt;
+    /// let a = Felt::from(5);
+    /// let b = a.inverse();
+    /// assert_eq!(b.unwrap() * a, Felt::ONE);
+    /// ```
     pub fn inverse(&self) -> Option<Self> {
         self.0.inv().map(Self).ok()
     }
 
-    /// Finds the square root. There may be 2 roots for each square, and the lower one is returned.
-    pub fn sqrt(&self) -> Option<Self> {
+    /// Returns the square roots of this [`Felt`] within the field used by the Cairo VM.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use stark_felt::Felt;
+    /// let a = Felt::from(25);
+    /// let (b, c) = a.sqrts().unwrap();
+    /// assert_eq!(b * b, a);
+    /// assert_eq!(c * c, a);
+    ///
+    /// assert_eq!(Felt::from(24).sqrts(), None);
+    /// ```
+    pub fn sqrts(&self) -> Option<(Self, Self)> {
         let (root_1, root_2) = self.0.sqrt()?;
-        Some(Self(core::cmp::min(root_1, root_2)))
+        Some((Self(root_1), Self(root_2)))
     }
 
-    /// Raises `self` to the power of 2.
+    /// Computes the square root of this [`Felt`]. There may be 2 roots for each square, and the
+    /// lower one is always returned.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use stark_felt::Felt;
+    /// let a = Felt::from(25);
+    /// let b = a.sqrt().unwrap();
+    ///
+    /// assert_eq!(b * b, a);
+    /// ```
+    pub fn sqrt(&self) -> Option<Self> {
+        self.sqrts().map(|(a, b)| a.min(b))
+    }
+
+    /// Raises this [`Felt`] to the power of 2.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use stark_felt::Felt;
+    /// let a = Felt::from(3);
+    /// let b = a.square();
+    /// assert_eq!(b, Felt::from(9));
+    /// ```   
     pub fn square(&self) -> Self {
         Self(self.0.square())
     }
 
-    /// Raises `self` to the power of `exponent`.
-    pub fn pow(&self, exponent: impl Into<u128>) -> Self {
-        Self(self.0.pow(exponent.into()))
+    /// Raises this [`Felt`] to the power of `exponent`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use stark_felt::Felt;
+    /// let a = Felt::from(3);
+    ///
+    /// assert_eq!(a.pow(2u32), Felt::from(9));
+    /// assert_eq!(a.pow(3u32), Felt::from(27));
+    /// assert_eq!(a.pow(0u32), Felt::ONE);
+    /// ```
+    pub fn pow(&self, exponent: impl IsUnsignedInteger) -> Self {
+        Self(self.0.pow(exponent))
     }
 
-    /// Raises `self` to the power of `exponent`.
+    /// Raises this [`Felt`] to the power of `exponent`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use stark_felt::Felt;
+    /// let a = Felt::from(3);
+    /// let b = a.pow_felt(&Felt::from(3));
+    ///
+    /// assert_eq!(b, Felt::from(27));
+    /// ```
     pub fn pow_felt(&self, exponent: &Felt) -> Self {
         Self(self.0.pow(exponent.0.representative()))
     }
 
     /// Modular multiplication between `self` and `rhs` modulo `p`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use stark_felt::{Felt, NonZeroFelt};
+    /// let a = Felt::from(3);
+    /// let b = Felt::from(4);
+    /// let p = Felt::from(5).try_into().unwrap();
+    ///
+    /// let c = a.mul_mod(&b, &p);
+    /// assert_eq!(c, Felt::from(2));
+    /// ```
     pub fn mul_mod(&self, rhs: &Self, p: &NonZeroFelt) -> Self {
         (self * rhs).div_rem(p).1
     }
 
-    /// Modular inverse of `self` modulo `p`.
+    /// Computes the modular inverse of `self` modulo `p`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use stark_felt::{Felt, NonZeroFelt};
+    /// let a = Felt::from(3);
+    /// let p = Felt::from(5).try_into().unwrap();
+    ///
+    /// let b = a.inverse_mod(&p).unwrap();
+    /// assert_eq!(a.mul_mod(&b, &p), Felt::ONE);
+    /// ```
     pub fn inverse_mod(&self, p: &NonZeroFelt) -> Option<Self> {
         self.inverse().map(|x| x.div_rem(p).1)
     }
 
-    /// Remainder of dividing `self` by `n` as integers.
+    /// Computes the remainder of dividing `self` by `n` as integers.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use stark_felt::{Felt, NonZeroFelt};
+    /// let a = Felt::from(10);
+    /// let b = Felt::from(3);
+    ///
+    /// let c = a.mod_floor(&b.try_into().unwrap());
+    /// assert_eq!(c, Felt::from(1));
+    /// ```
     pub fn mod_floor(&self, n: &NonZeroFelt) -> Self {
         self.div_rem(n).1
     }
 
-    /// Parse a hex-encoded number into `Felt`.
+    /// Parse a hex-encoded number into a [`Felt`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use stark_felt::Felt;
+    /// let a = Felt::from_hex("0x1234").unwrap();
+    /// assert_eq!(a, Felt::from(0x1234));
+    /// ```
     pub fn from_hex(hex_string: &str) -> Result<Self, FromStrError> {
         FieldElement::from_hex(hex_string)
             .map(Self)
             .map_err(|_| FromStrError)
     }
 
-    /// Parse a decimal-encoded number into `Felt`.
+    /// Parse a decimal-encoded number into a [`Felt`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # use stark_felt::Felt;
+    /// let a = Felt::from_dec_str("1234").unwrap();
+    /// assert_eq!(a, Felt::from(1234));
+    /// ```
     pub fn from_dec_str(dec_string: &str) -> Result<Self, FromStrError> {
         if dec_string.starts_with('-') {
             UnsignedInteger::from_dec_str(dec_string.strip_prefix('-').unwrap())
@@ -741,7 +922,7 @@ mod formatting {
 
     use super::*;
 
-    /// Represents [Felt] in decimal by default.
+    /// Represents [`Felt`] in decimal by default.
     impl fmt::Display for Felt {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             if self.is_zero() {
@@ -770,14 +951,14 @@ mod formatting {
         }
     }
 
-    /// Represents [Felt] in lowercase hexadecimal format.
+    /// Represents [`Felt`] in lowercase hexadecimal format.
     impl fmt::LowerHex for Felt {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             fmt::Display::fmt(&self.0, f)
         }
     }
 
-    /// Represents [Felt] in uppercase hexadecimal format.
+    /// Represents [`Felt`] in uppercase hexadecimal format.
     impl fmt::UpperHex for Felt {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             write!(
