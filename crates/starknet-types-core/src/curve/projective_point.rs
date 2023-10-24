@@ -3,7 +3,6 @@ use core::ops;
 use lambdaworks_math::cyclic_group::IsGroup;
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::stark_curve::StarkCurve;
 use lambdaworks_math::elliptic_curve::short_weierstrass::point::ShortWeierstrassProjectivePoint;
-use lambdaworks_math::elliptic_curve::traits::{EllipticCurveError, FromAffine};
 use lambdaworks_math::unsigned_integer::traits::IsUnsignedInteger;
 
 use crate::curve::affine_point::AffinePoint;
@@ -20,13 +19,11 @@ impl ProjectivePoint {
         Self(ShortWeierstrassProjectivePoint::neutral_element())
     }
 
-    pub fn to_affine_point(
-        projective_point: &ProjectivePoint,
-    ) -> Result<AffinePoint, EllipticCurveError> {
-        Ok(AffinePoint(ShortWeierstrassProjectivePoint::from_affine(
-            *projective_point.0.x(),
-            *projective_point.0.y(),
-        )?))
+    /// Creates the same point in affine coordinates. That is,
+    /// returns [x / z: y / z: 1] where `self` is [x: y: z].
+    /// Panics if `self` is the point at infinity.
+    pub fn to_affine_point(projective_point: &ProjectivePoint) -> AffinePoint {
+        AffinePoint(projective_point.0.to_affine())
     }
 
     /// Returns the `x` coordinate of the point.
@@ -69,7 +66,7 @@ impl ops::Mul<Felt> for &ProjectivePoint {
 
 impl<T> ops::Mul<T> for &ProjectivePoint
 where
-    T: IsUnsignedInteger, // Asumiendo que "exponent" es una trait
+    T: IsUnsignedInteger,
 {
     type Output = ProjectivePoint;
 
