@@ -6,6 +6,7 @@ use lambdaworks_math::elliptic_curve::short_weierstrass::point::ShortWeierstrass
 use lambdaworks_math::unsigned_integer::traits::IsUnsignedInteger;
 
 use crate::curve::affine_point::AffinePoint;
+use lambdaworks_math::elliptic_curve::traits::EllipticCurveError;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ProjectivePoint(pub(crate) ShortWeierstrassProjectivePoint<StarkCurve>);
@@ -22,8 +23,11 @@ impl ProjectivePoint {
     /// Creates the same point in affine coordinates. That is,
     /// returns [x / z: y / z: 1] where `self` is [x: y: z].
     /// Panics if `self` is the point at infinity.
-    pub fn to_affine(&self) -> AffinePoint {
-        AffinePoint(self.0.to_affine())
+    pub fn to_affine(&self) -> Result<AffinePoint, EllipticCurveError> {
+        if self.z() == Felt::ZERO {
+            return Err(EllipticCurveError::InvalidPoint);
+        }
+        Ok(AffinePoint(self.0.to_affine()))
     }
 
     /// Returns the `x` coordinate of the point.
@@ -86,10 +90,13 @@ mod test {
         assert_eq!(
             identity,
             ProjectivePoint::new(Felt::from(0), Felt::from(1), Felt::from(0))
-        )
+        );
+
+        assert_eq!(identity.to_affine(), Err(EllipticCurveError::InvalidPoint));
     }
 
     #[test]
+    // Results checked against starknet-rs https://github.com/xJonathanLEI/starknet-rs/
     fn add_operations() {
         let projective_point_1 = ProjectivePoint::new(
             Felt::from_dec_str(
@@ -103,7 +110,9 @@ mod test {
             Felt::from(1),
         );
         let projective_point_2 = projective_point_1.clone();
-        let result = (&projective_point_1 + &projective_point_2).to_affine();
+        let result = (&projective_point_1 + &projective_point_2)
+            .to_affine()
+            .unwrap();
 
         assert_eq!(
             result,
@@ -122,6 +131,7 @@ mod test {
     }
 
     #[test]
+    // Results checked against starknet-rs https://github.com/xJonathanLEI/starknet-rs/
     fn add_assign_operations() {
         let mut projective_point_1 = ProjectivePoint::new(
             Felt::from_dec_str(
@@ -137,7 +147,7 @@ mod test {
         let projective_point_2 = projective_point_1.clone();
         projective_point_1 += &projective_point_2;
 
-        let result = projective_point_1.to_affine();
+        let result = projective_point_1.to_affine().unwrap();
 
         assert_eq!(
             result.x(),
@@ -157,6 +167,7 @@ mod test {
     }
 
     #[test]
+    // Results checked against starknet-rs https://github.com/xJonathanLEI/starknet-rs/
     fn mul_operations() {
         let identity = ProjectivePoint::identity();
 
@@ -178,7 +189,7 @@ mod test {
             Felt::from(1),
         );
 
-        let result = (&projective_point_1 * 1812_u32).to_affine();
+        let result = (&projective_point_1 * 1812_u32).to_affine().unwrap();
 
         assert_eq!(
             result,
