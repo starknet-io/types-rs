@@ -6,7 +6,7 @@ Core types representation for Starknet.
 
 The `starknet-types-core` crate provides:
 * The universal `Felt` (Field Element) type for Cairo and STARK proofs. It was created to reduce the fragmentation in the Starknet Rust ecosystem by providing a standardized representation of the `Felt` type.
-* The `AffinePoint` and `ProjectivePoint` structs, that represent a point in the Stark curve with which you can operate
+* The `AffinePoint` and `ProjectivePoint` structs, which represent points on the Stark curve for performing elliptic curve operations.
 
 ## Features
 
@@ -15,10 +15,12 @@ The `starknet-types-core` crate provides:
 
 ## Examples
 
-Here are some examples of how to use the `Felt` type:
+Here are some examples of how to use the `starknet-types-core` types:
 
 ```rust
-    let x = Felt::from(18)
+    let felt = Felt::from(18);
+    let projective_point = ProjectivePoint::new(Felt::from(0), Felt::from(1), Felt::from(0));
+    let affine_point = AffinePoint::new(Felt::from(0), Felt::from(1)).unwrap();
 ```
 
 ## Usage
