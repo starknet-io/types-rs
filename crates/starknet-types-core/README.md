@@ -1,6 +1,6 @@
 # starknet-types-core
 
-Core types representation for Cairo and STARK proofs.
+Core types representation for Starknet.
 
 ## Overview
 

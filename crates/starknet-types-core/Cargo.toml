@@ -7,7 +7,7 @@ homepage = "https://github.com/starknet-io/types-rs"
 repository = "https://github.com/starknet-io/types-rs"
 categories = ["types", "math", "crypto"]
 keywords = ["stark", "zkp", "cairo"]
-description = "Core types representation for Cairo and STARK proofs"
+description = "Core types representation for Starknet"
 readme = "README.md"
 
 [dependencies]
