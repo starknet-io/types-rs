@@ -29,7 +29,7 @@ use lambdaworks_math::{
         element::FieldElement, fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
     },
     traits::ByteConversion,
-    unsigned_integer::{element::UnsignedInteger, traits::IsUnsignedInteger},
+    unsigned_integer::element::UnsignedInteger,
 };
 
 #[cfg(feature = "arbitrary")]
@@ -286,8 +286,8 @@ impl Felt {
     /// assert_eq!(a.pow(3u32), Felt::from(27));
     /// assert_eq!(a.pow(0u32), Felt::ONE);
     /// ```
-    pub fn pow(&self, exponent: impl IsUnsignedInteger) -> Self {
-        Self(self.0.pow(exponent))
+    pub fn pow(&self, exponent: impl Into<u128>) -> Self {
+        Self(self.0.pow(exponent.into()))
     }
 
     /// Raises this [`Felt`] to the power of `exponent`.
