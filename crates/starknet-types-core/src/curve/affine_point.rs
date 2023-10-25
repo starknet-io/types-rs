@@ -29,41 +29,15 @@ impl AffinePoint {
     }
 }
 
-impl ops::Add<&AffinePoint> for &AffinePoint {
-    type Output = AffinePoint;
+#[cfg(test)]
+mod test {
+    use super::*;
 
-    fn add(self, rhs: &AffinePoint) -> AffinePoint {
-        AffinePoint(self.0.operate_with(&rhs.0))
-    }
-}
+    #[test]
+    fn affine_point_identity() {
+        let identity = AffinePoint::identity();
 
-impl ops::AddAssign<&AffinePoint> for AffinePoint {
-    fn add_assign(&mut self, rhs: &AffinePoint) {
-        self.0 = self.0.operate_with(&rhs.0);
-    }
-}
-
-impl ops::Mul<Felt> for &AffinePoint {
-    type Output = AffinePoint;
-
-    fn mul(self, rhs: Felt) -> AffinePoint {
-        AffinePoint(self.0.operate_with_self(rhs.0.representative()))
-    }
-}
-
-impl<T> ops::Mul<T> for &AffinePoint
-where
-    T: IsUnsignedInteger,
-{
-    type Output = AffinePoint;
-
-    fn mul(self, rhs: T) -> AffinePoint {
-        AffinePoint(self.0.operate_with_self(rhs))
-    }
-}
-
-impl From<AffinePoint> for ProjectivePoint {
-    fn from(affine_point: AffinePoint) -> ProjectivePoint {
-        ProjectivePoint(affine_point.0)
+        assert_eq!(identity.x(), Felt::from(0));
+        assert_eq!(identity.y(), Felt::from(1));
     }
 }

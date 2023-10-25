@@ -74,3 +74,125 @@ where
         ProjectivePoint(self.0.operate_with_self(rhs))
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn projective_point_identity() {
+        let identity = ProjectivePoint::identity();
+
+        assert_eq!(
+            identity,
+            ProjectivePoint::new(Felt::from(0), Felt::from(1), Felt::from(0))
+        )
+    }
+
+    #[test]
+    fn add_operations() {
+        let projective_point_1 = ProjectivePoint::new(
+            Felt::from_dec_str(
+                "874739451078007766457464989774322083649278607533249481151382481072868806602",
+            )
+            .unwrap(),
+            Felt::from_dec_str(
+                "152666792071518830868575557812948353041420400780739481342941381225525861407",
+            )
+            .unwrap(),
+            Felt::from(1),
+        );
+        let projective_point_2 = projective_point_1.clone();
+        let result = (&projective_point_1 + &projective_point_2).to_affine();
+
+        assert_eq!(
+            result,
+            AffinePoint::new(
+                Felt::from_dec_str(
+                    "3324833730090626974525872402899302150520188025637965566623476530814354734325",
+                )
+                .unwrap(),
+                Felt::from_dec_str(
+                    "3147007486456030910661996439995670279305852583596209647900952752170983517249",
+                )
+                .unwrap()
+            )
+            .unwrap()
+        )
+    }
+
+    #[test]
+    fn add_assign_operations() {
+        let mut projective_point_1 = ProjectivePoint::new(
+            Felt::from_dec_str(
+                "874739451078007766457464989774322083649278607533249481151382481072868806602",
+            )
+            .unwrap(),
+            Felt::from_dec_str(
+                "152666792071518830868575557812948353041420400780739481342941381225525861407",
+            )
+            .unwrap(),
+            Felt::from(1),
+        );
+        let projective_point_2 = projective_point_1.clone();
+        projective_point_1 += &projective_point_2;
+
+        let result = projective_point_1.to_affine();
+
+        assert_eq!(
+            result.x(),
+            Felt::from_dec_str(
+                "3324833730090626974525872402899302150520188025637965566623476530814354734325",
+            )
+            .unwrap()
+        );
+
+        assert_eq!(
+            result.y(),
+            Felt::from_dec_str(
+                "3147007486456030910661996439995670279305852583596209647900952752170983517249",
+            )
+            .unwrap()
+        );
+    }
+
+    #[test]
+    fn mul_operations() {
+        let identity = ProjectivePoint::identity();
+
+        assert_eq!(&identity * 11_u16, identity);
+        assert_eq!(
+            &identity * Felt::from_dec_str("8731298391798138132780",).unwrap(),
+            identity
+        );
+
+        let projective_point_1 = ProjectivePoint::new(
+            Felt::from_dec_str(
+                "685118385380464480289795596422487144864558069280897344382334516257395969277",
+            )
+            .unwrap(),
+            Felt::from_dec_str(
+                "2157469546853095472290556201984093730375838368522549154974787195581425752638",
+            )
+            .unwrap(),
+            Felt::from(1),
+        );
+
+        let result = (&projective_point_1 * 1812_u32).to_affine();
+
+        assert_eq!(
+            result,
+            AffinePoint::new(
+                Felt::from_dec_str(
+                    "3440268448213322209285127313797148367487473316555419755705577898182859853039",
+                )
+                .unwrap(),
+                Felt::from_dec_str(
+                    "1596323783766236796787317367695486687781666659527154739146733884430376982452",
+                )
+                .unwrap()
+            )
+            .unwrap()
+        )
+    }
+}
