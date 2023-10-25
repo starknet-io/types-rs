@@ -1,14 +1,15 @@
+use crate::curve::curve_errors::CurveError;
 use crate::felt::Felt;
 use lambdaworks_math::cyclic_group::IsGroup;
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::stark_curve::StarkCurve;
 use lambdaworks_math::elliptic_curve::short_weierstrass::point::ShortWeierstrassProjectivePoint;
-use lambdaworks_math::elliptic_curve::traits::{EllipticCurveError, FromAffine};
+use lambdaworks_math::elliptic_curve::traits::FromAffine;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AffinePoint(pub(crate) ShortWeierstrassProjectivePoint<StarkCurve>);
 
 impl AffinePoint {
-    pub fn new(x: Felt, y: Felt) -> Result<AffinePoint, EllipticCurveError> {
+    pub fn new(x: Felt, y: Felt) -> Result<AffinePoint, CurveError> {
         Ok(Self(ShortWeierstrassProjectivePoint::from_affine(
             x.0, y.0,
         )?))

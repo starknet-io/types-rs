@@ -1,12 +1,12 @@
+use crate::curve::affine_point::AffinePoint;
+use crate::curve::curve_errors::CurveError;
 use crate::felt::Felt;
 use core::ops;
 use lambdaworks_math::cyclic_group::IsGroup;
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::stark_curve::StarkCurve;
 use lambdaworks_math::elliptic_curve::short_weierstrass::point::ShortWeierstrassProjectivePoint;
+use lambdaworks_math::elliptic_curve::traits::EllipticCurveError::InvalidPoint;
 use lambdaworks_math::unsigned_integer::traits::IsUnsignedInteger;
-
-use crate::curve::affine_point::AffinePoint;
-use lambdaworks_math::elliptic_curve::traits::EllipticCurveError;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ProjectivePoint(pub(crate) ShortWeierstrassProjectivePoint<StarkCurve>);
@@ -23,9 +23,9 @@ impl ProjectivePoint {
     /// Creates the same point in affine coordinates. That is,
     /// returns [x / z: y / z: 1] where `self` is [x: y: z].
     /// Panics if `self` is the point at infinity.
-    pub fn to_affine(&self) -> Result<AffinePoint, EllipticCurveError> {
+    pub fn to_affine(&self) -> Result<AffinePoint, CurveError> {
         if self.z() == Felt::ZERO {
-            return Err(EllipticCurveError::InvalidPoint);
+            return Err(CurveError::EllipticCurveError(InvalidPoint));
         }
         Ok(AffinePoint(self.0.to_affine()))
     }
@@ -92,7 +92,10 @@ mod test {
             ProjectivePoint::new(Felt::from(0), Felt::from(1), Felt::from(0))
         );
 
-        assert_eq!(identity.to_affine(), Err(EllipticCurveError::InvalidPoint));
+        assert_eq!(
+            identity.to_affine(),
+            Err(CurveError::EllipticCurveError(InvalidPoint))
+        );
     }
 
     #[test]
