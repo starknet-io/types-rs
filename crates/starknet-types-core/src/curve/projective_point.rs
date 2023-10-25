@@ -16,6 +16,7 @@ impl ProjectivePoint {
         Self(ShortWeierstrassProjectivePoint::new([x.0, y.0, z.0]))
     }
 
+    /// The point at infinity.
     pub fn identity() -> ProjectivePoint {
         Self(ShortWeierstrassProjectivePoint::neutral_element())
     }

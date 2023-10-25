@@ -15,6 +15,7 @@ impl AffinePoint {
         )?))
     }
 
+    /// The point at infinity.
     pub fn identity() -> AffinePoint {
         Self(ShortWeierstrassProjectivePoint::neutral_element())
     }
