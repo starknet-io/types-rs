@@ -22,8 +22,8 @@ impl ProjectivePoint {
     /// Creates the same point in affine coordinates. That is,
     /// returns [x / z: y / z: 1] where `self` is [x: y: z].
     /// Panics if `self` is the point at infinity.
-    pub fn to_affine_point(projective_point: &ProjectivePoint) -> AffinePoint {
-        AffinePoint(projective_point.0.to_affine())
+    pub fn to_affine(&self) -> AffinePoint {
+        AffinePoint(self.0.to_affine())
     }
 
     /// Returns the `x` coordinate of the point.

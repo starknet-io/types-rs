@@ -1,11 +1,8 @@
-use crate::curve::projective_point::ProjectivePoint;
 use crate::felt::Felt;
-use core::ops;
 use lambdaworks_math::cyclic_group::IsGroup;
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::stark_curve::StarkCurve;
 use lambdaworks_math::elliptic_curve::short_weierstrass::point::ShortWeierstrassProjectivePoint;
 use lambdaworks_math::elliptic_curve::traits::{EllipticCurveError, FromAffine};
-use lambdaworks_math::unsigned_integer::traits::IsUnsignedInteger;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AffinePoint(pub(crate) ShortWeierstrassProjectivePoint<StarkCurve>);
