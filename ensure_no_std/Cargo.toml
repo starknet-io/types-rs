@@ -7,6 +7,7 @@ edition = "2021"
 starknet-types-core = { path = "../crates/starknet-types-core", default-features = false, features = [
     "alloc",
     "serde",
+    "curve",
 ] }
 starknet-types-rpc = { path = "../crates/starknet-types-rpc", default-features = false }
 wee_alloc = "0.4.5"
