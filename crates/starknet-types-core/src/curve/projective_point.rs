@@ -22,7 +22,8 @@ impl ProjectivePoint {
     }
 
     /// Creates the same point in affine coordinates. That is,
-    /// returns [x / z: y / z: 1] where `self` is [x: y: z].
+    /// returns (x * inv_z, y* inv_z,  1)
+    /// where `self` is the point (x, y, z) and inv_z is the multiplicative inverse of z
     pub fn to_affine(&self) -> Result<AffinePoint, CurveError> {
         if self.z() == Felt::ZERO {
             return Err(CurveError::EllipticCurveError(InvalidPoint));
