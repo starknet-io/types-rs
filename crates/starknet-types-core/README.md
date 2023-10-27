@@ -6,12 +6,26 @@ Core types representation for Starknet.
 
 The `starknet-types-core` crate provides:
 * The universal `Felt` (Field Element) type for Cairo and STARK proofs. It was created to reduce the fragmentation in the Starknet Rust ecosystem by providing a standardized representation of the `Felt` type.
-* The `AffinePoint` and `ProjectivePoint` structs, which represent points on the Stark curve for performing elliptic curve operations.
 
 ## Features
 
-- Standardized `Felt` type: Simplify your codebase by using our standardized `Felt` type.
-- Optimized for performance: The `Felt` type has been optimized for high-performance applications.
+### No features
+- Standardized `Felt` type: Simplify your codebase by using our standardized `Felt` type. Optimized for performance: The `Felt` type has been optimized for high-performance applications.
+- No_std support ✅
+
+### Serde
+- Provides a Serialization and Deserialization implementations for the `Felt` type
+- No_std support ✅
+
+### Arbitrary
+- Provides an Arbitrary implementations for the `Felt` type
+
+### Curve
+- Add the `AffinePoint` and `ProjectivePoint` structs, which represent points on the Stark curve for performing elliptic curve operations.
+- No_std support ✅
+
+### Hash
+- Implements Pedersen hashing for Felts and Felts array
 
 ## Examples
 
@@ -29,7 +43,13 @@ Include `starknet-types-core` in your library by adding the following to your `C
 
 ```toml
 [dependencies]
-starknet-types-core = { version = "0.0.3", git = "https://github.com/starknet-io/types-rs" }
+starknet-types-core = { version = "0.0.3", git = "https://github.com/starknet-io/types-rs", default-features = false, features = [
+    "alloc",
+    "serde",
+    "arbitrary",
+    "curve",
+    "hash",
+] }
 ```
 
 ## Build from source
