@@ -9,7 +9,6 @@ additional-imports = [
 ]
 method-name-prefix = "starknet_"
 param-types = true
-result-types = true
 
 [formatters]
 num-as-hex = "NumAsHex"

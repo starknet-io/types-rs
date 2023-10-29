@@ -1316,19 +1316,9 @@ pub struct TxnFinalityAndExecutionStatus {
     pub finality_status: TxnStatus,
 }
 
-/// Semver of Starknet's JSON-RPC spec being used
-///
-/// Result type of `starknet_specVersion`.
-pub type SpecVersionResult = String;
-
 /// Parameters of the `starknet_specVersion` method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SpecVersionParams {}
-
-/// The resulting block information with transaction hashes
-///
-/// Result type of `starknet_getBlockWithTxHashes`.
-pub type GetBlockWithTxHashesResult = MaybePendingBlockWithTxHashes;
 
 /// Parameters of the `starknet_getBlockWithTxHashes` method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1337,11 +1327,6 @@ pub struct GetBlockWithTxHashesParams {
     pub block_id: BlockId,
 }
 
-/// The resulting block information with full transactions
-///
-/// Result type of `starknet_getBlockWithTxs`.
-pub type GetBlockWithTxsResult = MaybePendingBlockWithTxs;
-
 /// Parameters of the `starknet_getBlockWithTxs` method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GetBlockWithTxsParams {
@@ -1349,22 +1334,12 @@ pub struct GetBlockWithTxsParams {
     pub block_id: BlockId,
 }
 
-/// The information about the state update of the requested block
-///
-/// Result type of `starknet_getStateUpdate`.
-pub type GetStateUpdateResult = MaybePendingStateUpdate;
-
 /// Parameters of the `starknet_getStateUpdate` method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GetStateUpdateParams {
     /// The hash of the requested block, or number (height) of the requested block, or a block tag
     pub block_id: BlockId,
 }
-
-/// The value at the given key for the given contract. 0 if no value is found
-///
-/// Result type of `starknet_getStorageAt`.
-pub type GetStorageAtResult = Felt;
 
 /// Parameters of the `starknet_getStorageAt` method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1377,9 +1352,6 @@ pub struct GetStorageAtParams {
     pub block_id: BlockId,
 }
 
-/// Result type of `starknet_getTransactionStatus`.
-pub type GetTransactionStatusResult = TxnFinalityAndExecutionStatus;
-
 /// Parameters of the `starknet_getTransactionStatus` method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GetTransactionStatusParams {
@@ -1387,18 +1359,12 @@ pub struct GetTransactionStatusParams {
     pub transaction_hash: TxnHash,
 }
 
-/// Result type of `starknet_getTransactionByHash`.
-pub type GetTransactionByHashResult = TxnWithHash;
-
 /// Parameters of the `starknet_getTransactionByHash` method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GetTransactionByHashParams {
     /// The hash of the requested transaction
     pub transaction_hash: TxnHash,
 }
-
-/// Result type of `starknet_getTransactionByBlockIdAndIndex`.
-pub type GetTransactionByBlockIdAndIndexResult = TxnWithHash;
 
 /// Parameters of the `starknet_getTransactionByBlockIdAndIndex` method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1409,20 +1375,12 @@ pub struct GetTransactionByBlockIdAndIndexParams {
     pub index: u64,
 }
 
-/// Result type of `starknet_getTransactionReceipt`.
-pub type GetTransactionReceiptResult = MaybePendingTxnReceipt;
-
 /// Parameters of the `starknet_getTransactionReceipt` method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GetTransactionReceiptParams {
     /// The hash of the requested transaction
     pub transaction_hash: TxnHash,
 }
-
-/// The contract class, if found
-///
-/// Result type of `starknet_getClass`.
-pub type GetClassResult = MaybeDeprecatedContractClass;
 
 /// Parameters of the `starknet_getClass` method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1433,11 +1391,6 @@ pub struct GetClassParams {
     pub class_hash: Felt,
 }
 
-/// The class hash of the given contract
-///
-/// Result type of `starknet_getClassHashAt`.
-pub type GetClassHashAtResult = Felt;
-
 /// Parameters of the `starknet_getClassHashAt` method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GetClassHashAtParams {
@@ -1446,11 +1399,6 @@ pub struct GetClassHashAtParams {
     /// The address of the contract whose class hash will be returned
     pub contract_address: Address,
 }
-
-/// The contract class
-///
-/// Result type of `starknet_getClassAt`.
-pub type GetClassAtResult = MaybeDeprecatedContractClass;
 
 /// Parameters of the `starknet_getClassAt` method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1461,22 +1409,12 @@ pub struct GetClassAtParams {
     pub contract_address: Address,
 }
 
-/// The number of transactions in the designated block
-///
-/// Result type of `starknet_getBlockTransactionCount`.
-pub type GetBlockTransactionCountResult = u64;
-
 /// Parameters of the `starknet_getBlockTransactionCount` method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GetBlockTransactionCountParams {
     /// The hash of the requested block, or number (height) of the requested block, or a block tag
     pub block_id: BlockId,
 }
-
-/// The function's return value, as defined in the Cairo output
-///
-/// Result type of `starknet_call`.
-pub type CallResult = Vec<Felt>;
 
 /// Parameters of the `starknet_call` method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1487,11 +1425,6 @@ pub struct CallParams {
     pub block_id: BlockId,
 }
 
-/// the fee estimations
-///
-/// Result type of `starknet_estimateFee`.
-pub type EstimateFeeResult = Vec<FeeEstimate>;
-
 /// Parameters of the `starknet_estimateFee` method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EstimateFeeParams {
@@ -1500,11 +1433,6 @@ pub struct EstimateFeeParams {
     /// The hash of the requested block, or number (height) of the requested block, or a block tag, for the block referencing the state or call the transaction on.
     pub block_id: BlockId,
 }
-
-/// the fee estimation
-///
-/// Result type of `starknet_estimateMessageFee`.
-pub type EstimateMessageFeeResult = FeeEstimate;
 
 /// Parameters of the `starknet_estimateMessageFee` method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1515,46 +1443,21 @@ pub struct EstimateMessageFeeParams {
     pub block_id: BlockId,
 }
 
-/// The latest block number
-///
-/// Result type of `starknet_blockNumber`.
-pub type BlockNumberResult = BlockNumber;
-
 /// Parameters of the `starknet_blockNumber` method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BlockNumberParams {}
-
-/// The latest block hash and number
-///
-/// Result type of `starknet_blockHashAndNumber`.
-pub type BlockHashAndNumberResult = BlockHashAndNumber;
 
 /// Parameters of the `starknet_blockHashAndNumber` method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BlockHashAndNumberParams {}
 
-/// The chain id this node is connected to
-///
-/// Result type of `starknet_chainId`.
-pub type ChainIdResult = ChainId;
-
 /// Parameters of the `starknet_chainId` method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChainIdParams {}
 
-/// The status of the node, if it is currently synchronizing state. FALSE otherwise
-///
-/// Result type of `starknet_syncing`.
-pub type SyncingResult = SyncingStatus;
-
 /// Parameters of the `starknet_syncing` method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SyncingParams {}
-
-/// All the event objects matching the filter
-///
-/// Result type of `starknet_getEvents`.
-pub type GetEventsResult = EventsChunk;
 
 /// Parameters of the `starknet_getEvents` method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1562,11 +1465,6 @@ pub struct GetEventsParams {
     /// The conditions used to filter the returned events
     pub filter: EventFilterWithPageRequest,
 }
-
-/// The contract's nonce at the requested state
-///
-/// Result type of `starknet_getNonce`.
-pub type GetNonceResult = Felt;
 
 /// Parameters of the `starknet_getNonce` method.
 #[derive(Debug, Clone, Serialize, Deserialize)]
