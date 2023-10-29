@@ -1,4 +1,5 @@
 debug-path = true
+run-rustfmt = true
 
 [generation]
 additional-imports = [
@@ -9,9 +10,6 @@ additional-imports = [
 method-name-prefix = "starknet_"
 param-types = true
 result-types = true
-
-[generation.derives]
-"#/components/schemas/BLOCK_TAG" = ["Copy", "PartialEq", "Eq", "Hash"]
 
 [formatters]
 num-as-hex = "NumAsHex"

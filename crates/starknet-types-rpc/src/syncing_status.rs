@@ -18,7 +18,7 @@ impl Serialize for SyncingStatus {
         S: Serializer,
     {
         match self {
-            SyncingStatus::NotSyncing => serializer.serialize_none(),
+            SyncingStatus::NotSyncing => serializer.serialize_bool(false),
             SyncingStatus::Syncing(status) => status.serialize(serializer),
         }
     }

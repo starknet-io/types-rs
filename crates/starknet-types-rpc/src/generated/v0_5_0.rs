@@ -62,7 +62,7 @@ pub type BlockNumber = u64;
 
 // #/components/schemas/BLOCK_STATUS
 /// The status of the block
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Copy, PartialEq, Eq, Hash, Clone, Debug)]
 pub enum BlockStatus {
     // #/components/schemas/BLOCK_STATUS/ACCEPTED_ON_L1
     #[serde(rename = "ACCEPTED_ON_L1")]
@@ -80,7 +80,7 @@ pub enum BlockStatus {
 
 // #/components/schemas/BLOCK_TAG
 /// A tag specifying a dynamic reference to a block
-#[derive(Serialize, Deserialize, Clone, Debug, Copy, PartialEq, Eq, Hash)]
+#[derive(Serialize, Deserialize, Copy, PartialEq, Eq, Hash, Clone, Debug)]
 pub enum BlockTag {
     // #/components/schemas/BLOCK_TAG/latest
     #[serde(rename = "latest")]
@@ -650,7 +650,7 @@ pub struct FunctionAbiEntry {
 }
 
 // #/components/schemas/FUNCTION_ABI_TYPE
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Copy, PartialEq, Eq, Hash, Clone, Debug)]
 pub enum FunctionAbiType {
     // #/components/schemas/FUNCTION_ABI_TYPE/constructor
     #[serde(rename = "constructor")]
@@ -1125,7 +1125,7 @@ pub enum Txn {
 
 // #/components/schemas/TXN_EXECUTION_STATUS
 /// The execution status of the transaction
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Copy, PartialEq, Eq, Hash, Clone, Debug)]
 pub enum TxnExecutionStatus {
     // #/components/schemas/TXN_EXECUTION_STATUS/REVERTED
     #[serde(rename = "REVERTED")]
@@ -1137,7 +1137,7 @@ pub enum TxnExecutionStatus {
 
 // #/components/schemas/TXN_FINALITY_STATUS
 /// The finality status of the transaction
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Copy, PartialEq, Eq, Hash, Clone, Debug)]
 pub enum TxnFinalityStatus {
     // #/components/schemas/TXN_FINALITY_STATUS/ACCEPTED_ON_L1
     #[serde(rename = "ACCEPTED_ON_L1")]
@@ -1174,7 +1174,7 @@ pub enum TxnReceipt {
 
 // #/components/schemas/TXN_STATUS
 /// The finality status of the transaction, including the case the txn is still in the mempool or failed validation during the block construction phase
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Copy, PartialEq, Eq, Hash, Clone, Debug)]
 pub enum TxnStatus {
     // #/components/schemas/TXN_STATUS/ACCEPTED_ON_L1
     #[serde(rename = "ACCEPTED_ON_L1")]
@@ -1192,7 +1192,7 @@ pub enum TxnStatus {
 
 // #/components/schemas/TXN_TYPE
 /// The type of the transaction
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Copy, PartialEq, Eq, Hash, Clone, Debug)]
 pub enum TxnType {
     // #/components/schemas/TXN_TYPE/DECLARE
     #[serde(rename = "DECLARE")]
