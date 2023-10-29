@@ -1,4 +1,16 @@
-//! Types used by the StarkNet RPC.
+//! Types used by the StarkNet RPC API Specification.
+//!
+//! # Generation
+//!
+//! Most of the types of this crate are generated directly from the specification using
+//! [openrpc-gen](https://github.com/nils-mathieu/openrpc-gen), ensuring that they are always
+//! up-to-date.
+//!
+//! All generated types implement [`Clone`] and [`Debug`], as well as [`serde`]'s [`Serialize`]
+//! and [`Deserialize`] to allow for easy serialization and deserialization.
+//!
+//! [`Serialize`]: serde::Serialize
+//! [`Deserialize`]: serde::Deserialize
 
 mod custom_serde;
 
