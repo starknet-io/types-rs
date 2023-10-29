@@ -1,0 +1,77 @@
+debug-path = true
+
+[generation]
+additional-imports = [
+    "crate::custom_serde::NumAsHex",
+    "crate::{BlockId, SyncingStatus}",
+    "stark_felt::Felt",
+]
+method-name-prefix = "starknet_"
+param-types = true
+result-types = true
+
+[generation.derives]
+"#/components/schemas/BLOCK_TAG" = ["Copy", "PartialEq", "Eq", "Hash"]
+
+[formatters]
+num-as-hex = "NumAsHex"
+
+[fixes]
+strip-enum-variants = true
+flatten = [
+    "#/components/schemas/NUM_AS_HEX",
+]
+preserve = [
+    "#/components/schemas/BLOCK_TAG",
+    "#/components/schemas/SYNC_STATUS",
+]
+
+[fixes.replace]
+# Too tricky to automatically fix cleanly
+"#/components/schemas/BLOCK_ID" = "BlockId"
+"#/methods/starknet_syncing/result/_anon" = "SyncingStatus"
+"#/components/schemas/FELT" = "Felt"
+
+# Duplicates
+"#/methods/starknet_getClassAt/result/_anon" = "MaybeDeprecatedContractClass"
+"#/methods/starknet_getTransactionByBlockIdAndIndex/result/_anon" = "TxnWithHash"
+"#/methods/starknet_getTransactionByHash/result/_anon" = "TxnWithHash"
+
+[fixes.rename]
+# Broken Enum Variants
+"#/methods/starknet_getBlockWithTxHashes/result/_anon/variant0" = "Block"
+"#/methods/starknet_getBlockWithTxs/result/_anon/variant0" = "Block"
+"#/methods/starknet_getStateUpdate/result/_anon/variant0" = "Block"
+"#/methods/starknet_getTransactionReceipt/result/_anon/variant0" = "Receipt"
+"#/methods/starknet_getClass/result/_anon/variant1" = "ContractClass"
+
+# Anonymous Types
+"#/components/schemas/BLOCK_BODY_WITH_TXS/transactions/_anon/_anon" = "TxnWithHash"
+"#/components/schemas/CONTRACT_STORAGE_DIFF_ITEM/storage_entries/_anon/_anon" = "KeyValuePair"
+"#/methods/starknet_blockHashAndNumber/result/_anon" = "BlockHashAndNumber"
+"#/methods/starknet_getBlockWithTxHashes/result/_anon" = "MaybePendingBlockWithTxHashes"
+"#/methods/starknet_getBlockWithTxs/result/_anon" = "MaybePendingBlockWithTxs"
+"#/methods/starknet_getClass/result/_anon" = "MaybeDeprecatedContractClass"
+"#/methods/starknet_getEvents/params/filter/_anon" = "EventFilterWithPageRequest"
+"#/methods/starknet_getStateUpdate/result/_anon" = "MaybePendingStateUpdate"
+"#/methods/starknet_getTransactionReceipt/result/_anon" = "MaybePendingTxnReceipt"
+"#/methods/starknet_getTransactionStatus/result/_anon" = "TxnFinalityAndExecutionStatus"
+
+# Broken convert_case
+"#/components/schemas/FUNCTION_ABI_ENTRY/stateMutability" = "state_mutability"
+
+[fixes.tagged-enums]
+"#/components/schemas/DECLARE_TXN" = "version"
+"#/components/schemas/INVOKE_TXN" = "version"
+"#/components/schemas/TXN" = "type"
+"#/components/schemas/TXN_RECEIPT" = "type"
+"#/components/schemas/PENDING_TXN_RECEIPT" = "type"
+"#/components/schemas/BROADCASTED_TXN" = "type"
+"#/components/schemas/DEPLOY_ACCOUNT_TXN" = "version"
+
+[fixes.make-keyword]
+"#/components/schemas/INVOKE_TXN_V1/_anon/version" = "0x1"
+"#/components/schemas/DEPLOY_ACCOUNT_TXN_V1/version" = "0x1"
+
+[primitives]
+integer = "u64"

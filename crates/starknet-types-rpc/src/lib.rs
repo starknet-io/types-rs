@@ -1,2 +1,14 @@
 //! Types used by the StarkNet RPC.
-// //! This crate is meant to be used by other crates that need to interact with Starknet RPC.
+
+mod custom_serde;
+
+#[path = "generated/v0_5_0.rs"]
+mod generated;
+
+pub use self::generated::*;
+
+mod block_id;
+mod syncing_status;
+
+pub use self::block_id::*;
+pub use self::syncing_status::*;
