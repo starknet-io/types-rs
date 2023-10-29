@@ -15,12 +15,12 @@ pub enum BlockId {
 
 #[derive(Serialize, Deserialize)]
 struct BlockHashHelper {
-    hash: BlockHash,
+    block_hash: BlockHash,
 }
 
 #[derive(Serialize, Deserialize)]
 struct BlockNumberHelper {
-    number: BlockNumber,
+    block_number: BlockNumber,
 }
 
 #[derive(Deserialize)]
@@ -39,11 +39,13 @@ impl serde::Serialize for BlockId {
         match self {
             BlockId::Tag(tag) => tag.serialize(serializer),
             BlockId::Hash(hash) => {
-                let helper = BlockHashHelper { hash: *hash };
+                let helper = BlockHashHelper { block_hash: *hash };
                 helper.serialize(serializer)
             }
             BlockId::Number(number) => {
-                let helper = BlockNumberHelper { number: *number };
+                let helper = BlockNumberHelper {
+                    block_number: *number,
+                };
                 helper.serialize(serializer)
             }
         }
@@ -58,8 +60,8 @@ impl<'de> serde::Deserialize<'de> for BlockId {
         let helper = BlockIdHelper::deserialize(deserializer)?;
         match helper {
             BlockIdHelper::Tag(tag) => Ok(BlockId::Tag(tag)),
-            BlockIdHelper::Hash(helper) => Ok(BlockId::Hash(helper.hash)),
-            BlockIdHelper::Number(helper) => Ok(BlockId::Number(helper.number)),
+            BlockIdHelper::Hash(helper) => Ok(BlockId::Hash(helper.block_hash)),
+            BlockIdHelper::Number(helper) => Ok(BlockId::Number(helper.block_number)),
         }
     }
 }

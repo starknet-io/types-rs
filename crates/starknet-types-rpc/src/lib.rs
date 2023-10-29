@@ -1,4 +1,6 @@
-//! Types used by the StarkNet RPC API Specification.
+//! Types used by the [StarkNet RPC API Specification](spec).
+//!
+//! [spec]: https://github.com/starkware-libs/starknet-specs/blob/master/api/starknet_api_openrpc.json
 //!
 //! # Generation
 //!
