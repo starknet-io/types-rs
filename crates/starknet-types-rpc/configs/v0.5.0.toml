@@ -10,6 +10,7 @@ additional-imports = [
 ]
 method-name-prefix = "starknet_"
 param-types = true
+use-core = true
 
 [formatters]
 num-as-hex = "NumAsHex"

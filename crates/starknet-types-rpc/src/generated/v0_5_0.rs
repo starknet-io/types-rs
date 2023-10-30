@@ -969,7 +969,7 @@ impl<'de> Deserialize<'de> for SpecVersionParams {
         impl<'de> serde::de::Visitor<'de> for Visitor {
             type Value = SpecVersionParams;
 
-            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_specVersion`")
             }
 
@@ -979,7 +979,10 @@ impl<'de> Deserialize<'de> for SpecVersionParams {
                 A: serde::de::SeqAccess<'de>,
             {
                 if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
-                    return Err(serde::de::Error::invalid_length(0, &"expected 0 elements"));
+                    return Err(serde::de::Error::invalid_length(
+                        1,
+                        &"expected 0 parameters",
+                    ));
                 }
 
                 Ok(SpecVersionParams {})
@@ -1033,7 +1036,7 @@ impl<'de> Deserialize<'de> for GetBlockWithTxHashesParams {
         impl<'de> serde::de::Visitor<'de> for Visitor {
             type Value = GetBlockWithTxHashesParams;
 
-            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_getBlockWithTxHashes`")
             }
 
@@ -1044,10 +1047,13 @@ impl<'de> Deserialize<'de> for GetBlockWithTxHashesParams {
             {
                 let block_id: BlockId = seq
                     .next_element()?
-                    .ok_or_else(|| serde::de::Error::invalid_length(0, &"expected 1 elements"))?;
+                    .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 1 parameters"))?;
 
                 if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
-                    return Err(serde::de::Error::invalid_length(1, &"expected 1 elements"));
+                    return Err(serde::de::Error::invalid_length(
+                        2,
+                        &"expected 1 parameters",
+                    ));
                 }
 
                 Ok(GetBlockWithTxHashesParams { block_id })
@@ -1105,7 +1111,7 @@ impl<'de> Deserialize<'de> for GetBlockWithTxsParams {
         impl<'de> serde::de::Visitor<'de> for Visitor {
             type Value = GetBlockWithTxsParams;
 
-            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_getBlockWithTxs`")
             }
 
@@ -1116,10 +1122,13 @@ impl<'de> Deserialize<'de> for GetBlockWithTxsParams {
             {
                 let block_id: BlockId = seq
                     .next_element()?
-                    .ok_or_else(|| serde::de::Error::invalid_length(0, &"expected 1 elements"))?;
+                    .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 1 parameters"))?;
 
                 if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
-                    return Err(serde::de::Error::invalid_length(1, &"expected 1 elements"));
+                    return Err(serde::de::Error::invalid_length(
+                        2,
+                        &"expected 1 parameters",
+                    ));
                 }
 
                 Ok(GetBlockWithTxsParams { block_id })
@@ -1177,7 +1186,7 @@ impl<'de> Deserialize<'de> for GetStateUpdateParams {
         impl<'de> serde::de::Visitor<'de> for Visitor {
             type Value = GetStateUpdateParams;
 
-            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_getStateUpdate`")
             }
 
@@ -1188,10 +1197,13 @@ impl<'de> Deserialize<'de> for GetStateUpdateParams {
             {
                 let block_id: BlockId = seq
                     .next_element()?
-                    .ok_or_else(|| serde::de::Error::invalid_length(0, &"expected 1 elements"))?;
+                    .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 1 parameters"))?;
 
                 if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
-                    return Err(serde::de::Error::invalid_length(1, &"expected 1 elements"));
+                    return Err(serde::de::Error::invalid_length(
+                        2,
+                        &"expected 1 parameters",
+                    ));
                 }
 
                 Ok(GetStateUpdateParams { block_id })
@@ -1255,7 +1267,7 @@ impl<'de> Deserialize<'de> for GetStorageAtParams {
         impl<'de> serde::de::Visitor<'de> for Visitor {
             type Value = GetStorageAtParams;
 
-            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_getStorageAt`")
             }
 
@@ -1266,16 +1278,19 @@ impl<'de> Deserialize<'de> for GetStorageAtParams {
             {
                 let contract_address: Address = seq
                     .next_element()?
-                    .ok_or_else(|| serde::de::Error::invalid_length(0, &"expected 3 elements"))?;
+                    .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 3 parameters"))?;
                 let key: StorageKey = seq
                     .next_element()?
-                    .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 3 elements"))?;
+                    .ok_or_else(|| serde::de::Error::invalid_length(2, &"expected 3 parameters"))?;
                 let block_id: BlockId = seq
                     .next_element()?
-                    .ok_or_else(|| serde::de::Error::invalid_length(2, &"expected 3 elements"))?;
+                    .ok_or_else(|| serde::de::Error::invalid_length(3, &"expected 3 parameters"))?;
 
                 if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
-                    return Err(serde::de::Error::invalid_length(3, &"expected 3 elements"));
+                    return Err(serde::de::Error::invalid_length(
+                        4,
+                        &"expected 3 parameters",
+                    ));
                 }
 
                 Ok(GetStorageAtParams {
@@ -1341,7 +1356,7 @@ impl<'de> Deserialize<'de> for GetTransactionStatusParams {
         impl<'de> serde::de::Visitor<'de> for Visitor {
             type Value = GetTransactionStatusParams;
 
-            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_getTransactionStatus`")
             }
 
@@ -1397,7 +1412,7 @@ impl<'de> Deserialize<'de> for GetTransactionByHashParams {
         impl<'de> serde::de::Visitor<'de> for Visitor {
             type Value = GetTransactionByHashParams;
 
-            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_getTransactionByHash`")
             }
 
@@ -1456,7 +1471,7 @@ impl<'de> Deserialize<'de> for GetTransactionByBlockIdAndIndexParams {
         impl<'de> serde::de::Visitor<'de> for Visitor {
             type Value = GetTransactionByBlockIdAndIndexParams;
 
-            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(
                     f,
                     "the parameters for `starknet_getTransactionByBlockIdAndIndex`"
@@ -1470,13 +1485,16 @@ impl<'de> Deserialize<'de> for GetTransactionByBlockIdAndIndexParams {
             {
                 let block_id: BlockId = seq
                     .next_element()?
-                    .ok_or_else(|| serde::de::Error::invalid_length(0, &"expected 2 elements"))?;
+                    .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 2 parameters"))?;
                 let index: u64 = seq
                     .next_element()?
-                    .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 2 elements"))?;
+                    .ok_or_else(|| serde::de::Error::invalid_length(2, &"expected 2 parameters"))?;
 
                 if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
-                    return Err(serde::de::Error::invalid_length(2, &"expected 2 elements"));
+                    return Err(serde::de::Error::invalid_length(
+                        3,
+                        &"expected 2 parameters",
+                    ));
                 }
 
                 Ok(GetTransactionByBlockIdAndIndexParams { block_id, index })
@@ -1536,7 +1554,7 @@ impl<'de> Deserialize<'de> for GetTransactionReceiptParams {
         impl<'de> serde::de::Visitor<'de> for Visitor {
             type Value = GetTransactionReceiptParams;
 
-            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_getTransactionReceipt`")
             }
 
@@ -1595,7 +1613,7 @@ impl<'de> Deserialize<'de> for GetClassParams {
         impl<'de> serde::de::Visitor<'de> for Visitor {
             type Value = GetClassParams;
 
-            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_getClass`")
             }
 
@@ -1606,13 +1624,16 @@ impl<'de> Deserialize<'de> for GetClassParams {
             {
                 let block_id: BlockId = seq
                     .next_element()?
-                    .ok_or_else(|| serde::de::Error::invalid_length(0, &"expected 2 elements"))?;
+                    .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 2 parameters"))?;
                 let class_hash: Felt = seq
                     .next_element()?
-                    .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 2 elements"))?;
+                    .ok_or_else(|| serde::de::Error::invalid_length(2, &"expected 2 parameters"))?;
 
                 if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
-                    return Err(serde::de::Error::invalid_length(2, &"expected 2 elements"));
+                    return Err(serde::de::Error::invalid_length(
+                        3,
+                        &"expected 2 parameters",
+                    ));
                 }
 
                 Ok(GetClassParams {
@@ -1678,7 +1699,7 @@ impl<'de> Deserialize<'de> for GetClassHashAtParams {
         impl<'de> serde::de::Visitor<'de> for Visitor {
             type Value = GetClassHashAtParams;
 
-            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_getClassHashAt`")
             }
 
@@ -1689,13 +1710,16 @@ impl<'de> Deserialize<'de> for GetClassHashAtParams {
             {
                 let block_id: BlockId = seq
                     .next_element()?
-                    .ok_or_else(|| serde::de::Error::invalid_length(0, &"expected 2 elements"))?;
+                    .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 2 parameters"))?;
                 let contract_address: Address = seq
                     .next_element()?
-                    .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 2 elements"))?;
+                    .ok_or_else(|| serde::de::Error::invalid_length(2, &"expected 2 parameters"))?;
 
                 if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
-                    return Err(serde::de::Error::invalid_length(2, &"expected 2 elements"));
+                    return Err(serde::de::Error::invalid_length(
+                        3,
+                        &"expected 2 parameters",
+                    ));
                 }
 
                 Ok(GetClassHashAtParams {
@@ -1761,7 +1785,7 @@ impl<'de> Deserialize<'de> for GetClassAtParams {
         impl<'de> serde::de::Visitor<'de> for Visitor {
             type Value = GetClassAtParams;
 
-            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_getClassAt`")
             }
 
@@ -1772,13 +1796,16 @@ impl<'de> Deserialize<'de> for GetClassAtParams {
             {
                 let block_id: BlockId = seq
                     .next_element()?
-                    .ok_or_else(|| serde::de::Error::invalid_length(0, &"expected 2 elements"))?;
+                    .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 2 parameters"))?;
                 let contract_address: Address = seq
                     .next_element()?
-                    .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 2 elements"))?;
+                    .ok_or_else(|| serde::de::Error::invalid_length(2, &"expected 2 parameters"))?;
 
                 if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
-                    return Err(serde::de::Error::invalid_length(2, &"expected 2 elements"));
+                    return Err(serde::de::Error::invalid_length(
+                        3,
+                        &"expected 2 parameters",
+                    ));
                 }
 
                 Ok(GetClassAtParams {
@@ -1841,7 +1868,7 @@ impl<'de> Deserialize<'de> for GetBlockTransactionCountParams {
         impl<'de> serde::de::Visitor<'de> for Visitor {
             type Value = GetBlockTransactionCountParams;
 
-            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_getBlockTransactionCount`")
             }
 
@@ -1852,10 +1879,13 @@ impl<'de> Deserialize<'de> for GetBlockTransactionCountParams {
             {
                 let block_id: BlockId = seq
                     .next_element()?
-                    .ok_or_else(|| serde::de::Error::invalid_length(0, &"expected 1 elements"))?;
+                    .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 1 parameters"))?;
 
                 if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
-                    return Err(serde::de::Error::invalid_length(1, &"expected 1 elements"));
+                    return Err(serde::de::Error::invalid_length(
+                        2,
+                        &"expected 1 parameters",
+                    ));
                 }
 
                 Ok(GetBlockTransactionCountParams { block_id })
@@ -1916,7 +1946,7 @@ impl<'de> Deserialize<'de> for CallParams {
         impl<'de> serde::de::Visitor<'de> for Visitor {
             type Value = CallParams;
 
-            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_call`")
             }
 
@@ -1927,13 +1957,16 @@ impl<'de> Deserialize<'de> for CallParams {
             {
                 let request: FunctionCall = seq
                     .next_element()?
-                    .ok_or_else(|| serde::de::Error::invalid_length(0, &"expected 2 elements"))?;
+                    .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 2 parameters"))?;
                 let block_id: BlockId = seq
                     .next_element()?
-                    .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 2 elements"))?;
+                    .ok_or_else(|| serde::de::Error::invalid_length(2, &"expected 2 parameters"))?;
 
                 if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
-                    return Err(serde::de::Error::invalid_length(2, &"expected 2 elements"));
+                    return Err(serde::de::Error::invalid_length(
+                        3,
+                        &"expected 2 parameters",
+                    ));
                 }
 
                 Ok(CallParams { request, block_id })
@@ -1996,7 +2029,7 @@ impl<'de> Deserialize<'de> for EstimateFeeParams {
         impl<'de> serde::de::Visitor<'de> for Visitor {
             type Value = EstimateFeeParams;
 
-            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_estimateFee`")
             }
 
@@ -2007,13 +2040,16 @@ impl<'de> Deserialize<'de> for EstimateFeeParams {
             {
                 let request: Vec<BroadcastedTxn> = seq
                     .next_element()?
-                    .ok_or_else(|| serde::de::Error::invalid_length(0, &"expected 2 elements"))?;
+                    .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 2 parameters"))?;
                 let block_id: BlockId = seq
                     .next_element()?
-                    .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 2 elements"))?;
+                    .ok_or_else(|| serde::de::Error::invalid_length(2, &"expected 2 parameters"))?;
 
                 if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
-                    return Err(serde::de::Error::invalid_length(2, &"expected 2 elements"));
+                    return Err(serde::de::Error::invalid_length(
+                        3,
+                        &"expected 2 parameters",
+                    ));
                 }
 
                 Ok(EstimateFeeParams { request, block_id })
@@ -2076,7 +2112,7 @@ impl<'de> Deserialize<'de> for EstimateMessageFeeParams {
         impl<'de> serde::de::Visitor<'de> for Visitor {
             type Value = EstimateMessageFeeParams;
 
-            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_estimateMessageFee`")
             }
 
@@ -2087,13 +2123,16 @@ impl<'de> Deserialize<'de> for EstimateMessageFeeParams {
             {
                 let message: MsgFromL1 = seq
                     .next_element()?
-                    .ok_or_else(|| serde::de::Error::invalid_length(0, &"expected 2 elements"))?;
+                    .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 2 parameters"))?;
                 let block_id: BlockId = seq
                     .next_element()?
-                    .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 2 elements"))?;
+                    .ok_or_else(|| serde::de::Error::invalid_length(2, &"expected 2 parameters"))?;
 
                 if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
-                    return Err(serde::de::Error::invalid_length(2, &"expected 2 elements"));
+                    return Err(serde::de::Error::invalid_length(
+                        3,
+                        &"expected 2 parameters",
+                    ));
                 }
 
                 Ok(EstimateMessageFeeParams { message, block_id })
@@ -2149,7 +2188,7 @@ impl<'de> Deserialize<'de> for BlockNumberParams {
         impl<'de> serde::de::Visitor<'de> for Visitor {
             type Value = BlockNumberParams;
 
-            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_blockNumber`")
             }
 
@@ -2159,7 +2198,10 @@ impl<'de> Deserialize<'de> for BlockNumberParams {
                 A: serde::de::SeqAccess<'de>,
             {
                 if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
-                    return Err(serde::de::Error::invalid_length(0, &"expected 0 elements"));
+                    return Err(serde::de::Error::invalid_length(
+                        1,
+                        &"expected 0 parameters",
+                    ));
                 }
 
                 Ok(BlockNumberParams {})
@@ -2209,7 +2251,7 @@ impl<'de> Deserialize<'de> for BlockHashAndNumberParams {
         impl<'de> serde::de::Visitor<'de> for Visitor {
             type Value = BlockHashAndNumberParams;
 
-            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_blockHashAndNumber`")
             }
 
@@ -2219,7 +2261,10 @@ impl<'de> Deserialize<'de> for BlockHashAndNumberParams {
                 A: serde::de::SeqAccess<'de>,
             {
                 if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
-                    return Err(serde::de::Error::invalid_length(0, &"expected 0 elements"));
+                    return Err(serde::de::Error::invalid_length(
+                        1,
+                        &"expected 0 parameters",
+                    ));
                 }
 
                 Ok(BlockHashAndNumberParams {})
@@ -2269,7 +2314,7 @@ impl<'de> Deserialize<'de> for ChainIdParams {
         impl<'de> serde::de::Visitor<'de> for Visitor {
             type Value = ChainIdParams;
 
-            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_chainId`")
             }
 
@@ -2279,7 +2324,10 @@ impl<'de> Deserialize<'de> for ChainIdParams {
                 A: serde::de::SeqAccess<'de>,
             {
                 if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
-                    return Err(serde::de::Error::invalid_length(0, &"expected 0 elements"));
+                    return Err(serde::de::Error::invalid_length(
+                        1,
+                        &"expected 0 parameters",
+                    ));
                 }
 
                 Ok(ChainIdParams {})
@@ -2329,7 +2377,7 @@ impl<'de> Deserialize<'de> for SyncingParams {
         impl<'de> serde::de::Visitor<'de> for Visitor {
             type Value = SyncingParams;
 
-            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_syncing`")
             }
 
@@ -2339,7 +2387,10 @@ impl<'de> Deserialize<'de> for SyncingParams {
                 A: serde::de::SeqAccess<'de>,
             {
                 if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
-                    return Err(serde::de::Error::invalid_length(0, &"expected 0 elements"));
+                    return Err(serde::de::Error::invalid_length(
+                        1,
+                        &"expected 0 parameters",
+                    ));
                 }
 
                 Ok(SyncingParams {})
@@ -2393,7 +2444,7 @@ impl<'de> Deserialize<'de> for GetEventsParams {
         impl<'de> serde::de::Visitor<'de> for Visitor {
             type Value = GetEventsParams;
 
-            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_getEvents`")
             }
 
@@ -2404,10 +2455,13 @@ impl<'de> Deserialize<'de> for GetEventsParams {
             {
                 let filter: EventFilterWithPageRequest = seq
                     .next_element()?
-                    .ok_or_else(|| serde::de::Error::invalid_length(0, &"expected 1 elements"))?;
+                    .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 1 parameters"))?;
 
                 if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
-                    return Err(serde::de::Error::invalid_length(1, &"expected 1 elements"));
+                    return Err(serde::de::Error::invalid_length(
+                        2,
+                        &"expected 1 parameters",
+                    ));
                 }
 
                 Ok(GetEventsParams { filter })
@@ -2468,7 +2522,7 @@ impl<'de> Deserialize<'de> for GetNonceParams {
         impl<'de> serde::de::Visitor<'de> for Visitor {
             type Value = GetNonceParams;
 
-            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_getNonce`")
             }
 
@@ -2479,13 +2533,16 @@ impl<'de> Deserialize<'de> for GetNonceParams {
             {
                 let block_id: BlockId = seq
                     .next_element()?
-                    .ok_or_else(|| serde::de::Error::invalid_length(0, &"expected 2 elements"))?;
+                    .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 2 parameters"))?;
                 let contract_address: Address = seq
                     .next_element()?
-                    .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 2 elements"))?;
+                    .ok_or_else(|| serde::de::Error::invalid_length(2, &"expected 2 parameters"))?;
 
                 if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
-                    return Err(serde::de::Error::invalid_length(2, &"expected 2 elements"));
+                    return Err(serde::de::Error::invalid_length(
+                        3,
+                        &"expected 2 parameters",
+                    ));
                 }
 
                 Ok(GetNonceParams {
