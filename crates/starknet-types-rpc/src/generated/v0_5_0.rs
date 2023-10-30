@@ -9,11 +9,11 @@
 //
 
 use crate::custom_serde::NumAsHex;
-use crate::BlockId;
+use crate::{BlockId, Felt};
 use alloc::string::String;
 use alloc::vec::Vec;
+use serde::ser::SerializeMap;
 use serde::{Deserialize, Serialize};
-use stark_felt::Felt;
 
 pub type Address = Felt;
 
@@ -945,32 +945,283 @@ pub struct TxnFinalityAndExecutionStatus {
 }
 
 /// Parameters of the `starknet_specVersion` method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct SpecVersionParams {}
 
+impl Serialize for SpecVersionParams {
+    #[allow(unused_mut)]
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut map = serializer.serialize_map(None)?;
+        map.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for SpecVersionParams {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct Visitor;
+
+        impl<'de> serde::de::Visitor<'de> for Visitor {
+            type Value = SpecVersionParams;
+
+            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                write!(f, "the parameters for `starknet_specVersion`")
+            }
+
+            #[allow(unused_mut)]
+            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::SeqAccess<'de>,
+            {
+                if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
+                    return Err(serde::de::Error::invalid_length(0, &"expected 0 elements"));
+                }
+
+                Ok(SpecVersionParams {})
+            }
+
+            #[allow(unused_variables)]
+            fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                #[derive(Deserialize)]
+                struct Helper {}
+
+                let helper =
+                    Helper::deserialize(serde::de::value::MapAccessDeserializer::new(map))?;
+
+                Ok(SpecVersionParams {})
+            }
+        }
+
+        deserializer.deserialize_any(Visitor)
+    }
+}
+
 /// Parameters of the `starknet_getBlockWithTxHashes` method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct GetBlockWithTxHashesParams {
     /// The hash of the requested block, or number (height) of the requested block, or a block tag
     pub block_id: BlockId,
 }
 
+impl Serialize for GetBlockWithTxHashesParams {
+    #[allow(unused_mut)]
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut map = serializer.serialize_map(None)?;
+        map.serialize_entry("block_id", &self.block_id)?;
+        map.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for GetBlockWithTxHashesParams {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct Visitor;
+
+        impl<'de> serde::de::Visitor<'de> for Visitor {
+            type Value = GetBlockWithTxHashesParams;
+
+            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                write!(f, "the parameters for `starknet_getBlockWithTxHashes`")
+            }
+
+            #[allow(unused_mut)]
+            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::SeqAccess<'de>,
+            {
+                let block_id: BlockId = seq
+                    .next_element()?
+                    .ok_or_else(|| serde::de::Error::invalid_length(0, &"expected 1 elements"))?;
+
+                if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
+                    return Err(serde::de::Error::invalid_length(1, &"expected 1 elements"));
+                }
+
+                Ok(GetBlockWithTxHashesParams { block_id })
+            }
+
+            #[allow(unused_variables)]
+            fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                #[derive(Deserialize)]
+                struct Helper {
+                    block_id: BlockId,
+                }
+
+                let helper =
+                    Helper::deserialize(serde::de::value::MapAccessDeserializer::new(map))?;
+
+                Ok(GetBlockWithTxHashesParams {
+                    block_id: helper.block_id,
+                })
+            }
+        }
+
+        deserializer.deserialize_any(Visitor)
+    }
+}
+
 /// Parameters of the `starknet_getBlockWithTxs` method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct GetBlockWithTxsParams {
     /// The hash of the requested block, or number (height) of the requested block, or a block tag
     pub block_id: BlockId,
 }
 
+impl Serialize for GetBlockWithTxsParams {
+    #[allow(unused_mut)]
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut map = serializer.serialize_map(None)?;
+        map.serialize_entry("block_id", &self.block_id)?;
+        map.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for GetBlockWithTxsParams {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct Visitor;
+
+        impl<'de> serde::de::Visitor<'de> for Visitor {
+            type Value = GetBlockWithTxsParams;
+
+            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                write!(f, "the parameters for `starknet_getBlockWithTxs`")
+            }
+
+            #[allow(unused_mut)]
+            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::SeqAccess<'de>,
+            {
+                let block_id: BlockId = seq
+                    .next_element()?
+                    .ok_or_else(|| serde::de::Error::invalid_length(0, &"expected 1 elements"))?;
+
+                if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
+                    return Err(serde::de::Error::invalid_length(1, &"expected 1 elements"));
+                }
+
+                Ok(GetBlockWithTxsParams { block_id })
+            }
+
+            #[allow(unused_variables)]
+            fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                #[derive(Deserialize)]
+                struct Helper {
+                    block_id: BlockId,
+                }
+
+                let helper =
+                    Helper::deserialize(serde::de::value::MapAccessDeserializer::new(map))?;
+
+                Ok(GetBlockWithTxsParams {
+                    block_id: helper.block_id,
+                })
+            }
+        }
+
+        deserializer.deserialize_any(Visitor)
+    }
+}
+
 /// Parameters of the `starknet_getStateUpdate` method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct GetStateUpdateParams {
     /// The hash of the requested block, or number (height) of the requested block, or a block tag
     pub block_id: BlockId,
 }
 
+impl Serialize for GetStateUpdateParams {
+    #[allow(unused_mut)]
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut map = serializer.serialize_map(None)?;
+        map.serialize_entry("block_id", &self.block_id)?;
+        map.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for GetStateUpdateParams {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct Visitor;
+
+        impl<'de> serde::de::Visitor<'de> for Visitor {
+            type Value = GetStateUpdateParams;
+
+            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                write!(f, "the parameters for `starknet_getStateUpdate`")
+            }
+
+            #[allow(unused_mut)]
+            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::SeqAccess<'de>,
+            {
+                let block_id: BlockId = seq
+                    .next_element()?
+                    .ok_or_else(|| serde::de::Error::invalid_length(0, &"expected 1 elements"))?;
+
+                if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
+                    return Err(serde::de::Error::invalid_length(1, &"expected 1 elements"));
+                }
+
+                Ok(GetStateUpdateParams { block_id })
+            }
+
+            #[allow(unused_variables)]
+            fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                #[derive(Deserialize)]
+                struct Helper {
+                    block_id: BlockId,
+                }
+
+                let helper =
+                    Helper::deserialize(serde::de::value::MapAccessDeserializer::new(map))?;
+
+                Ok(GetStateUpdateParams {
+                    block_id: helper.block_id,
+                })
+            }
+        }
+
+        deserializer.deserialize_any(Visitor)
+    }
+}
+
 /// Parameters of the `starknet_getStorageAt` method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct GetStorageAtParams {
     /// The address of the contract to read from
     pub contract_address: Address,
@@ -980,22 +1231,201 @@ pub struct GetStorageAtParams {
     pub block_id: BlockId,
 }
 
+impl Serialize for GetStorageAtParams {
+    #[allow(unused_mut)]
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut map = serializer.serialize_map(None)?;
+        map.serialize_entry("contract_address", &self.contract_address)?;
+        map.serialize_entry("key", &self.key)?;
+        map.serialize_entry("block_id", &self.block_id)?;
+        map.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for GetStorageAtParams {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct Visitor;
+
+        impl<'de> serde::de::Visitor<'de> for Visitor {
+            type Value = GetStorageAtParams;
+
+            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                write!(f, "the parameters for `starknet_getStorageAt`")
+            }
+
+            #[allow(unused_mut)]
+            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::SeqAccess<'de>,
+            {
+                let contract_address: Address = seq
+                    .next_element()?
+                    .ok_or_else(|| serde::de::Error::invalid_length(0, &"expected 3 elements"))?;
+                let key: StorageKey = seq
+                    .next_element()?
+                    .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 3 elements"))?;
+                let block_id: BlockId = seq
+                    .next_element()?
+                    .ok_or_else(|| serde::de::Error::invalid_length(2, &"expected 3 elements"))?;
+
+                if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
+                    return Err(serde::de::Error::invalid_length(3, &"expected 3 elements"));
+                }
+
+                Ok(GetStorageAtParams {
+                    contract_address,
+                    key,
+                    block_id,
+                })
+            }
+
+            #[allow(unused_variables)]
+            fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                #[derive(Deserialize)]
+                struct Helper {
+                    contract_address: Address,
+                    key: StorageKey,
+                    block_id: BlockId,
+                }
+
+                let helper =
+                    Helper::deserialize(serde::de::value::MapAccessDeserializer::new(map))?;
+
+                Ok(GetStorageAtParams {
+                    contract_address: helper.contract_address,
+                    key: helper.key,
+                    block_id: helper.block_id,
+                })
+            }
+        }
+
+        deserializer.deserialize_any(Visitor)
+    }
+}
+
 /// Parameters of the `starknet_getTransactionStatus` method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct GetTransactionStatusParams {
     /// The hash of the requested transaction
     pub transaction_hash: TxnHash,
 }
 
+impl Serialize for GetTransactionStatusParams {
+    #[allow(unused_mut)]
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut map = serializer.serialize_map(None)?;
+        map.serialize_entry("transaction_hash", &self.transaction_hash)?;
+        map.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for GetTransactionStatusParams {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct Visitor;
+
+        impl<'de> serde::de::Visitor<'de> for Visitor {
+            type Value = GetTransactionStatusParams;
+
+            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                write!(f, "the parameters for `starknet_getTransactionStatus`")
+            }
+
+            #[allow(unused_variables)]
+            fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                #[derive(Deserialize)]
+                struct Helper {
+                    transaction_hash: TxnHash,
+                }
+
+                let helper =
+                    Helper::deserialize(serde::de::value::MapAccessDeserializer::new(map))?;
+
+                Ok(GetTransactionStatusParams {
+                    transaction_hash: helper.transaction_hash,
+                })
+            }
+        }
+
+        deserializer.deserialize_map(Visitor)
+    }
+}
+
 /// Parameters of the `starknet_getTransactionByHash` method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct GetTransactionByHashParams {
     /// The hash of the requested transaction
     pub transaction_hash: TxnHash,
 }
 
+impl Serialize for GetTransactionByHashParams {
+    #[allow(unused_mut)]
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut map = serializer.serialize_map(None)?;
+        map.serialize_entry("transaction_hash", &self.transaction_hash)?;
+        map.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for GetTransactionByHashParams {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct Visitor;
+
+        impl<'de> serde::de::Visitor<'de> for Visitor {
+            type Value = GetTransactionByHashParams;
+
+            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                write!(f, "the parameters for `starknet_getTransactionByHash`")
+            }
+
+            #[allow(unused_variables)]
+            fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                #[derive(Deserialize)]
+                struct Helper {
+                    transaction_hash: TxnHash,
+                }
+
+                let helper =
+                    Helper::deserialize(serde::de::value::MapAccessDeserializer::new(map))?;
+
+                Ok(GetTransactionByHashParams {
+                    transaction_hash: helper.transaction_hash,
+                })
+            }
+        }
+
+        deserializer.deserialize_map(Visitor)
+    }
+}
+
 /// Parameters of the `starknet_getTransactionByBlockIdAndIndex` method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct GetTransactionByBlockIdAndIndexParams {
     /// The hash of the requested block, or number (height) of the requested block, or a block tag
     pub block_id: BlockId,
@@ -1003,15 +1433,138 @@ pub struct GetTransactionByBlockIdAndIndexParams {
     pub index: u64,
 }
 
+impl Serialize for GetTransactionByBlockIdAndIndexParams {
+    #[allow(unused_mut)]
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut map = serializer.serialize_map(None)?;
+        map.serialize_entry("block_id", &self.block_id)?;
+        map.serialize_entry("index", &self.index)?;
+        map.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for GetTransactionByBlockIdAndIndexParams {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct Visitor;
+
+        impl<'de> serde::de::Visitor<'de> for Visitor {
+            type Value = GetTransactionByBlockIdAndIndexParams;
+
+            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                write!(
+                    f,
+                    "the parameters for `starknet_getTransactionByBlockIdAndIndex`"
+                )
+            }
+
+            #[allow(unused_mut)]
+            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::SeqAccess<'de>,
+            {
+                let block_id: BlockId = seq
+                    .next_element()?
+                    .ok_or_else(|| serde::de::Error::invalid_length(0, &"expected 2 elements"))?;
+                let index: u64 = seq
+                    .next_element()?
+                    .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 2 elements"))?;
+
+                if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
+                    return Err(serde::de::Error::invalid_length(2, &"expected 2 elements"));
+                }
+
+                Ok(GetTransactionByBlockIdAndIndexParams { block_id, index })
+            }
+
+            #[allow(unused_variables)]
+            fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                #[derive(Deserialize)]
+                struct Helper {
+                    block_id: BlockId,
+                    index: u64,
+                }
+
+                let helper =
+                    Helper::deserialize(serde::de::value::MapAccessDeserializer::new(map))?;
+
+                Ok(GetTransactionByBlockIdAndIndexParams {
+                    block_id: helper.block_id,
+                    index: helper.index,
+                })
+            }
+        }
+
+        deserializer.deserialize_any(Visitor)
+    }
+}
+
 /// Parameters of the `starknet_getTransactionReceipt` method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct GetTransactionReceiptParams {
     /// The hash of the requested transaction
     pub transaction_hash: TxnHash,
 }
 
+impl Serialize for GetTransactionReceiptParams {
+    #[allow(unused_mut)]
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut map = serializer.serialize_map(None)?;
+        map.serialize_entry("transaction_hash", &self.transaction_hash)?;
+        map.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for GetTransactionReceiptParams {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct Visitor;
+
+        impl<'de> serde::de::Visitor<'de> for Visitor {
+            type Value = GetTransactionReceiptParams;
+
+            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                write!(f, "the parameters for `starknet_getTransactionReceipt`")
+            }
+
+            #[allow(unused_variables)]
+            fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                #[derive(Deserialize)]
+                struct Helper {
+                    transaction_hash: TxnHash,
+                }
+
+                let helper =
+                    Helper::deserialize(serde::de::value::MapAccessDeserializer::new(map))?;
+
+                Ok(GetTransactionReceiptParams {
+                    transaction_hash: helper.transaction_hash,
+                })
+            }
+        }
+
+        deserializer.deserialize_map(Visitor)
+    }
+}
+
 /// Parameters of the `starknet_getClass` method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct GetClassParams {
     /// The hash of the requested block, or number (height) of the requested block, or a block tag
     pub block_id: BlockId,
@@ -1019,8 +1572,82 @@ pub struct GetClassParams {
     pub class_hash: Felt,
 }
 
+impl Serialize for GetClassParams {
+    #[allow(unused_mut)]
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut map = serializer.serialize_map(None)?;
+        map.serialize_entry("block_id", &self.block_id)?;
+        map.serialize_entry("class_hash", &self.class_hash)?;
+        map.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for GetClassParams {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct Visitor;
+
+        impl<'de> serde::de::Visitor<'de> for Visitor {
+            type Value = GetClassParams;
+
+            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                write!(f, "the parameters for `starknet_getClass`")
+            }
+
+            #[allow(unused_mut)]
+            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::SeqAccess<'de>,
+            {
+                let block_id: BlockId = seq
+                    .next_element()?
+                    .ok_or_else(|| serde::de::Error::invalid_length(0, &"expected 2 elements"))?;
+                let class_hash: Felt = seq
+                    .next_element()?
+                    .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 2 elements"))?;
+
+                if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
+                    return Err(serde::de::Error::invalid_length(2, &"expected 2 elements"));
+                }
+
+                Ok(GetClassParams {
+                    block_id,
+                    class_hash,
+                })
+            }
+
+            #[allow(unused_variables)]
+            fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                #[derive(Deserialize)]
+                struct Helper {
+                    block_id: BlockId,
+                    class_hash: Felt,
+                }
+
+                let helper =
+                    Helper::deserialize(serde::de::value::MapAccessDeserializer::new(map))?;
+
+                Ok(GetClassParams {
+                    block_id: helper.block_id,
+                    class_hash: helper.class_hash,
+                })
+            }
+        }
+
+        deserializer.deserialize_any(Visitor)
+    }
+}
+
 /// Parameters of the `starknet_getClassHashAt` method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct GetClassHashAtParams {
     /// The hash of the requested block, or number (height) of the requested block, or a block tag
     pub block_id: BlockId,
@@ -1028,8 +1655,82 @@ pub struct GetClassHashAtParams {
     pub contract_address: Address,
 }
 
+impl Serialize for GetClassHashAtParams {
+    #[allow(unused_mut)]
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut map = serializer.serialize_map(None)?;
+        map.serialize_entry("block_id", &self.block_id)?;
+        map.serialize_entry("contract_address", &self.contract_address)?;
+        map.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for GetClassHashAtParams {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct Visitor;
+
+        impl<'de> serde::de::Visitor<'de> for Visitor {
+            type Value = GetClassHashAtParams;
+
+            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                write!(f, "the parameters for `starknet_getClassHashAt`")
+            }
+
+            #[allow(unused_mut)]
+            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::SeqAccess<'de>,
+            {
+                let block_id: BlockId = seq
+                    .next_element()?
+                    .ok_or_else(|| serde::de::Error::invalid_length(0, &"expected 2 elements"))?;
+                let contract_address: Address = seq
+                    .next_element()?
+                    .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 2 elements"))?;
+
+                if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
+                    return Err(serde::de::Error::invalid_length(2, &"expected 2 elements"));
+                }
+
+                Ok(GetClassHashAtParams {
+                    block_id,
+                    contract_address,
+                })
+            }
+
+            #[allow(unused_variables)]
+            fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                #[derive(Deserialize)]
+                struct Helper {
+                    block_id: BlockId,
+                    contract_address: Address,
+                }
+
+                let helper =
+                    Helper::deserialize(serde::de::value::MapAccessDeserializer::new(map))?;
+
+                Ok(GetClassHashAtParams {
+                    block_id: helper.block_id,
+                    contract_address: helper.contract_address,
+                })
+            }
+        }
+
+        deserializer.deserialize_any(Visitor)
+    }
+}
+
 /// Parameters of the `starknet_getClassAt` method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct GetClassAtParams {
     /// The hash of the requested block, or number (height) of the requested block, or a block tag
     pub block_id: BlockId,
@@ -1037,15 +1738,154 @@ pub struct GetClassAtParams {
     pub contract_address: Address,
 }
 
+impl Serialize for GetClassAtParams {
+    #[allow(unused_mut)]
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut map = serializer.serialize_map(None)?;
+        map.serialize_entry("block_id", &self.block_id)?;
+        map.serialize_entry("contract_address", &self.contract_address)?;
+        map.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for GetClassAtParams {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct Visitor;
+
+        impl<'de> serde::de::Visitor<'de> for Visitor {
+            type Value = GetClassAtParams;
+
+            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                write!(f, "the parameters for `starknet_getClassAt`")
+            }
+
+            #[allow(unused_mut)]
+            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::SeqAccess<'de>,
+            {
+                let block_id: BlockId = seq
+                    .next_element()?
+                    .ok_or_else(|| serde::de::Error::invalid_length(0, &"expected 2 elements"))?;
+                let contract_address: Address = seq
+                    .next_element()?
+                    .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 2 elements"))?;
+
+                if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
+                    return Err(serde::de::Error::invalid_length(2, &"expected 2 elements"));
+                }
+
+                Ok(GetClassAtParams {
+                    block_id,
+                    contract_address,
+                })
+            }
+
+            #[allow(unused_variables)]
+            fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                #[derive(Deserialize)]
+                struct Helper {
+                    block_id: BlockId,
+                    contract_address: Address,
+                }
+
+                let helper =
+                    Helper::deserialize(serde::de::value::MapAccessDeserializer::new(map))?;
+
+                Ok(GetClassAtParams {
+                    block_id: helper.block_id,
+                    contract_address: helper.contract_address,
+                })
+            }
+        }
+
+        deserializer.deserialize_any(Visitor)
+    }
+}
+
 /// Parameters of the `starknet_getBlockTransactionCount` method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct GetBlockTransactionCountParams {
     /// The hash of the requested block, or number (height) of the requested block, or a block tag
     pub block_id: BlockId,
 }
 
+impl Serialize for GetBlockTransactionCountParams {
+    #[allow(unused_mut)]
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut map = serializer.serialize_map(None)?;
+        map.serialize_entry("block_id", &self.block_id)?;
+        map.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for GetBlockTransactionCountParams {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct Visitor;
+
+        impl<'de> serde::de::Visitor<'de> for Visitor {
+            type Value = GetBlockTransactionCountParams;
+
+            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                write!(f, "the parameters for `starknet_getBlockTransactionCount`")
+            }
+
+            #[allow(unused_mut)]
+            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::SeqAccess<'de>,
+            {
+                let block_id: BlockId = seq
+                    .next_element()?
+                    .ok_or_else(|| serde::de::Error::invalid_length(0, &"expected 1 elements"))?;
+
+                if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
+                    return Err(serde::de::Error::invalid_length(1, &"expected 1 elements"));
+                }
+
+                Ok(GetBlockTransactionCountParams { block_id })
+            }
+
+            #[allow(unused_variables)]
+            fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                #[derive(Deserialize)]
+                struct Helper {
+                    block_id: BlockId,
+                }
+
+                let helper =
+                    Helper::deserialize(serde::de::value::MapAccessDeserializer::new(map))?;
+
+                Ok(GetBlockTransactionCountParams {
+                    block_id: helper.block_id,
+                })
+            }
+        }
+
+        deserializer.deserialize_any(Visitor)
+    }
+}
+
 /// Parameters of the `starknet_call` method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct CallParams {
     /// The details of the function call
     pub request: FunctionCall,
@@ -1053,8 +1893,79 @@ pub struct CallParams {
     pub block_id: BlockId,
 }
 
+impl Serialize for CallParams {
+    #[allow(unused_mut)]
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut map = serializer.serialize_map(None)?;
+        map.serialize_entry("request", &self.request)?;
+        map.serialize_entry("block_id", &self.block_id)?;
+        map.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for CallParams {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct Visitor;
+
+        impl<'de> serde::de::Visitor<'de> for Visitor {
+            type Value = CallParams;
+
+            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                write!(f, "the parameters for `starknet_call`")
+            }
+
+            #[allow(unused_mut)]
+            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::SeqAccess<'de>,
+            {
+                let request: FunctionCall = seq
+                    .next_element()?
+                    .ok_or_else(|| serde::de::Error::invalid_length(0, &"expected 2 elements"))?;
+                let block_id: BlockId = seq
+                    .next_element()?
+                    .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 2 elements"))?;
+
+                if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
+                    return Err(serde::de::Error::invalid_length(2, &"expected 2 elements"));
+                }
+
+                Ok(CallParams { request, block_id })
+            }
+
+            #[allow(unused_variables)]
+            fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                #[derive(Deserialize)]
+                struct Helper {
+                    request: FunctionCall,
+                    block_id: BlockId,
+                }
+
+                let helper =
+                    Helper::deserialize(serde::de::value::MapAccessDeserializer::new(map))?;
+
+                Ok(CallParams {
+                    request: helper.request,
+                    block_id: helper.block_id,
+                })
+            }
+        }
+
+        deserializer.deserialize_any(Visitor)
+    }
+}
+
 /// Parameters of the `starknet_estimateFee` method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct EstimateFeeParams {
     /// The transaction to estimate
     pub request: Vec<BroadcastedTxn>,
@@ -1062,8 +1973,79 @@ pub struct EstimateFeeParams {
     pub block_id: BlockId,
 }
 
+impl Serialize for EstimateFeeParams {
+    #[allow(unused_mut)]
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut map = serializer.serialize_map(None)?;
+        map.serialize_entry("request", &self.request)?;
+        map.serialize_entry("block_id", &self.block_id)?;
+        map.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for EstimateFeeParams {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct Visitor;
+
+        impl<'de> serde::de::Visitor<'de> for Visitor {
+            type Value = EstimateFeeParams;
+
+            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                write!(f, "the parameters for `starknet_estimateFee`")
+            }
+
+            #[allow(unused_mut)]
+            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::SeqAccess<'de>,
+            {
+                let request: Vec<BroadcastedTxn> = seq
+                    .next_element()?
+                    .ok_or_else(|| serde::de::Error::invalid_length(0, &"expected 2 elements"))?;
+                let block_id: BlockId = seq
+                    .next_element()?
+                    .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 2 elements"))?;
+
+                if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
+                    return Err(serde::de::Error::invalid_length(2, &"expected 2 elements"));
+                }
+
+                Ok(EstimateFeeParams { request, block_id })
+            }
+
+            #[allow(unused_variables)]
+            fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                #[derive(Deserialize)]
+                struct Helper {
+                    request: Vec<BroadcastedTxn>,
+                    block_id: BlockId,
+                }
+
+                let helper =
+                    Helper::deserialize(serde::de::value::MapAccessDeserializer::new(map))?;
+
+                Ok(EstimateFeeParams {
+                    request: helper.request,
+                    block_id: helper.block_id,
+                })
+            }
+        }
+
+        deserializer.deserialize_any(Visitor)
+    }
+}
+
 /// Parameters of the `starknet_estimateMessageFee` method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct EstimateMessageFeeParams {
     /// the message's parameters
     pub message: MsgFromL1,
@@ -1071,34 +2053,468 @@ pub struct EstimateMessageFeeParams {
     pub block_id: BlockId,
 }
 
+impl Serialize for EstimateMessageFeeParams {
+    #[allow(unused_mut)]
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut map = serializer.serialize_map(None)?;
+        map.serialize_entry("message", &self.message)?;
+        map.serialize_entry("block_id", &self.block_id)?;
+        map.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for EstimateMessageFeeParams {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct Visitor;
+
+        impl<'de> serde::de::Visitor<'de> for Visitor {
+            type Value = EstimateMessageFeeParams;
+
+            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                write!(f, "the parameters for `starknet_estimateMessageFee`")
+            }
+
+            #[allow(unused_mut)]
+            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::SeqAccess<'de>,
+            {
+                let message: MsgFromL1 = seq
+                    .next_element()?
+                    .ok_or_else(|| serde::de::Error::invalid_length(0, &"expected 2 elements"))?;
+                let block_id: BlockId = seq
+                    .next_element()?
+                    .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 2 elements"))?;
+
+                if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
+                    return Err(serde::de::Error::invalid_length(2, &"expected 2 elements"));
+                }
+
+                Ok(EstimateMessageFeeParams { message, block_id })
+            }
+
+            #[allow(unused_variables)]
+            fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                #[derive(Deserialize)]
+                struct Helper {
+                    message: MsgFromL1,
+                    block_id: BlockId,
+                }
+
+                let helper =
+                    Helper::deserialize(serde::de::value::MapAccessDeserializer::new(map))?;
+
+                Ok(EstimateMessageFeeParams {
+                    message: helper.message,
+                    block_id: helper.block_id,
+                })
+            }
+        }
+
+        deserializer.deserialize_any(Visitor)
+    }
+}
+
 /// Parameters of the `starknet_blockNumber` method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct BlockNumberParams {}
 
+impl Serialize for BlockNumberParams {
+    #[allow(unused_mut)]
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut map = serializer.serialize_map(None)?;
+        map.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for BlockNumberParams {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct Visitor;
+
+        impl<'de> serde::de::Visitor<'de> for Visitor {
+            type Value = BlockNumberParams;
+
+            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                write!(f, "the parameters for `starknet_blockNumber`")
+            }
+
+            #[allow(unused_mut)]
+            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::SeqAccess<'de>,
+            {
+                if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
+                    return Err(serde::de::Error::invalid_length(0, &"expected 0 elements"));
+                }
+
+                Ok(BlockNumberParams {})
+            }
+
+            #[allow(unused_variables)]
+            fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                #[derive(Deserialize)]
+                struct Helper {}
+
+                let helper =
+                    Helper::deserialize(serde::de::value::MapAccessDeserializer::new(map))?;
+
+                Ok(BlockNumberParams {})
+            }
+        }
+
+        deserializer.deserialize_any(Visitor)
+    }
+}
+
 /// Parameters of the `starknet_blockHashAndNumber` method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct BlockHashAndNumberParams {}
 
+impl Serialize for BlockHashAndNumberParams {
+    #[allow(unused_mut)]
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut map = serializer.serialize_map(None)?;
+        map.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for BlockHashAndNumberParams {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct Visitor;
+
+        impl<'de> serde::de::Visitor<'de> for Visitor {
+            type Value = BlockHashAndNumberParams;
+
+            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                write!(f, "the parameters for `starknet_blockHashAndNumber`")
+            }
+
+            #[allow(unused_mut)]
+            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::SeqAccess<'de>,
+            {
+                if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
+                    return Err(serde::de::Error::invalid_length(0, &"expected 0 elements"));
+                }
+
+                Ok(BlockHashAndNumberParams {})
+            }
+
+            #[allow(unused_variables)]
+            fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                #[derive(Deserialize)]
+                struct Helper {}
+
+                let helper =
+                    Helper::deserialize(serde::de::value::MapAccessDeserializer::new(map))?;
+
+                Ok(BlockHashAndNumberParams {})
+            }
+        }
+
+        deserializer.deserialize_any(Visitor)
+    }
+}
+
 /// Parameters of the `starknet_chainId` method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct ChainIdParams {}
 
+impl Serialize for ChainIdParams {
+    #[allow(unused_mut)]
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut map = serializer.serialize_map(None)?;
+        map.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for ChainIdParams {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct Visitor;
+
+        impl<'de> serde::de::Visitor<'de> for Visitor {
+            type Value = ChainIdParams;
+
+            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                write!(f, "the parameters for `starknet_chainId`")
+            }
+
+            #[allow(unused_mut)]
+            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::SeqAccess<'de>,
+            {
+                if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
+                    return Err(serde::de::Error::invalid_length(0, &"expected 0 elements"));
+                }
+
+                Ok(ChainIdParams {})
+            }
+
+            #[allow(unused_variables)]
+            fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                #[derive(Deserialize)]
+                struct Helper {}
+
+                let helper =
+                    Helper::deserialize(serde::de::value::MapAccessDeserializer::new(map))?;
+
+                Ok(ChainIdParams {})
+            }
+        }
+
+        deserializer.deserialize_any(Visitor)
+    }
+}
+
 /// Parameters of the `starknet_syncing` method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct SyncingParams {}
 
+impl Serialize for SyncingParams {
+    #[allow(unused_mut)]
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut map = serializer.serialize_map(None)?;
+        map.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for SyncingParams {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct Visitor;
+
+        impl<'de> serde::de::Visitor<'de> for Visitor {
+            type Value = SyncingParams;
+
+            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                write!(f, "the parameters for `starknet_syncing`")
+            }
+
+            #[allow(unused_mut)]
+            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::SeqAccess<'de>,
+            {
+                if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
+                    return Err(serde::de::Error::invalid_length(0, &"expected 0 elements"));
+                }
+
+                Ok(SyncingParams {})
+            }
+
+            #[allow(unused_variables)]
+            fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                #[derive(Deserialize)]
+                struct Helper {}
+
+                let helper =
+                    Helper::deserialize(serde::de::value::MapAccessDeserializer::new(map))?;
+
+                Ok(SyncingParams {})
+            }
+        }
+
+        deserializer.deserialize_any(Visitor)
+    }
+}
+
 /// Parameters of the `starknet_getEvents` method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct GetEventsParams {
     /// The conditions used to filter the returned events
     pub filter: EventFilterWithPageRequest,
 }
 
+impl Serialize for GetEventsParams {
+    #[allow(unused_mut)]
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut map = serializer.serialize_map(None)?;
+        map.serialize_entry("filter", &self.filter)?;
+        map.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for GetEventsParams {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct Visitor;
+
+        impl<'de> serde::de::Visitor<'de> for Visitor {
+            type Value = GetEventsParams;
+
+            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                write!(f, "the parameters for `starknet_getEvents`")
+            }
+
+            #[allow(unused_mut)]
+            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::SeqAccess<'de>,
+            {
+                let filter: EventFilterWithPageRequest = seq
+                    .next_element()?
+                    .ok_or_else(|| serde::de::Error::invalid_length(0, &"expected 1 elements"))?;
+
+                if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
+                    return Err(serde::de::Error::invalid_length(1, &"expected 1 elements"));
+                }
+
+                Ok(GetEventsParams { filter })
+            }
+
+            #[allow(unused_variables)]
+            fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                #[derive(Deserialize)]
+                struct Helper {
+                    filter: EventFilterWithPageRequest,
+                }
+
+                let helper =
+                    Helper::deserialize(serde::de::value::MapAccessDeserializer::new(map))?;
+
+                Ok(GetEventsParams {
+                    filter: helper.filter,
+                })
+            }
+        }
+
+        deserializer.deserialize_any(Visitor)
+    }
+}
+
 /// Parameters of the `starknet_getNonce` method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct GetNonceParams {
     /// The hash of the requested block, or number (height) of the requested block, or a block tag
     pub block_id: BlockId,
     /// The address of the contract whose nonce we're seeking
     pub contract_address: Address,
+}
+
+impl Serialize for GetNonceParams {
+    #[allow(unused_mut)]
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut map = serializer.serialize_map(None)?;
+        map.serialize_entry("block_id", &self.block_id)?;
+        map.serialize_entry("contract_address", &self.contract_address)?;
+        map.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for GetNonceParams {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct Visitor;
+
+        impl<'de> serde::de::Visitor<'de> for Visitor {
+            type Value = GetNonceParams;
+
+            fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                write!(f, "the parameters for `starknet_getNonce`")
+            }
+
+            #[allow(unused_mut)]
+            fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::SeqAccess<'de>,
+            {
+                let block_id: BlockId = seq
+                    .next_element()?
+                    .ok_or_else(|| serde::de::Error::invalid_length(0, &"expected 2 elements"))?;
+                let contract_address: Address = seq
+                    .next_element()?
+                    .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 2 elements"))?;
+
+                if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
+                    return Err(serde::de::Error::invalid_length(2, &"expected 2 elements"));
+                }
+
+                Ok(GetNonceParams {
+                    block_id,
+                    contract_address,
+                })
+            }
+
+            #[allow(unused_variables)]
+            fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                #[derive(Deserialize)]
+                struct Helper {
+                    block_id: BlockId,
+                    contract_address: Address,
+                }
+
+                let helper =
+                    Helper::deserialize(serde::de::value::MapAccessDeserializer::new(map))?;
+
+                Ok(GetNonceParams {
+                    block_id: helper.block_id,
+                    contract_address: helper.contract_address,
+                })
+            }
+        }
+
+        deserializer.deserialize_any(Visitor)
+    }
 }
