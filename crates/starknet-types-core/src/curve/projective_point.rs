@@ -8,6 +8,7 @@ use lambdaworks_math::elliptic_curve::short_weierstrass::point::ShortWeierstrass
 use lambdaworks_math::elliptic_curve::traits::EllipticCurveError::InvalidPoint;
 use lambdaworks_math::unsigned_integer::traits::IsUnsignedInteger;
 
+#[repr(transparent)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ProjectivePoint(pub(crate) ShortWeierstrassProjectivePoint<StarkCurve>);
 

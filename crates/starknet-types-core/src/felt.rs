@@ -26,6 +26,7 @@ use lambdaworks_math::{
 #[cfg(feature = "arbitrary")]
 use arbitrary::{self, Arbitrary, Unstructured};
 
+#[repr(transparent)]
 /// Definition of the Field Element type.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Felt(pub(crate) FieldElement<Stark252PrimeField>);

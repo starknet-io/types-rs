@@ -5,6 +5,7 @@ use lambdaworks_math::elliptic_curve::short_weierstrass::curves::stark_curve::St
 use lambdaworks_math::elliptic_curve::short_weierstrass::point::ShortWeierstrassProjectivePoint;
 use lambdaworks_math::elliptic_curve::traits::FromAffine;
 
+#[repr(transparent)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AffinePoint(pub(crate) ShortWeierstrassProjectivePoint<StarkCurve>);
 
