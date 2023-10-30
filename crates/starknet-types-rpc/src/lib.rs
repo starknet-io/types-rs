@@ -14,17 +14,31 @@
 //! [`Serialize`]: serde::Serialize
 //! [`Deserialize`]: serde::Deserialize
 
+#![cfg_attr(not(feature = "std"), no_std)]
+
+extern crate alloc;
+
 mod custom_serde;
 
+//
+// Generated files.
+//
 #[path = "generated/v0_5_0.rs"]
 mod generated;
 
 pub use self::generated::*;
 
+//
+// Types with custom serialization/deserialization logic.
+// Mainly for convenience.
+//
 mod block_id;
 mod syncing_status;
 
 pub use self::block_id::*;
 pub use self::syncing_status::*;
 
+//
+// Re-export of exiting types.
+//
 pub use stark_felt::Felt;

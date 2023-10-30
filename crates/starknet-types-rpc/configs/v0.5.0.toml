@@ -4,8 +4,10 @@ run-rustfmt = true
 [generation]
 additional-imports = [
     "crate::custom_serde::NumAsHex",
-    "crate::{BlockId, SyncingStatus}",
+    "crate::BlockId",
     "stark_felt::Felt",
+    "alloc::vec::Vec",
+    "alloc::string::String",
 ]
 method-name-prefix = "starknet_"
 param-types = true

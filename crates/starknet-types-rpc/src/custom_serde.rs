@@ -1,4 +1,4 @@
-use std::marker::PhantomData;
+use core::marker::PhantomData;
 
 /// A trait for types that should be serialized or deserialized as hexadecimal strings.
 pub trait NumAsHex<'de>: Sized {
@@ -37,7 +37,7 @@ impl<'de> NumAsHex<'de> for u64 {
         // SAFETY:
         //  We only wrote ASCII characters to the buffer, ensuring that it is only composed
         //  of valid UTF-8 code points.
-        let s = std::str::from_utf8(&buffer[remaining..]).unwrap();
+        let s = core::str::from_utf8(&buffer[remaining..]).unwrap();
 
         serializer.serialize_str(s)
     }
@@ -51,7 +51,7 @@ impl<'de> NumAsHex<'de> for u64 {
         impl<'de> serde::de::Visitor<'de> for NumAsHexVisitor {
             type Value = u64;
 
-            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, formatter: &mut core::fmt::Formatter) -> core::fmt::Result {
                 formatter.write_str("a hexadecimal string")
             }
 
@@ -113,7 +113,7 @@ where
         {
             type Value = Option<T>;
 
-            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, formatter: &mut core::fmt::Formatter) -> core::fmt::Result {
                 writeln!(formatter, "an optional number as a hexadecimal string")
             }
 

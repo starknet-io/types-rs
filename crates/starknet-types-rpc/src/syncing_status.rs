@@ -34,7 +34,7 @@ impl<'de> Deserialize<'de> for SyncingStatus {
         impl<'de> Visitor<'de> for SyncingStatusVisitor {
             type Value = SyncingStatus;
 
-            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, formatter: &mut core::fmt::Formatter) -> core::fmt::Result {
                 writeln!(formatter, "a syncing status")
             }
 
