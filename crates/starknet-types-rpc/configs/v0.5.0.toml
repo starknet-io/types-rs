@@ -1,4 +1,4 @@
-debug-path = true
+debug-path = false
 run-rustfmt = true
 
 [generation]
