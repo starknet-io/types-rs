@@ -4,7 +4,7 @@ run-rustfmt = true
 [generation]
 additional-imports = [
     "crate::custom_serde::NumAsHex",
-    "crate::{BlockId, Felt}",
+    "crate::{BlockId, Felt, BroadcastedDeclareTxn, BroadcastedDeployAccountTxn, BroadcastedInvokeTxn}",
     "alloc::vec::Vec",
     "alloc::string::String",
 ]
@@ -23,6 +23,8 @@ flatten = [
 preserve = [
     "#/components/schemas/BLOCK_TAG",
     "#/components/schemas/SYNC_STATUS",
+    "#/components/schemas/BROADCASTED_DECLARE_TXN_V1",
+    "#/components/schemas/BROADCASTED_DECLARE_TXN_V2",
 ]
 
 [fixes.replace]
@@ -30,6 +32,11 @@ preserve = [
 "#/components/schemas/BLOCK_ID" = "BlockId"
 "#/methods/starknet_syncing/result/_anon" = "SyncingStatus"
 "#/components/schemas/FELT" = "Felt"
+
+# Query-only types
+"#/components/schemas/BROADCASTED_DECLARE_TXN" = "BroadcastedDeclareTxn"
+"#/components/schemas/BROADCASTED_DEPLOY_ACCOUNT_TXN" = "BroadcastedDeployAccountTxn"
+"#/components/schemas/BROADCASTED_INVOKE_TXN" = "BroadcastedInvokeTxn"
 
 # Duplicates
 "#/methods/starknet_getClassAt/result/_anon" = "MaybeDeprecatedContractClass"
@@ -68,6 +75,7 @@ preserve = [
 "#/components/schemas/BROADCASTED_TXN" = "type"
 "#/components/schemas/DEPLOY_ACCOUNT_TXN" = "version"
 "#/components/schemas/BROADCASTED_DECLARE_TXN" = "version"
+"#/components/schemas/BROADCASTED_INVOKE_TXN" = "version"
 
 [fixes.make-keyword]
 "#/components/schemas/INVOKE_TXN_V1/_anon/version" = "0x1"

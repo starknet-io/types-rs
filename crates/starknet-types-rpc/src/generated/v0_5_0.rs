@@ -9,7 +9,9 @@
 //
 
 use crate::custom_serde::NumAsHex;
-use crate::{BlockId, Felt};
+use crate::{
+    BlockId, BroadcastedDeclareTxn, BroadcastedDeployAccountTxn, BroadcastedInvokeTxn, Felt,
+};
 use alloc::string::String;
 use alloc::vec::Vec;
 use serde::ser::SerializeMap;
@@ -89,15 +91,6 @@ pub struct BlockWithTxHashes {
     pub block_header: BlockHeader,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(tag = "version")]
-pub enum BroadcastedDeclareTxn {
-    #[serde(rename = "0x1")]
-    V1(BroadcastedDeclareTxnV1),
-    #[serde(rename = "0x2")]
-    V2(BroadcastedDeclareTxnV2),
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BroadcastedDeclareTxnV1 {
     /// The class to be declared
@@ -122,15 +115,6 @@ pub struct BroadcastedDeclareTxnV2 {
     /// The address of the account contract sending the declaration transaction
     pub sender_address: Address,
     pub signature: Signature,
-}
-
-pub type BroadcastedDeployAccountTxn = DeployAccountTxn;
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(untagged)]
-pub enum BroadcastedInvokeTxn {
-    V0(InvokeTxnV0),
-    V1(InvokeTxnV1),
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
