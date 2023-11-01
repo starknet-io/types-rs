@@ -4,11 +4,11 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-stark-felt = { path = "../crates/stark-felt", default-features = false, features = [
+starknet-types-core = { path = "../crates/starknet-types-core", default-features = false, features = [
     "alloc",
     "serde",
+    "curve",
 ] }
-starknet-types-core = { path = "../crates/starknet-types-core", default-features = false }
 starknet-types-rpc = { path = "../crates/starknet-types-rpc", default-features = false }
 wee_alloc = "0.4.5"
 
