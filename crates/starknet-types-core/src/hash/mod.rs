@@ -1,2 +1,5 @@
-pub mod pedersen;
-pub mod traits;
+mod pedersen;
+mod traits;
+
+pub use self::pedersen::*;
+pub use self::traits::*;
