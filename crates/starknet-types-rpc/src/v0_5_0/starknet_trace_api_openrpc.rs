@@ -14,217 +14,158 @@ use super::{
 use serde::ser::SerializeMap;
 use serde::{Deserialize, Serialize};
 
-// #/components/schemas/CALL_TYPE
 #[derive(Serialize, Deserialize, Copy, PartialEq, Eq, Hash, Clone, Debug)]
 pub enum CallType {
-    // #/components/schemas/CALL_TYPE/CALL
     #[serde(rename = "CALL")]
     Regular,
-    // #/components/schemas/CALL_TYPE/LIBRARY_CALL
     #[serde(rename = "LIBRARY_CALL")]
     Library,
 }
 
-// #/components/schemas/ENTRY_POINT_TYPE
 #[derive(Serialize, Deserialize, Copy, PartialEq, Eq, Hash, Clone, Debug)]
 pub enum EntryPointType {
-    // #/components/schemas/ENTRY_POINT_TYPE/CONSTRUCTOR
     #[serde(rename = "CONSTRUCTOR")]
     Constructor,
-    // #/components/schemas/ENTRY_POINT_TYPE/EXTERNAL
     #[serde(rename = "EXTERNAL")]
     External,
-    // #/components/schemas/ENTRY_POINT_TYPE/L1_HANDLER
     #[serde(rename = "L1_HANDLER")]
     L1Handler,
 }
 
-// #/components/schemas/FUNCTION_INVOCATION
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FunctionInvocation {
-    // #/components/schemas/FUNCTION_INVOCATION/field0
     #[serde(flatten)]
     pub function_call: FunctionCall,
-    // #/components/schemas/FUNCTION_INVOCATION/field1/_anon/call_type
     pub call_type: CallType,
-    // #/components/schemas/FUNCTION_INVOCATION/field1/_anon/caller_address
     /// The address of the invoking contract. 0 for the root invocation
     pub caller_address: Felt,
-    // #/components/schemas/FUNCTION_INVOCATION/field1/_anon/calls
     /// The calls made by this invocation
     pub calls: Vec<NestedCall>,
-    // #/components/schemas/FUNCTION_INVOCATION/field1/_anon/class_hash
     /// The hash of the class being called
     pub class_hash: Felt,
-    // #/components/schemas/FUNCTION_INVOCATION/field1/_anon/entry_point_type
     pub entry_point_type: EntryPointType,
-    // #/components/schemas/FUNCTION_INVOCATION/field1/_anon/events
     /// The events emitted in this invocation
     pub events: Vec<OrderedEvent>,
-    // #/components/schemas/FUNCTION_INVOCATION/field1/_anon/messages
     /// The messages sent by this invocation to L1
     pub messages: Vec<OrderedMessage>,
-    // #/components/schemas/FUNCTION_INVOCATION/field1/_anon/result
     /// The value returned from the function invocation
     pub result: Vec<Felt>,
 }
 
-// #/components/schemas/NESTED_CALL
 pub type NestedCall = FunctionInvocation;
 
-// #/components/schemas/ORDERED_EVENT
 /// an event alongside its order within the transaction
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OrderedEvent {
-    // #/components/schemas/ORDERED_EVENT/field0/_anon/order
     /// the order of the event within the transaction
     #[serde(default)]
     pub order: Option<f64>,
-    // #/components/schemas/ORDERED_EVENT/field1
     #[serde(flatten)]
     pub event: Event,
 }
 
-// #/components/schemas/ORDERED_MESSAGE
 /// a message alongside its order within the transaction
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OrderedMessage {
-    // #/components/schemas/ORDERED_MESSAGE/field0/_anon/order
     /// the order of the message within the transaction
     #[serde(default)]
     pub order: Option<f64>,
-    // #/components/schemas/ORDERED_MESSAGE/field1
     #[serde(flatten)]
     pub msg_to_l_1: MsgToL1,
 }
 
-// #/components/schemas/SIMULATION_FLAG
 /// Flags that indicate how to simulate a given transaction. By default, the sequencer behavior is replicated locally (enough funds are expected to be in the account, and fee will be deducted from the balance before the simulation of the next transaction). To skip the fee charge, use the SKIP_FEE_CHARGE flag.
 #[derive(Serialize, Deserialize, Copy, PartialEq, Eq, Hash, Clone, Debug)]
 pub enum SimulationFlag {
-    // #/components/schemas/SIMULATION_FLAG/SKIP_FEE_CHARGE
     #[serde(rename = "SKIP_FEE_CHARGE")]
     FeeCharge,
-    // #/components/schemas/SIMULATION_FLAG/SKIP_VALIDATE
     #[serde(rename = "SKIP_VALIDATE")]
     Validate,
 }
 
-// #/components/schemas/TRANSACTION_TRACE
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(tag = "type")]
 pub enum TransactionTrace {
-    // #/components/schemas/TRANSACTION_TRACE/variant0
     /// the execution trace of an invoke transaction
     #[serde(rename = "INVOKE")]
     Invoke(InvokeTransactionTrace),
-    // #/components/schemas/TRANSACTION_TRACE/variant1
     /// the execution trace of a declare transaction
     #[serde(rename = "DECLARE")]
     Declare(DeclareTransactionTrace),
-    // #/components/schemas/TRANSACTION_TRACE/variant2
     /// the execution trace of a deploy account transaction
     #[serde(rename = "DEPLOY_ACCOUNT")]
     DeployAccount(DeployAccountTransactionTrace),
-    // #/components/schemas/TRANSACTION_TRACE/variant3
     /// the execution trace of an L1 handler transaction
     #[serde(rename = "L1_HANDLER")]
     L1Handler(L1HandlerTransactionTrace),
 }
 
-// #/components/schemas/TRANSACTION_TRACE/variant0/_anon
 /// the execution trace of an invoke transaction
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InvokeTransactionTrace {
-    // #/components/schemas/TRANSACTION_TRACE/variant0/_anon/execute_invocation
     /// the trace of the __execute__ call or constructor call, depending on the transaction type (none for declare transactions)
     pub execute_invocation: ExecuteInvocation,
-    // #/components/schemas/TRANSACTION_TRACE/variant0/_anon/fee_transfer_invocation
     pub fee_transfer_invocation: FunctionInvocation,
-    // #/components/schemas/TRANSACTION_TRACE/variant0/_anon/state_diff
     /// the state diffs induced by the transaction
     pub state_diff: StateDiff,
-    // #/components/schemas/TRANSACTION_TRACE/variant0/_anon/validate_invocation
     pub validate_invocation: FunctionInvocation,
 }
 
-// #/components/schemas/TRANSACTION_TRACE/variant0/_anon/execute_invocation/_anon
 /// the trace of the __execute__ call or constructor call, depending on the transaction type (none for declare transactions)
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(untagged)]
 pub enum ExecuteInvocation {
-    // #/components/schemas/TRANSACTION_TRACE/variant0/_anon/execute_invocation/_anon/variant0
     FunctionInvocation(FunctionInvocation),
-    // #/components/schemas/TRANSACTION_TRACE/variant0/_anon/execute_invocation/_anon/variant1
     Anon(RevertedInvocation),
 }
 
-// #/components/schemas/TRANSACTION_TRACE/variant0/_anon/execute_invocation/_anon/variant1/_anon
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RevertedInvocation {
-    // #/components/schemas/TRANSACTION_TRACE/variant0/_anon/execute_invocation/_anon/variant1/_anon/revert_reason
     /// the revert reason for the failed execution
     #[serde(default)]
     pub revert_reason: Option<String>,
 }
 
-// #/components/schemas/TRANSACTION_TRACE/variant1/_anon
 /// the execution trace of a declare transaction
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DeclareTransactionTrace {
-    // #/components/schemas/TRANSACTION_TRACE/variant1/_anon/fee_transfer_invocation
     pub fee_transfer_invocation: FunctionInvocation,
-    // #/components/schemas/TRANSACTION_TRACE/variant1/_anon/state_diff
     /// the state diffs induced by the transaction
     pub state_diff: StateDiff,
-    // #/components/schemas/TRANSACTION_TRACE/variant1/_anon/validate_invocation
     pub validate_invocation: FunctionInvocation,
 }
 
-// #/components/schemas/TRANSACTION_TRACE/variant2/_anon
 /// the execution trace of a deploy account transaction
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DeployAccountTransactionTrace {
-    // #/components/schemas/TRANSACTION_TRACE/variant2/_anon/constructor_invocation
     /// the trace of the __execute__ call or constructor call, depending on the transaction type (none for declare transactions)
     pub constructor_invocation: FunctionInvocation,
-    // #/components/schemas/TRANSACTION_TRACE/variant2/_anon/fee_transfer_invocation
     pub fee_transfer_invocation: FunctionInvocation,
-    // #/components/schemas/TRANSACTION_TRACE/variant2/_anon/state_diff
     /// the state diffs induced by the transaction
     pub state_diff: StateDiff,
-    // #/components/schemas/TRANSACTION_TRACE/variant2/_anon/validate_invocation
     pub validate_invocation: FunctionInvocation,
 }
 
-// #/components/schemas/TRANSACTION_TRACE/variant3/_anon
 /// the execution trace of an L1 handler transaction
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct L1HandlerTransactionTrace {
-    // #/components/schemas/TRANSACTION_TRACE/variant3/_anon/function_invocation
     /// the trace of the __execute__ call or constructor call, depending on the transaction type (none for declare transactions)
     pub function_invocation: FunctionInvocation,
 }
 
-// #/methods/starknet_simulateTransactions/result/_anon/_anon
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SimulateTransactionsResult {
-    // #/methods/starknet_simulateTransactions/result/_anon/_anon/fee_estimation
     #[serde(default)]
     pub fee_estimation: Option<FeeEstimate>,
-    // #/methods/starknet_simulateTransactions/result/_anon/_anon/transaction_trace
     #[serde(default)]
     pub transaction_trace: Option<TransactionTrace>,
 }
 
-// #/methods/starknet_traceBlockTransactions/result/_anon/_anon
 /// A single pair of transaction hash and corresponding trace
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TraceBlockTransactionsResult {
-    // #/methods/starknet_traceBlockTransactions/result/_anon/_anon/trace_root
     #[serde(default)]
     pub trace_root: Option<TransactionTrace>,
-    // #/methods/starknet_traceBlockTransactions/result/_anon/_anon/transaction_hash
     #[serde(default)]
     pub transaction_hash: Option<Felt>,
 }
