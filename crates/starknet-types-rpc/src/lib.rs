@@ -32,11 +32,8 @@ pub use self::generated::*;
 // Types with custom serialization/deserialization logic.
 // Mainly for convenience.
 //
-mod block_id;
-mod syncing_status;
-
-pub use self::block_id::*;
-pub use self::syncing_status::*;
+mod custom;
+pub use self::custom::*;
 
 //
 // Re-export of exiting types.
