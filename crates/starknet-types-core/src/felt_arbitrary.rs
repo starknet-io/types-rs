@@ -2,7 +2,7 @@ use lambdaworks_math::{field::element::FieldElement, unsigned_integer::element::
 use num_traits::Zero;
 use proptest::prelude::*;
 
-use crate::Felt;
+use crate::felt::Felt;
 const FIELD_HIGH: u128 = (1 << 123) + (17 << 64); // this is equal to 10633823966279327296825105735305134080
 const FIELD_LOW: u128 = 1;
 

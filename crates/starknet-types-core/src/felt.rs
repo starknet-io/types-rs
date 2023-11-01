@@ -1,12 +1,7 @@
-#![cfg_attr(not(feature = "std"), no_std)]
-
 use core::ops::{Add, Neg};
 
 use bitvec::array::BitArray;
 use num_traits::{FromPrimitive, ToPrimitive, Zero};
-
-#[cfg(test)]
-mod arbitrary_proptest;
 
 #[cfg(target_pointer_width = "64")]
 pub type BitArrayStore = [u64; 4];
@@ -31,9 +26,10 @@ use lambdaworks_math::{
 #[cfg(feature = "arbitrary")]
 use arbitrary::{self, Arbitrary, Unstructured};
 
+#[repr(transparent)]
 /// Definition of the Field Element type.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Felt(FieldElement<Stark252PrimeField>);
+pub struct Felt(pub(crate) FieldElement<Stark252PrimeField>);
 
 /// A non-zero [Felt].
 pub struct NonZeroFelt(FieldElement<Stark252PrimeField>);
@@ -830,7 +826,7 @@ mod errors {
 mod test {
     use super::alloc::{format, string::String, vec::Vec};
     use super::*;
-    use crate::arbitrary_proptest::nonzero_felt;
+    use crate::felt_arbitrary::nonzero_felt;
     use core::ops::Shl;
     use proptest::prelude::*;
 

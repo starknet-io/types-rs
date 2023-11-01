@@ -18,4 +18,4 @@ pub extern "C" fn _start() -> ! {
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 #[allow(unused_imports)]
-use stark_felt;
+use starknet_types_core;
