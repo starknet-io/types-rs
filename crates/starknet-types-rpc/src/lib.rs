@@ -18,24 +18,12 @@
 
 extern crate alloc;
 
+mod custom;
 mod custom_serde;
 
 //
 // Generated files.
 //
-#[path = "generated/v0_5_0.rs"]
-mod generated;
+pub mod v0_5_0;
 
-pub use self::generated::*;
-
-//
-// Types with custom serialization/deserialization logic.
-// Mainly for convenience.
-//
-mod custom;
-pub use self::custom::*;
-
-//
-// Re-export of exiting types.
-//
-pub use starknet_types_core::felt::Felt;
+pub use self::v0_5_0::*;
