@@ -4,7 +4,7 @@ run-rustfmt = true
 [generation]
 additional-imports = [
     "crate::custom_serde::NumAsHex",
-    "crate::{BlockId, Felt, BroadcastedDeclareTxn, BroadcastedDeployAccountTxn, BroadcastedInvokeTxn}",
+    "super::{BlockId, Felt, BroadcastedDeclareTxn, BroadcastedDeployAccountTxn, BroadcastedInvokeTxn}",
     "alloc::vec::Vec",
     "alloc::string::String",
 ]

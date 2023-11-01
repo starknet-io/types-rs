@@ -79,17 +79,15 @@
                 "schema": {
                     "type": "array",
                     "items": {
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "transaction_trace": {
-                                    "title": "the transaction's trace",
-                                    "$ref": "#/components/schemas/TRANSACTION_TRACE"
-                                },
-                                "fee_estimation": {
-                                    "title": "the transaction's resources and fee",
-                                    "$ref": "#/components/schemas/FEE_ESTIMATE"
-                                }
+                        "type": "object",
+                        "properties": {
+                            "transaction_trace": {
+                                "title": "the transaction's trace",
+                                "$ref": "#/components/schemas/TRANSACTION_TRACE"
+                            },
+                            "fee_estimation": {
+                                "title": "the transaction's resources and fee",
+                                "$ref": "#/components/schemas/FEE_ESTIMATE"
                             }
                         }
                     }
