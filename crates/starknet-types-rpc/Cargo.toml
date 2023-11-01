@@ -13,10 +13,10 @@ readme = "README.md"
 [features]
 default = ["std"]
 
-std = ["serde/std", "stark-felt/std"]
+std = ["serde/std", "starknet-types-core/std"]
 
 [dependencies]
-stark-felt = { path = "../stark-felt", default-features = false }
+starknet-types-core = { path = "../starknet-types-core", default-features = false }
 serde = { version = "1", default-features = false, features = ["derive"] }
 
 [dev-dependencies]

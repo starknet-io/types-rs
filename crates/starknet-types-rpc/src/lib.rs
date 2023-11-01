@@ -41,4 +41,4 @@ pub use self::syncing_status::*;
 //
 // Re-export of exiting types.
 //
-pub use stark_felt::Felt;
+pub use starknet_types_core::felt::Felt;

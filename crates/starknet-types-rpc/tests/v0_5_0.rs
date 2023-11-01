@@ -1,7 +1,6 @@
 //! Integeration tests for the 0.5.0 version of the StarkNet RPC API Specification.
 
-use stark_felt::Felt;
-use starknet_types_rpc::{BlockId, BlockTag, SyncingStatus};
+use starknet_types_rpc::{BlockId, BlockTag, Felt, SyncingStatus};
 
 #[test]
 fn block_id_from_hash() {
