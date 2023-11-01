@@ -90,9 +90,11 @@ pub struct BlockWithTxHashes {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-#[serde(untagged)]
+#[serde(tag = "version")]
 pub enum BroadcastedDeclareTxn {
+    #[serde(rename = "0x1")]
     V1(BroadcastedDeclareTxnV1),
+    #[serde(rename = "0x2")]
     V2(BroadcastedDeclareTxnV2),
 }
 
@@ -106,9 +108,6 @@ pub struct BroadcastedDeclareTxnV1 {
     /// The address of the account contract sending the declaration transaction
     pub sender_address: Address,
     pub signature: Signature,
-    /// Version of the transaction scheme
-    #[serde(with = "NumAsHex")]
-    pub version: u64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -123,9 +122,6 @@ pub struct BroadcastedDeclareTxnV2 {
     /// The address of the account contract sending the declaration transaction
     pub sender_address: Address,
     pub signature: Signature,
-    /// Version of the transaction scheme
-    #[serde(with = "NumAsHex")]
-    pub version: u64,
 }
 
 pub type BroadcastedDeployAccountTxn = DeployAccountTxn;

@@ -67,10 +67,13 @@ preserve = [
 "#/components/schemas/PENDING_TXN_RECEIPT" = "type"
 "#/components/schemas/BROADCASTED_TXN" = "type"
 "#/components/schemas/DEPLOY_ACCOUNT_TXN" = "version"
+"#/components/schemas/BROADCASTED_DECLARE_TXN" = "version"
 
 [fixes.make-keyword]
 "#/components/schemas/INVOKE_TXN_V1/_anon/version" = "0x1"
 "#/components/schemas/DEPLOY_ACCOUNT_TXN_V1/version" = "0x1"
+"#/components/schemas/BROADCASTED_DECLARE_TXN_V1/_anon/version" = "0x1"
+"#/components/schemas/BROADCASTED_DECLARE_TXN_V2/_anon/version" = "0x2"
 
 [primitives]
 integer = "u64"
