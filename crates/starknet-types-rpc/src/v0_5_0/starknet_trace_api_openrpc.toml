@@ -3,7 +3,9 @@ run-rustfmt = true
 
 [generation]
 additional-imports = [
-    "super::{Felt, FunctionCall, Event, MsgToL1, BlockId, FeeEstimate, BroadcastedTxn, StateDiff, TxnHash}"
+    "super::{Felt, FunctionCall, Event, MsgToL1, BlockId, FeeEstimate, BroadcastedTxn, StateDiff, TxnHash}",
+    "alloc::vec::Vec",
+    "alloc::string::String",
 ]
 method-name-prefix = "starknet_"
 param-types = true

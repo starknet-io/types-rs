@@ -11,6 +11,8 @@
 use super::{
     BlockId, BroadcastedTxn, Event, FeeEstimate, Felt, FunctionCall, MsgToL1, StateDiff, TxnHash,
 };
+use alloc::string::String;
+use alloc::vec::Vec;
 use serde::ser::SerializeMap;
 use serde::{Deserialize, Serialize};
 
@@ -59,7 +61,7 @@ pub type NestedCall = FunctionInvocation;
 pub struct OrderedEvent {
     /// the order of the event within the transaction
     #[serde(default)]
-    pub order: Option<f64>,
+    pub order: Option<u64>,
     #[serde(flatten)]
     pub event: Event,
 }
@@ -69,7 +71,7 @@ pub struct OrderedEvent {
 pub struct OrderedMessage {
     /// the order of the message within the transaction
     #[serde(default)]
-    pub order: Option<f64>,
+    pub order: Option<u64>,
     #[serde(flatten)]
     pub msg_to_l_1: MsgToL1,
 }

@@ -8,10 +8,10 @@
 //     https://github.com/nils-mathieu/openrpc-gen
 //
 
-use crate::custom_serde::NumAsHex;
-use crate::{
+use super::{
     BlockId, BroadcastedDeclareTxn, BroadcastedDeployAccountTxn, BroadcastedInvokeTxn, Felt,
 };
+use crate::custom_serde::NumAsHex;
 use alloc::string::String;
 use alloc::vec::Vec;
 use serde::ser::SerializeMap;
@@ -135,7 +135,7 @@ pub type ChainId = u64;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CommonReceiptProperties {
     /// The fee that was charged by the sequencer
-    pub actual_fee: Felt,
+    pub actual_fee: FeePayment,
     pub block_hash: BlockHash,
     pub block_number: BlockNumber,
     /// The events emitted as part of this transaction
@@ -211,6 +211,8 @@ pub enum DeclareTxn {
     V1(DeclareTxnV1),
     #[serde(rename = "0x2")]
     V2(DeclareTxnV2),
+    #[serde(rename = "0x3")]
+    V3(DeclareTxnV3),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -257,6 +259,20 @@ pub struct DeclareTxnV2 {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeclareTxnV3 {
+    /// The hash of the declared class
+    pub class_hash: Felt,
+    /// The hash of the Cairo assembly resulting from the Sierra compilation
+    pub compiled_class_hash: Felt,
+    /// The max amount and max price per unit of L1 gas used in this tx
+    pub l1_gas: ResourceLimits,
+    pub nonce: Felt,
+    /// The address of the account contract sending the declaration transaction
+    pub sender_address: Address,
+    pub signature: Signature,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DeployedContractItem {
     /// The address of the contract
     pub address: Felt,
@@ -269,7 +285,9 @@ pub struct DeployedContractItem {
 #[serde(tag = "version")]
 pub enum DeployAccountTxn {
     #[serde(rename = "0x1")]
-    DeployAccountV1(DeployAccountTxnV1),
+    V1(DeployAccountTxnV1),
+    #[serde(rename = "0x3")]
+    V3(DeployAccountTxnV3),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -291,6 +309,21 @@ pub struct DeployAccountTxnV1 {
     pub contract_address_salt: Felt,
     /// The maximal fee that can be charged for including the transaction
     pub max_fee: Felt,
+    pub nonce: Felt,
+    pub signature: Signature,
+}
+
+/// Deploys an account contract, charges fee from the pre-funded account addresses
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeployAccountTxnV3 {
+    /// The hash of the deployed contract's class
+    pub class_hash: Felt,
+    /// The parameters passed to the constructor
+    pub constructor_calldata: Vec<Felt>,
+    /// The salt for the address of the deployed contract
+    pub contract_address_salt: Felt,
+    /// The max amount and max price per unit of L1 gas used in this tx
+    pub l1_gas: ResourceLimits,
     pub nonce: Felt,
     pub signature: Signature,
 }
@@ -432,6 +465,22 @@ pub struct FeeEstimate {
     pub overall_fee: u64,
 }
 
+/// fee payment info as it appears in receipts
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FeePayment {
+    /// amount paid
+    pub amount: Felt,
+    pub unit: FeeUnit,
+}
+
+#[derive(Serialize, Deserialize, Copy, PartialEq, Eq, Hash, Clone, Debug)]
+pub enum FeeUnit {
+    #[serde(rename = "STRK")]
+    Strk,
+    #[serde(rename = "WEI")]
+    Wei,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FunctionAbiEntry {
     pub inputs: Vec<TypedParameter>,
@@ -474,6 +523,8 @@ pub enum InvokeTxn {
     V0(InvokeTxnV0),
     #[serde(rename = "0x1")]
     V1(InvokeTxnV1),
+    #[serde(rename = "0x3")]
+    V3(InvokeTxnV3),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -500,6 +551,17 @@ pub struct InvokeTxnV1 {
     pub calldata: Vec<Felt>,
     /// The maximal fee that can be charged for including the transaction
     pub max_fee: Felt,
+    pub nonce: Felt,
+    pub sender_address: Address,
+    pub signature: Signature,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InvokeTxnV3 {
+    /// The data expected by the account's `execute` function (in most usecases, this includes the called contract address and a function selector)
+    pub calldata: Vec<Felt>,
+    /// The max amount and max price per unit of L1 gas used in this tx
+    pub l1_gas: ResourceLimits,
     pub nonce: Felt,
     pub sender_address: Address,
     pub signature: Signature,
@@ -584,7 +646,7 @@ pub struct PendingBlockWithTxHashes {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PendingCommonReceiptProperties {
     /// The fee that was charged by the sequencer
-    pub actual_fee: Felt,
+    pub actual_fee: FeePayment,
     /// The events emitted as part of this transaction
     pub events: Vec<Event>,
     /// The resources consumed by the transaction
@@ -598,8 +660,6 @@ pub struct PendingCommonReceiptProperties {
     pub revert_reason: Option<String>,
     /// The hash identifying the transaction
     pub transaction_hash: TxnHash,
-    #[serde(rename = "type")]
-    pub ty: TxnType,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -654,11 +714,20 @@ pub enum PendingTxnReceipt {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ResourceLimits {
+    /// the max amount of the resource that can be used in the tx
+    #[serde(with = "NumAsHex")]
+    pub max_amount: u64,
+    /// the max price per unit of this resource for this tx
+    #[serde(with = "NumAsHex")]
+    pub max_price_per_unit: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ResourcePrice {
     /// the price of one unit of the given resource, denominated in strk
-    #[serde(default)]
     #[serde(with = "NumAsHex")]
-    pub price_in_strk: Option<u64>,
+    pub price_in_strk: u64,
     /// the price of one unit of the given resource, denominated in wei
     #[serde(with = "NumAsHex")]
     pub price_in_wei: u64,
@@ -833,21 +902,6 @@ pub enum TxnStatus {
     Received,
     #[serde(rename = "REJECTED")]
     Rejected,
-}
-
-/// The type of the transaction
-#[derive(Serialize, Deserialize, Copy, PartialEq, Eq, Hash, Clone, Debug)]
-pub enum TxnType {
-    #[serde(rename = "DECLARE")]
-    Declare,
-    #[serde(rename = "DEPLOY")]
-    Deploy,
-    #[serde(rename = "DEPLOY_ACCOUNT")]
-    DeployAccount,
-    #[serde(rename = "INVOKE")]
-    Invoke,
-    #[serde(rename = "L1_HANDLER")]
-    L1Handler,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

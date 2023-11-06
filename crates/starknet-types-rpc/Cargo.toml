@@ -16,7 +16,7 @@ default = ["std"]
 std = ["serde/std", "starknet-types-core/std"]
 
 [dependencies]
-starknet-types-core = { path = "../starknet-types-core", default-features = false }
+starknet-types-core = { path = "../starknet-types-core", default-features = false, features = ["serde"] }
 serde = { version = "1", default-features = false, features = ["derive"] }
 
 [dev-dependencies]
