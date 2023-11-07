@@ -3,7 +3,6 @@ use lambdaworks_crypto::hash::pedersen::Pedersen as PedersenLambdaworks;
 use lambdaworks_math::field::{
     element::FieldElement, fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
 };
-use num_traits::FromPrimitive;
 
 use super::traits::StarkHash;
 
@@ -24,9 +23,7 @@ impl StarkHash for Pedersen {
     /// in <https://docs.starknet.io/documentation/architecture_and_concepts/Hashing/hash-functions/#array_hashing.>
     fn hash_array(felts: &[Felt]) -> Felt {
         let pedersen = PedersenLambdaworks::default();
-        let data_len =
-            Felt::from_u128(u128::try_from(felts.len()).expect("Got 2^128 felts or more."))
-                .unwrap();
+        let data_len = Felt::from(felts.len());
         let current_hash: FieldElement<Stark252PrimeField> = felts.iter().fold(
             FieldElement::<Stark252PrimeField>::zero(),
             |current_hash, felt| pedersen.hash(&current_hash, &felt.0),
