@@ -206,7 +206,7 @@ struct Helper {
 }
 
 #[cfg(test)]
-fn serialize(num: u64) -> serde_json::Result<String> {
+fn serialize(num: u64) -> serde_json::Result<alloc::string::String> {
     let helper = Helper { num };
     serde_json::to_string(&helper)
 }
