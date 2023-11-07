@@ -9,7 +9,7 @@ The `starknet-types-core` crate provides:
 
 ## Features
 
-### No features
+### Always on
 - Standardized `Felt` type: Simplify your codebase by using our standardized `Felt` type. Optimized for performance: The `Felt` type has been optimized for high-performance applications.
 - No_std support ✅
 
