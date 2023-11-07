@@ -16,7 +16,26 @@ starknet-types-rpc = { version = "0.0.2", git = "https://github.com/starknet-io/
 
 ## Build from source
 
-Clone the repository and navigate to the starknet-types-rpc directory. Then run:
+The crate is built in two steps:
+
+### Generating bindings against the Starknet OpenRPC specification
+
+The specification is hosted on Starknet's repository ([link](https://github.com/starkware-libs/starknet-specs/blob/master/api/starknet_api_openrpc.json)).
+
+Bindings are generated using [`openrpc-gen`](https://github.com/nils-mathieu/openrpc-gen).
+
+After having built `openrpc-gen`, you can use the following command to generate the final generated
+Rust files:
+
+```bash
+openrpc-gen --config configs/v0.5.0.toml --document configs/spec_v0.5.0.json --output src/generated/v0.5.0.rs
+```
+
+*Note that this first step is normally already done for you upon cloning the repository.*
+
+### Building the generated files
+
+Once this is done, you can build the crate with:
 
 ```bash
 cargo build --release
