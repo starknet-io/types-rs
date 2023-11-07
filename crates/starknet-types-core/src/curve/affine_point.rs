@@ -4,6 +4,7 @@ use lambdaworks_math::cyclic_group::IsGroup;
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::stark_curve::StarkCurve;
 use lambdaworks_math::elliptic_curve::short_weierstrass::point::ShortWeierstrassProjectivePoint;
 use lambdaworks_math::elliptic_curve::traits::FromAffine;
+
 /// Represents a point on the Stark elliptic curve.
 /// Doc: https://docs.starkware.co/starkex/crypto/stark-curve.html
 #[repr(transparent)]
