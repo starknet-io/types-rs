@@ -36,16 +36,14 @@ impl serde::Serialize for BlockId {
     where
         S: serde::Serializer,
     {
-        match self {
+        match *self {
             BlockId::Tag(tag) => tag.serialize(serializer),
-            BlockId::Hash(hash) => {
-                let helper = BlockHashHelper { block_hash: *hash };
+            BlockId::Hash(block_hash) => {
+                let helper = BlockHashHelper { block_hash };
                 helper.serialize(serializer)
             }
-            BlockId::Number(number) => {
-                let helper = BlockNumberHelper {
-                    block_number: *number,
-                };
+            BlockId::Number(block_number) => {
+                let helper = BlockNumberHelper { block_number };
                 helper.serialize(serializer)
             }
         }
