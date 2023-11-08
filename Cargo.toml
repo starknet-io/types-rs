@@ -4,7 +4,7 @@ members = [
     "crates/starknet-types-rpc",
 ]
 
-exclude = ["ensure_no_std"]
+exclude = ["ensure_no_std", "fuzz"]
 resolver = "2"
 
 [workspace.package]
