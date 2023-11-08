@@ -1,0 +1,25 @@
+[package]
+name = "fuzzing_felt"
+version = "0.0.1"
+edition = "2021"
+license = "MIT"
+homepage = "https://github.com/starknet-io/types-rs"
+repository = "https://github.com/starknet-io/types-rs"
+categories = ["types", "math", "crypto", "fuzzing"]
+keywords = ["stark", "zkp", "cairo", "fuzzing"]
+description = "Fuzzing crate for the starknet common felt type"
+readme = "README.md"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+starknet-types-core.workspace = true
+libfuzzer-sys.workspace = true
+
+[[bin]]
+name = "add_fuzzer"
+path = "fuzz_targets/add.rs"
+test = false
+doc = false
+
