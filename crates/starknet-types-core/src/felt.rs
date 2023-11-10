@@ -173,7 +173,7 @@ impl Felt {
         Self(self.0.pow(exponent.0.representative()))
     }
 
-    // TODO Add docs
+    // TODO Add docs,  Check name
     /// Modular multiplication between `self` and `rhs` modulo `p`.
     pub fn mul_mod(&self, rhs: &Self, p: &NonZeroFelt) -> Self {
         let multiplicand = BigInt::from_bytes_be(num_bigint::Sign::Plus, &self.to_bytes_be());
@@ -191,7 +191,7 @@ impl Felt {
         Felt::from_bytes_be(&result).unwrap()
     }
 
-    // TODO Add docs
+    // TODO Add docs, Check name
     /// Modular inverse of `self` modulo `p`.
     pub fn mod_inverse(&self, p: &NonZeroFelt) -> Option<Self> {
         let operand = BigInt::from_bytes_be(num_bigint::Sign::Plus, &self.0.to_bytes_be());
