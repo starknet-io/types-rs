@@ -170,14 +170,9 @@ impl Felt {
         Self(self.0.pow(exponent.0.representative()))
     }
 
-    /// Modular multiplication between `self` and `rhs` modulo `p`.
+    /// Field multiplication between `self` and `rhs`, then apply modulo `p`.
     pub fn mul_mod(&self, rhs: &Self, p: &NonZeroFelt) -> Self {
         (self * rhs).div_rem(p).1
-    }
-
-    /// Modular inverse of `self` modulo `p`.
-    pub fn inverse_mod(&self, p: &NonZeroFelt) -> Option<Self> {
-        self.inverse().map(|x| x.div_rem(p).1)
     }
 
     /// Remainder of dividing `self` by `n` as integers.
@@ -1025,19 +1020,6 @@ mod test {
         #[test]
         fn multiplying_by_inverse_yields_multiplicative_neutral(x in nonzero_felt()) {
             prop_assert_eq!(x * x.inverse().unwrap(), Felt::ONE )
-        }
-
-        #[test]
-        fn inverse_mod_of_zero_is_none(p in nonzero_felt()) {
-            let nzp = NonZeroFelt(p.0);
-            prop_assert!(Felt::ZERO.inverse_mod(&nzp).is_none());
-        }
-
-        #[test]
-        fn inverse_mod_in_range(x in nonzero_felt(), p in nonzero_felt()) {
-            let nzp = NonZeroFelt(p.0);
-            prop_assert!(x.inverse_mod(&nzp) <= Some(Felt::MAX));
-            prop_assert!(x.inverse_mod(&nzp) < Some(p));
         }
 
         #[test]
