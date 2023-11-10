@@ -1,7 +1,9 @@
-use core::ops::{Add, Neg};
+use core::ops::{Add, Mul, Neg};
 
 use bitvec::array::BitArray;
-use num_traits::{FromPrimitive, ToPrimitive, Zero};
+use num_bigint::BigInt;
+use num_integer::Integer;
+use num_traits::{FromPrimitive, One, ToPrimitive, Zero};
 
 #[cfg(target_pointer_width = "64")]
 pub type BitArrayStore = [u64; 4];
@@ -32,6 +34,7 @@ use arbitrary::{self, Arbitrary, Unstructured};
 pub struct Felt(pub(crate) FieldElement<Stark252PrimeField>);
 
 /// A non-zero [Felt].
+#[derive(Debug, Clone, Copy)]
 pub struct NonZeroFelt(FieldElement<Stark252PrimeField>);
 
 #[derive(Debug)]
@@ -170,14 +173,45 @@ impl Felt {
         Self(self.0.pow(exponent.0.representative()))
     }
 
+    // TODO Add docs
     /// Modular multiplication between `self` and `rhs` modulo `p`.
     pub fn mul_mod(&self, rhs: &Self, p: &NonZeroFelt) -> Self {
-        (self * rhs).div_rem(p).1
+        let multiplicand = BigInt::from_bytes_be(num_bigint::Sign::Plus, &self.to_bytes_be());
+        let multiplier = BigInt::from_bytes_be(num_bigint::Sign::Plus, &rhs.to_bytes_be());
+        let modulus = BigInt::from_bytes_be(num_bigint::Sign::Plus, &p.0.to_bytes_be());
+
+        let result = multiplicand.mul(multiplier).mod_floor(&modulus);
+
+        let (_, buffer) = result.to_bytes_be();
+        let mut result = [0u8; 32];
+
+        result[(32 - buffer.len())..].copy_from_slice(&buffer[..]);
+
+        // Todo: Check unwraps()
+        Felt::from_bytes_be(&result).unwrap()
     }
 
+    // TODO Add docs
     /// Modular inverse of `self` modulo `p`.
-    pub fn inverse_mod(&self, p: &NonZeroFelt) -> Option<Self> {
-        self.inverse().map(|x| x.div_rem(p).1)
+    pub fn mod_inverse(&self, p: &NonZeroFelt) -> Option<Self> {
+        let operand = BigInt::from_bytes_be(num_bigint::Sign::Plus, &self.0.to_bytes_be());
+        let modulus = BigInt::from_bytes_be(num_bigint::Sign::Plus, &p.0.to_bytes_be());
+
+        let extended_gcd = operand.extended_gcd(&modulus);
+        if extended_gcd.gcd != BigInt::one() {
+            return None;
+        }
+        let result = if extended_gcd.x < BigInt::zero() {
+            extended_gcd.x + modulus
+        } else {
+            extended_gcd.x
+        };
+
+        let (_, buffer) = result.to_bytes_be();
+        let mut result = [0u8; 32];
+        result[(32 - buffer.len())..].copy_from_slice(&buffer[..]);
+
+        Felt::from_bytes_be(&result).ok()
     }
 
     /// Remainder of dividing `self` by `n` as integers.
@@ -829,7 +863,6 @@ mod test {
     use crate::felt_arbitrary::nonzero_felt;
     use core::ops::Shl;
     use proptest::prelude::*;
-
     #[cfg(feature = "serde")]
     use serde_test::{assert_de_tokens, assert_ser_tokens, Configure, Token};
 
@@ -1030,14 +1063,17 @@ mod test {
         #[test]
         fn inverse_mod_of_zero_is_none(p in nonzero_felt()) {
             let nzp = NonZeroFelt(p.0);
-            prop_assert!(Felt::ZERO.inverse_mod(&nzp).is_none());
+            prop_assert!(Felt::ZERO.mod_inverse(&nzp).is_none());
         }
 
         #[test]
-        fn inverse_mod_in_range(x in nonzero_felt(), p in nonzero_felt()) {
+        fn inverse_mod_in_range_peter(x in nonzero_felt(), p in nonzero_felt()) {
             let nzp = NonZeroFelt(p.0);
-            prop_assert!(x.inverse_mod(&nzp) <= Some(Felt::MAX));
-            prop_assert!(x.inverse_mod(&nzp) < Some(p));
+            let Some(result) = x.mod_inverse(&nzp) else { return Ok(()) };
+
+            prop_assert!(result <= Felt::MAX);
+            prop_assert!(result < p);
+            prop_assert!(result.mul_mod(&x, &nzp) == Felt::ONE);
         }
 
         #[test]
@@ -1387,5 +1423,61 @@ mod test {
                 "3618502788666131213697322783095070105623107215331596699973092056135872020480"
             )
         );
+    }
+
+    #[test]
+    fn inverse_and_mul_mod() {
+        let nzps: Vec<NonZeroFelt> = [
+            Felt::from(5_i32).try_into().unwrap(),
+            Felt::from_hex("0x5").unwrap().try_into().unwrap(),
+            Felt::from_hex("0x1234").unwrap().try_into().unwrap(),
+            Felt::from_hex("0xabcdef123").unwrap().try_into().unwrap(),
+            Felt::from_hex("0xffffffffffffff")
+                .unwrap()
+                .try_into()
+                .unwrap(),
+            Felt::from_hex("0xfffffffffffffffffffffffffffffff")
+                .unwrap()
+                .try_into()
+                .unwrap(),
+            Felt::MAX.try_into().unwrap(),
+        ]
+        .to_vec();
+        let nums = [
+            Felt::from_hex("0x0").unwrap(),
+            Felt::from_hex("0x1").unwrap(),
+            Felt::from_hex("0x2").unwrap(),
+            Felt::from_hex("0x5").unwrap(),
+            Felt::from_hex("0x123abc").unwrap(),
+            Felt::from_hex("0xabcdef9812367312").unwrap(),
+            Felt::from_hex("0xffffffffffffffffffffffffffffff").unwrap(),
+            Felt::from_hex("0xffffffffffffffffffffffffffffffffffffffffff").unwrap(),
+            Felt::MAX,
+        ];
+
+        for felt in nums {
+            for nzp in nzps.iter() {
+                let result = felt.mod_inverse(nzp);
+                if result.is_some() {
+                    assert_eq!(result.unwrap().mul_mod(&felt, nzp), Felt::ONE);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn check_mul_mod() {
+        let x = Felt::from_dec_str(
+            "3618502788666131213697322783095070105623107215331596699973092056135872020480",
+        )
+        .unwrap();
+        let y = Felt::from_dec_str("46118400291").unwrap();
+        let p: NonZeroFelt = Felt::from_dec_str("123987312893120893724347692364")
+            .unwrap()
+            .try_into()
+            .unwrap();
+        let expected_result = Felt::from_dec_str("68082278891996790254001523512").unwrap();
+
+        assert_eq!(x.mul_mod(&y, &p), expected_result);
     }
 }
