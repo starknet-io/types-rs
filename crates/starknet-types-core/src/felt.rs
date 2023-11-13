@@ -63,20 +63,104 @@ impl Felt {
         UnsignedInteger::from_limbs([544, 0, 0, 32]),
     ));
 
-    /// Creates a new [Felt] from its big-endian representation in a [u8] slice.
-    /// This is as performant as [from_bytes_le](Felt::from_bytes_le)
-    pub fn from_bytes_be(bytes: &[u8]) -> Result<Self, FromBytesError> {
+    pub fn from_bytes_be(bytes: &[u8; 32]) -> Self {
         FieldElement::from_bytes_be(bytes)
             .map(Self)
-            .map_err(|_| FromBytesError)
+            .expect("from_bytes_be shouldn't fail for these many bytes")
+    }
+
+    pub fn from_bytes_le(bytes: &[u8; 32]) -> Self {
+        FieldElement::from_bytes_le(bytes)
+            .map(Self)
+            .expect("from_bytes_le shouldn't fail for these many bytes")
+    }
+
+    /// Creates a new [Felt] from its big-endian representation in a [u8] slice.
+    /// This is as performant as [from_bytes_le](Felt::from_bytes_le).
+    /// All bytes in the slice are consumed, as if first creating a big integer
+    /// from them, but the conversion is performed in constant space on the stack.
+    pub fn from_bytes_be_slice(bytes: &[u8]) -> Self {
+        // NB: lambdaworks ignores the remaining bytes when len > 32, so we loop
+        // multiplying by OVERFLOW. This is equivalent to factorizing as we did
+        // in primary school, so `xyz` is `x * 100 + y * 10 + z * 1`, just using
+        // base `2^256` to build from `[u8; 32]` digits.
+        const OVERFLOW: Felt = Self(FieldElement::<Stark252PrimeField>::const_from_raw(
+            UnsignedInteger::from_limbs([
+                576413109808302096,
+                18446744073700081664,
+                5151653887,
+                18446741271209837569,
+            ]),
+        ));
+        // Sanity check; gets removed in release builds.
+        debug_assert_eq!(OVERFLOW, Felt::TWO.pow(256u32));
+
+        let mut factor = Self::ONE;
+        let mut res = Self::ZERO;
+        let chunks = bytes.rchunks_exact(32);
+        let remainder = chunks.remainder();
+
+        for chunk in chunks {
+            let digit =
+                Self::from_bytes_be(&chunk.try_into().expect("conversion to same-sized array"));
+            res += digit * factor;
+            factor *= OVERFLOW;
+        }
+
+        if remainder.is_empty() {
+            return res;
+        }
+
+        let mut remainder = remainder.iter().rev().cloned();
+        let buf: [u8; 32] = core::array::from_fn(move |_| remainder.next().unwrap_or_default());
+        let digit = Self::from_bytes_le(&buf);
+        res += digit * factor;
+
+        res
     }
 
     /// Creates a new [Felt] from its little-endian representation in a [u8] slice.
-    /// This is as performant as [from_bytes_be](Felt::from_bytes_be)
-    pub fn from_bytes_le(bytes: &[u8]) -> Result<Self, FromBytesError> {
-        FieldElement::from_bytes_le(bytes)
-            .map(Self)
-            .map_err(|_| FromBytesError)
+    /// This is as performant as [from_bytes_be](Felt::from_bytes_be).
+    /// All bytes in the slice are consumed, as if first creating a big integer
+    /// from them, but the conversion is performed in constant space on the stack.
+    pub fn from_bytes_le_slice(bytes: &[u8]) -> Self {
+        // NB: lambdaworks ignores the remaining bytes when len > 32, so we loop
+        // multiplying by OVERFLOW. This is equivalent to factorizing as we did
+        // in primary school, so `xyz` is `x * 100 + y * 10 + z * 1`, just using
+        // base `2^256` to build from `[u8; 32]` digits.
+        const OVERFLOW: Felt = Self(FieldElement::<Stark252PrimeField>::const_from_raw(
+            UnsignedInteger::from_limbs([
+                576413109808302096,
+                18446744073700081664,
+                5151653887,
+                18446741271209837569,
+            ]),
+        ));
+        // Sanity check; gets removed in release builds.
+        debug_assert_eq!(OVERFLOW, Felt::TWO.pow(256u32));
+
+        let mut factor = Self::ONE;
+        let mut res = Self::ZERO;
+        let chunks = bytes.chunks_exact(32);
+        let remainder = chunks.remainder();
+
+        for chunk in chunks {
+            let digit =
+                Self::from_bytes_le(&chunk.try_into().expect("conversion to same-sized array"));
+            res += digit * factor;
+            factor *= OVERFLOW;
+        }
+
+        if remainder.is_empty() {
+            return res;
+        }
+
+        let mut remainder = remainder.iter().cloned();
+        let buf: [u8; 32] = core::array::from_fn(move |_| remainder.next().unwrap_or_default());
+        let digit = Self::from_bytes_le(&buf);
+        res += digit * factor;
+
+        res
     }
 
     /// Converts to big-endian byte representation in a [u8] array.
@@ -835,24 +919,24 @@ mod test {
 
     proptest! {
         #[test]
-        fn new_in_range(ref x in any::<[u8; 40]>()) {
-            let x_be = Felt::from_bytes_be(x).unwrap();
+        fn new_in_range(ref x in any::<[u8; 32]>()) {
+            let x_be = Felt::from_bytes_be(x);
             prop_assert!(x_be < Felt::MAX);
-            let x_le = Felt::from_bytes_le(x).unwrap();
+            let x_le = Felt::from_bytes_le(x);
             prop_assert!(x_le < Felt::MAX);
         }
 
         #[test]
         fn to_be_bytes(ref x in any::<Felt>()) {
             let bytes = x.to_bytes_be();
-            let y = &Felt::from_bytes_be(&bytes).unwrap();
+            let y = &Felt::from_bytes_be(&bytes);
             prop_assert_eq!(x, y);
         }
 
         #[test]
         fn to_le_bytes(ref x in any::<Felt>()) {
             let bytes = x.to_bytes_le();
-            let y = &Felt::from_bytes_le(&bytes).unwrap();
+            let y = &Felt::from_bytes_le(&bytes);
             prop_assert_eq!(x, y);
         }
 
@@ -869,7 +953,7 @@ mod test {
                 res[i] = acc;
                 acc = 0;
             }
-            let y = &Felt::from_bytes_be(&res).unwrap();
+            let y = &Felt::from_bytes_be(&res);
             prop_assert_eq!(x, y);
         }
 
@@ -893,13 +977,44 @@ mod test {
                     bytes[(3 - i) * 8 + j] = limb_bytes[j]
                 }
             }
-            let y = &Felt::from_bytes_le(&bytes).unwrap();
+            let y = &Felt::from_bytes_le(&bytes);
             prop_assert_eq!(x, y);
         }
 
         #[test]
-        fn from_bytes_be_in_range(ref x in any::<[u8; 40]>()) {
-            let x = Felt::from_bytes_be(x).unwrap();
+        fn from_bytes_le_slice_works_for_all_lengths(x in 0..1000usize) {
+            let bytes: [u8; 1000] = core::array::from_fn(|i| i as u8);
+            let expected = bytes.iter()
+                .enumerate()
+                .map(|(i, x)| Felt::from(*x) * Felt::from(256).pow(i as u64))
+                .take(x)
+                .sum::<Felt>();
+            let x = Felt::from_bytes_le_slice(&bytes[0..x]);
+            prop_assert_eq!(x, expected, "x={:x} expected={:x}", x, expected);
+        }
+
+        #[test]
+        fn from_bytes_be_slice_works_for_all_lengths(x in 0..1000usize) {
+            let bytes: [u8; 1000] = core::array::from_fn(|i| i as u8);
+            let expected = bytes.iter()
+                .rev()
+                .enumerate()
+                .map(|(i, x)| Felt::from(*x) * Felt::from(256).pow(i as u64))
+                .take(x)
+                .sum::<Felt>();
+            let x = Felt::from_bytes_be_slice(&bytes[1000-x..1000]);
+            prop_assert_eq!(x, expected, "x={:x} expected={:x}", x, expected);
+        }
+
+        #[test]
+        fn from_bytes_le_in_range(ref x in any::<[u8; 32]>()) {
+            let x = Felt::from_bytes_le(x);
+            prop_assert!(x <= Felt::MAX);
+        }
+
+        #[test]
+        fn from_bytes_be_in_range(ref x in any::<[u8; 32]>()) {
+            let x = Felt::from_bytes_be(x);
             prop_assert!(x <= Felt::MAX);
         }
 
