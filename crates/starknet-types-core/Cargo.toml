@@ -33,4 +33,3 @@ arbitrary = ["std", "dep:arbitrary"]
 [dev-dependencies]
 proptest = "1.1.0"
 serde_test = "1.0.1"
-starknet-crypto = "0.6.1"
