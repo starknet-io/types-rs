@@ -173,8 +173,9 @@ impl Felt {
         Self(self.0.pow(exponent.0.representative()))
     }
 
-    // TODO Add docs,  Check name
-    /// Modular multiplication between `self` and `rhs` modulo `p`.
+    // Implemention taken from Jonathan Lei's starknet-rs
+    // https://github.com/xJonathanLEI/starknet-rs/blob/a3a0050f80e90bd40303256a85783f4b5b18258c/starknet-crypto/src/fe_utils.rs#L20
+    /// Modular multiplication between `self` and `rhs` in modulo `p`.
     pub fn mul_mod(&self, rhs: &Self, p: &NonZeroFelt) -> Self {
         let multiplicand = BigInt::from_bytes_be(num_bigint::Sign::Plus, &self.to_bytes_be());
         let multiplier = BigInt::from_bytes_be(num_bigint::Sign::Plus, &rhs.to_bytes_be());
@@ -187,12 +188,13 @@ impl Felt {
 
         result[(32 - buffer.len())..].copy_from_slice(&buffer[..]);
 
-        // Todo: Check unwraps()
+        // safe .unwrap()
         Felt::from_bytes_be(&result).unwrap()
     }
 
-    // TODO Add docs, Check name
-    /// Modular inverse of `self` modulo `p`.
+    // Implemention taken from Jonathan Lei's starknet-rs
+    // https://github.com/xJonathanLEI/starknet-rs/blob/a3a0050f80e90bd40303256a85783f4b5b18258c/starknet-crypto/src/fe_utils.rs#L46
+    /// Multiplicative inverse of `self` in modulo `p`.
     pub fn mod_inverse(&self, p: &NonZeroFelt) -> Option<Self> {
         let operand = BigInt::from_bytes_be(num_bigint::Sign::Plus, &self.0.to_bytes_be());
         let modulus = BigInt::from_bytes_be(num_bigint::Sign::Plus, &p.0.to_bytes_be());
