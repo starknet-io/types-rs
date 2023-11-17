@@ -63,12 +63,16 @@ impl Felt {
         UnsignedInteger::from_limbs([544, 0, 0, 32]),
     ));
 
+    /// Creates a new [Felt] from its big-endian representation in a [u8; 32] array.
+    /// This is as performant as [from_bytes_le](Felt::from_bytes_le).
     pub fn from_bytes_be(bytes: &[u8; 32]) -> Self {
         FieldElement::from_bytes_be(bytes)
             .map(Self)
             .expect("from_bytes_be shouldn't fail for these many bytes")
     }
 
+    /// Creates a new [Felt] from its little-endian representation in a [u8; 32] array.
+    /// This is as performant as [from_bytes_le](Felt::from_bytes_be).
     pub fn from_bytes_le(bytes: &[u8; 32]) -> Self {
         FieldElement::from_bytes_le(bytes)
             .map(Self)
@@ -76,7 +80,7 @@ impl Felt {
     }
 
     /// Creates a new [Felt] from its big-endian representation in a [u8] slice.
-    /// This is as performant as [from_bytes_le](Felt::from_bytes_le).
+    /// This is as performant as [from_bytes_le](Felt::from_bytes_le_slice).
     /// All bytes in the slice are consumed, as if first creating a big integer
     /// from them, but the conversion is performed in constant space on the stack.
     pub fn from_bytes_be_slice(bytes: &[u8]) -> Self {
@@ -120,7 +124,7 @@ impl Felt {
     }
 
     /// Creates a new [Felt] from its little-endian representation in a [u8] slice.
-    /// This is as performant as [from_bytes_be](Felt::from_bytes_be).
+    /// This is as performant as [from_bytes_be](Felt::from_bytes_be_slice).
     /// All bytes in the slice are consumed, as if first creating a big integer
     /// from them, but the conversion is performed in constant space on the stack.
     pub fn from_bytes_le_slice(bytes: &[u8]) -> Self {
