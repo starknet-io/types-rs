@@ -1069,7 +1069,7 @@ mod test {
         }
 
         #[test]
-        fn inverse_mod_in_range_peter(x in nonzero_felt(), p in nonzero_felt()) {
+        fn inverse_mod_in_range(x in nonzero_felt(), p in nonzero_felt()) {
             let nzp = NonZeroFelt(p.0);
             let Some(result) = x.mod_inverse(&nzp) else { return Ok(()) };
 
