@@ -85,10 +85,9 @@ impl Felt {
     /// from them, but the conversion is performed in constant space on the stack.
     pub fn from_bytes_be_slice(bytes: &[u8]) -> Self {
         // NB: lambdaworks ignores the remaining bytes when len > 32, so we loop
-        // multiplying by OVERFLOW. This is equivalent to factorizing as we did
-        // in primary school, so `xyz` is `x * 100 + y * 10 + z * 1`, just using
-        // base `2^256` to build from `[u8; 32]` digits.
-        const OVERFLOW: Felt = Self(FieldElement::<Stark252PrimeField>::const_from_raw(
+        // multiplying by BASE, effectively decomposing in base 2^256 to build
+        // digits with a length of 32 bytes.
+        const BASE: Felt = Self(FieldElement::<Stark252PrimeField>::const_from_raw(
             UnsignedInteger::from_limbs([
                 576413109808302096,
                 18446744073700081664,
@@ -97,7 +96,7 @@ impl Felt {
             ]),
         ));
         // Sanity check; gets removed in release builds.
-        debug_assert_eq!(OVERFLOW, Felt::TWO.pow(256u32));
+        debug_assert_eq!(BASE, Felt::TWO.pow(256u32));
 
         let mut factor = Self::ONE;
         let mut res = Self::ZERO;
@@ -108,7 +107,7 @@ impl Felt {
             let digit =
                 Self::from_bytes_be(&chunk.try_into().expect("conversion to same-sized array"));
             res += digit * factor;
-            factor *= OVERFLOW;
+            factor *= BASE;
         }
 
         if remainder.is_empty() {
@@ -129,10 +128,9 @@ impl Felt {
     /// from them, but the conversion is performed in constant space on the stack.
     pub fn from_bytes_le_slice(bytes: &[u8]) -> Self {
         // NB: lambdaworks ignores the remaining bytes when len > 32, so we loop
-        // multiplying by OVERFLOW. This is equivalent to factorizing as we did
-        // in primary school, so `xyz` is `x * 100 + y * 10 + z * 1`, just using
-        // base `2^256` to build from `[u8; 32]` digits.
-        const OVERFLOW: Felt = Self(FieldElement::<Stark252PrimeField>::const_from_raw(
+        // multiplying by BASE, effectively decomposing in base 2^256 to build
+        // digits with a length of 32 bytes.
+        const BASE: Felt = Self(FieldElement::<Stark252PrimeField>::const_from_raw(
             UnsignedInteger::from_limbs([
                 576413109808302096,
                 18446744073700081664,
@@ -141,7 +139,7 @@ impl Felt {
             ]),
         ));
         // Sanity check; gets removed in release builds.
-        debug_assert_eq!(OVERFLOW, Felt::TWO.pow(256u32));
+        debug_assert_eq!(BASE, Felt::TWO.pow(256u32));
 
         let mut factor = Self::ONE;
         let mut res = Self::ZERO;
@@ -152,7 +150,7 @@ impl Felt {
             let digit =
                 Self::from_bytes_le(&chunk.try_into().expect("conversion to same-sized array"));
             res += digit * factor;
-            factor *= OVERFLOW;
+            factor *= BASE;
         }
 
         if remainder.is_empty() {
