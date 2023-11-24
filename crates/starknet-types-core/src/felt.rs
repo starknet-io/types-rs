@@ -276,8 +276,7 @@ impl Felt {
 
         result[(32 - buffer.len())..].copy_from_slice(&buffer[..]);
 
-        // safe .unwrap()
-        Felt::from_bytes_be(&result).unwrap()
+        Felt::from_bytes_be(&result)
     }
 
     // Implemention taken from Jonathan Lei's starknet-rs
@@ -301,7 +300,7 @@ impl Felt {
         let mut result = [0u8; 32];
         result[(32 - buffer.len())..].copy_from_slice(&buffer[..]);
 
-        Felt::from_bytes_be(&result).ok()
+        Some(Felt::from_bytes_be(&result))
     }
 
     /// Remainder of dividing `self` by `n` as integers.
