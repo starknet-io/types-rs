@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod felt_arbitrary;
+
 use core::ops::{Add, Mul, Neg};
 
 use bitvec::array::BitArray;
@@ -5,7 +8,10 @@ use lazy_static::lazy_static;
 use num_bigint::{BigInt, BigUint, Sign};
 use num_integer::Integer;
 use num_traits::Num;
-use num_traits::{FromPrimitive, One, ToPrimitive, Zero};
+use num_traits::{One, Zero};
+
+#[cfg(feature = "num-traits")]
+mod num_traits_impl;
 
 lazy_static! {
     pub static ref CAIRO_PRIME_BIGINT: BigInt = BigInt::from_str_radix(
@@ -446,7 +452,7 @@ impl TryFrom<Felt> for NonZeroFelt {
     type Error = FeltIsZeroError;
 
     fn try_from(value: Felt) -> Result<Self, Self::Error> {
-        if value.is_zero() {
+        if value == Felt::ZERO {
             Err(FeltIsZeroError)
         } else {
             Ok(Self(value.0))
@@ -458,7 +464,7 @@ impl TryFrom<&Felt> for NonZeroFelt {
     type Error = FeltIsZeroError;
 
     fn try_from(value: &Felt) -> Result<Self, Self::Error> {
-        if value.is_zero() {
+        if *value == Felt::ZERO {
             Err(FeltIsZeroError)
         } else {
             Ok(Self(value.0))
@@ -531,57 +537,6 @@ impl_from!(i16, i128);
 impl_from!(i32, i128);
 impl_from!(i64, i128);
 impl_from!(isize, i128);
-
-impl FromPrimitive for Felt {
-    fn from_i64(value: i64) -> Option<Self> {
-        Some(value.into())
-    }
-
-    fn from_u64(value: u64) -> Option<Self> {
-        Some(value.into())
-    }
-
-    fn from_i128(value: i128) -> Option<Self> {
-        Some(value.into())
-    }
-
-    fn from_u128(value: u128) -> Option<Self> {
-        Some(value.into())
-    }
-}
-
-// TODO: we need to decide whether we want conversions to signed primitives
-// will support converting the high end of the field to negative.
-impl ToPrimitive for Felt {
-    fn to_u64(&self) -> Option<u64> {
-        self.to_u128().and_then(|x| u64::try_from(x).ok())
-    }
-
-    fn to_i64(&self) -> Option<i64> {
-        self.to_u128().and_then(|x| i64::try_from(x).ok())
-    }
-
-    fn to_u128(&self) -> Option<u128> {
-        match self.0.representative().limbs {
-            [0, 0, hi, lo] => Some((lo as u128) | ((hi as u128) << 64)),
-            _ => None,
-        }
-    }
-
-    fn to_i128(&self) -> Option<i128> {
-        self.to_u128().and_then(|x| i128::try_from(x).ok())
-    }
-}
-
-impl Zero for Felt {
-    fn is_zero(&self) -> bool {
-        *self == Felt::ZERO
-    }
-
-    fn zero() -> Felt {
-        Felt::ZERO
-    }
-}
 
 impl Add<&Felt> for u64 {
     type Output = Option<u64>;
@@ -874,10 +829,10 @@ mod arithmetic {
 }
 
 #[cfg(feature = "serde")]
-mod serde {
-    use ::serde::{de, ser::SerializeSeq, Deserialize, Serialize};
+mod serde_impl {
     use alloc::{format, string::String};
     use core::fmt;
+    use serde::{de, ser::SerializeSeq, Deserialize, Serialize};
 
     use super::*;
 
@@ -940,7 +895,7 @@ mod formatting {
     /// Represents [Felt] in decimal by default.
     impl fmt::Display for Felt {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            if self.is_zero() {
+            if *self == Felt::ZERO {
                 return write!(f, "0");
             }
 
@@ -1255,7 +1210,7 @@ mod test {
 
         #[test]
         fn non_zero_is_not_zero(x in nonzero_felt()) {
-            prop_assert!(!x.is_zero())
+            prop_assert!(x != Felt::ZERO)
         }
 
         #[test]
@@ -1337,18 +1292,8 @@ mod test {
     }
 
     #[test]
-    fn zero_is_zero() {
-        assert!(Felt::ZERO.is_zero());
-    }
-
-    #[test]
     fn non_zero_felt_from_zero_should_fail() {
         assert!(NonZeroFelt::try_from(Felt::ZERO).is_err());
-    }
-
-    #[test]
-    fn default_is_zero() {
-        assert!(Felt::default().is_zero());
     }
 
     #[test]
