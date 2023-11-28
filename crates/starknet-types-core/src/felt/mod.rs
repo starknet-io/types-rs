@@ -980,8 +980,8 @@ mod errors {
 #[cfg(test)]
 mod test {
     use super::alloc::{format, string::String, vec::Vec};
+    use super::felt_arbitrary::nonzero_felt;
     use super::*;
-    use crate::felt_arbitrary::nonzero_felt;
     use core::ops::Shl;
     use proptest::prelude::*;
     #[cfg(feature = "serde")]

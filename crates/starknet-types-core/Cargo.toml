@@ -43,6 +43,7 @@ arbitrary = ["std", "dep:arbitrary"]
 parity-scale-codec = ["dep:parity-scale-codec"]
 serde = ["dep:serde"]
 num-traits = []
+alloc = ["serde?/alloc"]
 
 [dev-dependencies]
 proptest = "1.1.0"
