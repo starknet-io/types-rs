@@ -16,60 +16,28 @@ impl<'de> NumAsHex<'de> for u64 {
     where
         S: serde::Serializer,
     {
-        /// The symbols to be used for the hexadecimal representation.
         const HEX_DIGITS: [u8; 16] = *b"0123456789abcdef";
-        /// The maximum number of digits in the hexadecimal representation of a `u64`.
-        const MAX_NUMBER_SIZE: usize = u64::MAX.ilog(16) as usize + 1;
 
         if *self == 0 {
             return serializer.serialize_str("0x0");
         }
 
-        // The following code can be very much optimized simply by making everything
-        // `unsafe` and using pointers to write to the buffer.
-        // Let's benchmark it first to ensure that it's actually worth it.
-
-        // The buffer is filled from the end to the beginning.
-        // We know that it will always have the correct size because we made it have the
-        // maximum possible size for a base-16 representation of a `u64`.
-        //
-        // +-----------------------------------+
-        // +                           1 2 f a +
-        // +-----------------------------------+
-        //                           ^ cursor
-        //
-        // Once the number has been written to the buffer, we simply add a `0x` prefix
-        // to the beginning of the buffer. Just like the digits, we know the buffer is
-        // large enough to hold the prefix.
-        //
-        // +-----------------------------------+
-        // +                       0 x 1 2 f a +
-        // +-----------------------------------+
-        //                       ^ cursor
-        // |-----------------------| remaining
-        //
-        // The output string is the part of the buffer that has been written. In other
-        // words, we have to skip all the bytes that *were not* written yet (remaining).
-
-        let mut buffer = [0u8; MAX_NUMBER_SIZE + 2]; // + 2 to account for 0x
-        let mut cursor = buffer.iter_mut().rev();
+        let mut buffer = [0u8; 18]; // Enough for "0x" prefix and 16 hex digits
         let mut n = *self;
+        let mut length = 0;
+
         while n != 0 {
-            *cursor.next().unwrap() = HEX_DIGITS[(n % 16) as usize];
+            length += 1;
+            buffer[18 - length] = HEX_DIGITS[(n % 16) as usize];
             n /= 16;
         }
-        *cursor.next().unwrap() = b'x';
-        *cursor.next().unwrap() = b'0';
 
-        let remaining = cursor.len();
+        buffer[18 - length - 1] = b'x';
+        buffer[18 - length - 2] = b'0';
+        length += 2;
 
-        // SAFETY:
-        //  We only wrote ASCII characters to the buffer, ensuring that it is only composed
-        //  of valid UTF-8 code points. This unwrap can never fail. Just like the code above,
-        //  using `from_utf8_unchecked` is safe.
-        let s = core::str::from_utf8(&buffer[remaining..]).unwrap();
-
-        serializer.serialize_str(s)
+        let hex_str = core::str::from_utf8(&buffer[18 - length..]).unwrap();
+        serializer.serialize_str(hex_str)
     }
 
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -93,51 +61,29 @@ impl<'de> NumAsHex<'de> for u64 {
                 // unsafe code and pointers. Though the gain will probably be less interesting.
 
                 // Explicitly avoid being UTF-8 aware.
-                let mut bytes = v.as_bytes();
+                let bytes = v.as_bytes();
 
                 // If the input string does not start with the `0x` prefix, then it's an
                 // error. The `NUM_AS_HEX` regex defined in the specification specifies
                 // this prefix as mandatory.
-                bytes = bytes
-                    .strip_prefix(b"0x")
-                    .ok_or_else(|| E::custom("expected a hexadecimal string starting with 0x"))?;
-
-                if bytes.is_empty() {
-                    return Err(E::custom("expected a hexadecimal string"));
+                if bytes.len() < 2 || &bytes[0..2] != b"0x" {
+                    return Err(E::custom("expected a hexadecimal string starting with 0x"));
                 }
 
-                // Remove the leading zeros from the string, if any.
-                // We need this in order to optimize the code below with the knowledge of the
-                // length of the hexadecimal representation of the number.
-                while let Some(rest) = bytes.strip_prefix(b"0") {
-                    bytes = rest;
-                }
-
-                // If the string has a size larger than the maximum size of the hexadecimal
-                // representation of a `u64`, then we're forced to overflow.
-                if bytes.len() > u64::MAX.ilog(16) as usize + 1 {
-                    return Err(E::custom("integer overflowed 64-bit"));
-                }
-
-                // Aggregate the digits into `n`,
-                // Digits from `0` to `9` represent numbers from `0` to `9`.
-                // Letters from `a` to `f` represent numbers from `10` to `15`.
-                //
-                // As specified in the spec, both uppercase and lowercase characters are
-                // allowed.
-                //
-                // Because we already checked the size of the string earlier, we know that
-                // the following code will never overflow.
+                let hex_bytes = &bytes[2..];
                 let mut n = 0u64;
-                for &b in bytes.iter() {
-                    let unit = match b {
-                        b'0'..=b'9' => b as u64 - b'0' as u64,
-                        b'a'..=b'f' => b as u64 - b'a' as u64 + 10,
-                        b'A'..=b'F' => b as u64 - b'A' as u64 + 10,
+                for &b in hex_bytes {
+                    let digit = match b {
+                        b'0'..=b'9' => b - b'0',
+                        b'a'..=b'f' => 10 + b - b'a',
+                        b'A'..=b'F' => 10 + b - b'A',
                         _ => return Err(E::custom("invalid hexadecimal digit")),
                     };
-
-                    n = n * 16 + unit;
+                    n = n
+                        .checked_mul(16)
+                        .ok_or_else(|| E::custom("integer overflowed 64-bit"))?
+                        .checked_add(digit as u64)
+                        .ok_or_else(|| E::custom("integer overflowed 64-bit"))?;
                 }
 
                 Ok(n)
