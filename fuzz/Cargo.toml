@@ -1,0 +1,15 @@
+[workspace]
+members = ["felt"]
+
+resolver = "2"
+
+[workspace.package]
+authors = [
+    "Lucas Levy <@LucasLvy>",
+]
+edition = "2021"
+repository = "https://github.com/starknet-io/types-rs"
+
+[workspace.dependencies]
+starknet-types-core = { path = "../crates/starknet-types-core", default-features = false, features = ["arbitrary"] }
+libfuzzer-sys = "0.4"
