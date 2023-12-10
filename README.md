@@ -1,6 +1,6 @@
 # types-rs
 
- 🐺  Starknet Rust types 🦀
+ 🐺 Starknet Rust types 🦀
 
  [![GitHub Workflow Status](https://github.com/starknet-io/types-rs/actions/workflows/test.yml/badge.svg)](https://github.com/starknet-io/types-rs/actions/workflows/test.yml)
 [![Project license](https://img.shields.io/github/license/starknet-io/types-rs.svg?style=flat-square)](LICENSE)
