@@ -945,6 +945,47 @@ mod errors {
     }
 }
 
+pub mod bigints {
+    use lazy_static::lazy_static;
+    use num_bigint::{BigUint, Sign, ToBigInt};
+    use num_traits::Num;
+
+    use super::*;
+    lazy_static! {
+        pub static ref CAIRO_PRIME_BIGINT: BigInt = BigInt::from_str_radix(
+            "800000000000011000000000000000000000000000000000000000000000001",
+            16
+        )
+        .unwrap();
+    }
+
+    pub fn felt_to_biguint(felt: Felt) -> BigUint {
+        let big_digits = felt
+            .to_le_digits()
+            .into_iter()
+            .flat_map(|limb| [limb as u32, (limb >> 32) as u32])
+            .collect();
+        BigUint::new(big_digits)
+    }
+
+    pub fn felt_to_bigint(felt: Felt) -> BigInt {
+        felt_to_biguint(felt).to_bigint().unwrap()
+    }
+
+    pub fn biguint_to_felt(biguint: &BigUint) -> Felt {
+        Felt::from_bytes_le_slice(&biguint.to_bytes_le())
+    }
+
+    pub fn bigint_to_felt(bigint: &BigInt) -> Felt {
+        let (sign, bytes) = bigint.mod_floor(&CAIRO_PRIME_BIGINT).to_bytes_le();
+        let felt = Felt::from_bytes_le_slice(&bytes);
+        if sign == Sign::Minus {
+            felt.neg()
+        } else {
+            felt
+        }
+    }
+}
 #[cfg(test)]
 mod test {
     use super::alloc::{format, string::String, vec::Vec};
