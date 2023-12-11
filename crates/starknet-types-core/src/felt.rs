@@ -1637,4 +1637,65 @@ mod test {
 
         assert_eq!(x.mul_mod(&y, &p), expected_result);
     }
+
+    #[test]
+    fn bigints_to_felt() {
+        let one = &*CAIRO_PRIME_BIGINT + BigInt::from(1_u32);
+        assert_eq!(biguint_to_felt(&one.to_biguint().unwrap()), Felt::from(1));
+        assert_eq!(bigint_to_felt(&one), Felt::from(1));
+
+        let zero = &*CAIRO_PRIME_BIGINT * 99_u32;
+        assert_eq!(biguint_to_felt(&zero.to_biguint().unwrap()), Felt::from(0));
+        assert_eq!(bigint_to_felt(&zero), Felt::from(0));
+
+        assert_eq!(
+            bigint_to_felt(&BigInt::from(-1)),
+            Felt::from_hex("0x800000000000011000000000000000000000000000000000000000000000000")
+                .unwrap()
+        );
+
+        let numbers_str = [
+            "0x0",
+            "0x1",
+            "0x10",
+            "0x8000000000000110000000000",
+            "0xffffffffffffff",
+            "0xffffffffefff12380777abcd",
+        ];
+
+        for number_str in numbers_str {
+            assert_eq!(
+                bigint_to_felt(&BigInt::from_str_radix(&number_str[2..], 16).unwrap()),
+                Felt::from_hex(number_str).unwrap()
+            );
+            assert_eq!(
+                biguint_to_felt(&BigUint::from_str_radix(&number_str[2..], 16).unwrap()),
+                Felt::from_hex(number_str).unwrap()
+            )
+        }
+    }
+
+    #[test]
+    fn felt_to_bigints() {
+        let numbers_str = [
+            "0x0",
+            "0x1",
+            "0x10",
+            "0x8000000000000110000000000",
+            "0xffffffffffffff",
+            "0xffffffffefff12380777abcd",
+        ];
+
+        for number_str in numbers_str {
+            assert_eq!(
+                felt_to_bigint(Felt::from_hex(number_str).unwrap()),
+                BigInt::from_str_radix(&number_str[2..], 16).unwrap()
+            );
+
+            assert_eq!(
+                felt_to_biguint(Felt::from_hex(number_str).unwrap()),
+                BigUint::from_str_radix(&number_str[2..], 16).unwrap()
+            );
+        }
+    }
 }
