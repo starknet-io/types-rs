@@ -30,7 +30,7 @@ As a crates.io dependency:
 
 ```toml
 [dependencies]
-stark-felt = "0.0.3"
+stark-felt = "0.0.1"
 ```
 
 As a git dependency:
@@ -38,6 +38,7 @@ As a git dependency:
 ```toml
 [dependencies]
 stark-felt = { git = "https://github.com/starknet-io/types-rs" }
+starknet-types-core = { git = "https://github.com/starknet-io/types-rs.git", version = "0.0.1", default-features = false, features = ["serde"] }
 ```
 
 ## Build from source
