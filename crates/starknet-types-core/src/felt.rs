@@ -456,6 +456,12 @@ impl From<&BigInt> for Felt {
     }
 }
 
+impl From<&BigUint> for Felt {
+    fn from(biguint: &BigUint) -> Felt {
+        Felt::from_bytes_le_slice(&biguint.to_bytes_le())
+    }
+}
+
 macro_rules! impl_from {
     ($from:ty, $with:ty) => {
         impl From<$from> for Felt {
@@ -829,10 +835,6 @@ pub fn felt_to_biguint(felt: Felt) -> BigUint {
 
 pub fn felt_to_bigint(felt: Felt) -> BigInt {
     felt_to_biguint(felt).to_bigint().unwrap()
-}
-
-pub fn biguint_to_felt(biguint: &BigUint) -> Felt {
-    Felt::from_bytes_le_slice(&biguint.to_bytes_le())
 }
 
 #[cfg(feature = "serde")]
@@ -1643,11 +1645,11 @@ mod test {
     #[test]
     fn bigints_to_felt() {
         let one = &*CAIRO_PRIME_BIGINT + BigInt::from(1_u32);
-        assert_eq!(biguint_to_felt(&one.to_biguint().unwrap()), Felt::from(1));
+        assert_eq!(Felt::from(&one.to_biguint().unwrap()), Felt::from(1));
         assert_eq!(Felt::from(&one), Felt::from(1));
 
         let zero = &*CAIRO_PRIME_BIGINT * 99_u32;
-        assert_eq!(biguint_to_felt(&zero.to_biguint().unwrap()), Felt::from(0));
+        assert_eq!(Felt::from(&zero.to_biguint().unwrap()), Felt::from(0));
         assert_eq!(Felt::from(&zero), Felt::from(0));
 
         assert_eq!(
@@ -1671,7 +1673,7 @@ mod test {
                 Felt::from_hex(number_str).unwrap()
             );
             assert_eq!(
-                biguint_to_felt(&BigUint::from_str_radix(&number_str[2..], 16).unwrap()),
+                Felt::from(&BigUint::from_str_radix(&number_str[2..], 16).unwrap()),
                 Felt::from_hex(number_str).unwrap()
             )
         }
