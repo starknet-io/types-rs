@@ -444,6 +444,18 @@ impl From<i128> for Felt {
     }
 }
 
+impl From<&BigInt> for Felt {
+    fn from(bigint: &BigInt) -> Felt {
+        let (sign, bytes) = bigint.mod_floor(&CAIRO_PRIME_BIGINT).to_bytes_le();
+        let felt = Felt::from_bytes_le_slice(&bytes);
+        if sign == Sign::Minus {
+            felt.neg()
+        } else {
+            felt
+        }
+    }
+}
+
 macro_rules! impl_from {
     ($from:ty, $with:ty) => {
         impl From<$from> for Felt {
@@ -821,16 +833,6 @@ pub fn felt_to_bigint(felt: Felt) -> BigInt {
 
 pub fn biguint_to_felt(biguint: &BigUint) -> Felt {
     Felt::from_bytes_le_slice(&biguint.to_bytes_le())
-}
-
-pub fn bigint_to_felt(bigint: &BigInt) -> Felt {
-    let (sign, bytes) = bigint.mod_floor(&CAIRO_PRIME_BIGINT).to_bytes_le();
-    let felt = Felt::from_bytes_le_slice(&bytes);
-    if sign == Sign::Minus {
-        felt.neg()
-    } else {
-        felt
-    }
 }
 
 #[cfg(feature = "serde")]
@@ -1642,14 +1644,14 @@ mod test {
     fn bigints_to_felt() {
         let one = &*CAIRO_PRIME_BIGINT + BigInt::from(1_u32);
         assert_eq!(biguint_to_felt(&one.to_biguint().unwrap()), Felt::from(1));
-        assert_eq!(bigint_to_felt(&one), Felt::from(1));
+        assert_eq!(Felt::from(&one), Felt::from(1));
 
         let zero = &*CAIRO_PRIME_BIGINT * 99_u32;
         assert_eq!(biguint_to_felt(&zero.to_biguint().unwrap()), Felt::from(0));
-        assert_eq!(bigint_to_felt(&zero), Felt::from(0));
+        assert_eq!(Felt::from(&zero), Felt::from(0));
 
         assert_eq!(
-            bigint_to_felt(&BigInt::from(-1)),
+            Felt::from(&BigInt::from(-1)),
             Felt::from_hex("0x800000000000011000000000000000000000000000000000000000000000000")
                 .unwrap()
         );
@@ -1665,7 +1667,7 @@ mod test {
 
         for number_str in numbers_str {
             assert_eq!(
-                bigint_to_felt(&BigInt::from_str_radix(&number_str[2..], 16).unwrap()),
+                Felt::from(&BigInt::from_str_radix(&number_str[2..], 16).unwrap()),
                 Felt::from_hex(number_str).unwrap()
             );
             assert_eq!(
