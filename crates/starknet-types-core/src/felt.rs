@@ -356,6 +356,15 @@ impl Felt {
     pub fn bits(&self) -> usize {
         self.0.representative().bits_le()
     }
+
+    pub fn to_biguint(&self) -> BigUint {
+        let big_digits = self
+            .to_le_digits()
+            .into_iter()
+            .flat_map(|limb| [limb as u32, (limb >> 32) as u32])
+            .collect();
+        BigUint::new(big_digits)
+    }
 }
 
 #[cfg(feature = "arbitrary")]
@@ -824,17 +833,8 @@ mod arithmetic {
     }
 }
 
-pub fn felt_to_biguint(felt: Felt) -> BigUint {
-    let big_digits = felt
-        .to_le_digits()
-        .into_iter()
-        .flat_map(|limb| [limb as u32, (limb >> 32) as u32])
-        .collect();
-    BigUint::new(big_digits)
-}
-
 pub fn felt_to_bigint(felt: Felt) -> BigInt {
-    felt_to_biguint(felt).to_bigint().unwrap()
+    felt.to_biguint().to_bigint().unwrap()
 }
 
 #[cfg(feature = "serde")]
@@ -1697,7 +1697,7 @@ mod test {
             );
 
             assert_eq!(
-                felt_to_biguint(Felt::from_hex(number_str).unwrap()),
+                Felt::from_hex(number_str).unwrap().to_biguint(),
                 BigUint::from_str_radix(&number_str[2..], 16).unwrap()
             );
         }
