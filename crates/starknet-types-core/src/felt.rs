@@ -365,6 +365,10 @@ impl Felt {
             .collect();
         BigUint::new(big_digits)
     }
+
+    pub fn to_bigint(&self) -> BigInt {
+        self.to_biguint().to_bigint().unwrap()
+    }
 }
 
 #[cfg(feature = "arbitrary")]
@@ -831,10 +835,6 @@ mod arithmetic {
             base
         }
     }
-}
-
-pub fn felt_to_bigint(felt: Felt) -> BigInt {
-    felt.to_biguint().to_bigint().unwrap()
 }
 
 #[cfg(feature = "serde")]
@@ -1692,7 +1692,7 @@ mod test {
 
         for number_str in numbers_str {
             assert_eq!(
-                felt_to_bigint(Felt::from_hex(number_str).unwrap()),
+                Felt::from_hex(number_str).unwrap().to_bigint(),
                 BigInt::from_str_radix(&number_str[2..], 16).unwrap()
             );
 
