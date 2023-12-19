@@ -1029,7 +1029,7 @@ mod test {
         #[test]
         #[cfg(feature = "alloc")]
         fn to_hex_string_is_same_as_format(ref x in any::<Felt>()) {
-            prop_assert_eq!(std::format!("{x:#x}"), x.to_hex_string());
+            prop_assert_eq!(alloc::format!("{x:#x}"), x.to_hex_string());
         }
 
         #[test]
