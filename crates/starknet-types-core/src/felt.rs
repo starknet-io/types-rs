@@ -2,7 +2,7 @@ use core::ops::{Add, Mul, Neg};
 
 use bitvec::array::BitArray;
 use lazy_static::lazy_static;
-use num_bigint::{BigInt, BigUint, Sign, ToBigInt};
+use num_bigint::{BigInt, BigUint, Sign};
 use num_integer::Integer;
 use num_traits::Num;
 use num_traits::{FromPrimitive, One, ToPrimitive, Zero};
@@ -356,6 +356,19 @@ impl Felt {
     pub fn bits(&self) -> usize {
         self.0.representative().bits_le()
     }
+
+    pub fn to_biguint(&self) -> BigUint {
+        let big_digits = self
+            .to_le_digits()
+            .into_iter()
+            .flat_map(|limb| [limb as u32, (limb >> 32) as u32])
+            .collect();
+        BigUint::new(big_digits)
+    }
+
+    pub fn to_bigint(&self) -> BigInt {
+        self.to_biguint().into()
+    }
 }
 
 #[cfg(feature = "arbitrary")]
@@ -450,6 +463,23 @@ impl From<bool> for Felt {
             true => Felt::ONE,
             false => Felt::ZERO,
         }
+    }
+}
+impl From<&BigInt> for Felt {
+    fn from(bigint: &BigInt) -> Felt {
+        let (sign, bytes) = bigint.mod_floor(&CAIRO_PRIME_BIGINT).to_bytes_le();
+        let felt = Felt::from_bytes_le_slice(&bytes);
+        if sign == Sign::Minus {
+            felt.neg()
+        } else {
+            felt
+        }
+    }
+}
+
+impl From<&BigUint> for Felt {
+    fn from(biguint: &BigUint) -> Felt {
+        Felt::from_bytes_le_slice(&biguint.to_bytes_le())
     }
 }
 
@@ -812,33 +842,6 @@ mod arithmetic {
             iter.for_each(|addend| base += addend);
             base
         }
-    }
-}
-
-pub fn felt_to_biguint(felt: Felt) -> BigUint {
-    let big_digits = felt
-        .to_le_digits()
-        .into_iter()
-        .flat_map(|limb| [limb as u32, (limb >> 32) as u32])
-        .collect();
-    BigUint::new(big_digits)
-}
-
-pub fn felt_to_bigint(felt: Felt) -> BigInt {
-    felt_to_biguint(felt).to_bigint().unwrap()
-}
-
-pub fn biguint_to_felt(biguint: &BigUint) -> Felt {
-    Felt::from_bytes_le_slice(&biguint.to_bytes_le())
-}
-
-pub fn bigint_to_felt(bigint: &BigInt) -> Felt {
-    let (sign, bytes) = bigint.mod_floor(&CAIRO_PRIME_BIGINT).to_bytes_le();
-    let felt = Felt::from_bytes_le_slice(&bytes);
-    if sign == Sign::Minus {
-        felt.neg()
-    } else {
-        felt
     }
 }
 
@@ -1650,15 +1653,15 @@ mod test {
     #[test]
     fn bigints_to_felt() {
         let one = &*CAIRO_PRIME_BIGINT + BigInt::from(1_u32);
-        assert_eq!(biguint_to_felt(&one.to_biguint().unwrap()), Felt::from(1));
-        assert_eq!(bigint_to_felt(&one), Felt::from(1));
+        assert_eq!(Felt::from(&one.to_biguint().unwrap()), Felt::from(1));
+        assert_eq!(Felt::from(&one), Felt::from(1));
 
         let zero = &*CAIRO_PRIME_BIGINT * 99_u32;
-        assert_eq!(biguint_to_felt(&zero.to_biguint().unwrap()), Felt::from(0));
-        assert_eq!(bigint_to_felt(&zero), Felt::from(0));
+        assert_eq!(Felt::from(&zero.to_biguint().unwrap()), Felt::from(0));
+        assert_eq!(Felt::from(&zero), Felt::from(0));
 
         assert_eq!(
-            bigint_to_felt(&BigInt::from(-1)),
+            Felt::from(&BigInt::from(-1)),
             Felt::from_hex("0x800000000000011000000000000000000000000000000000000000000000000")
                 .unwrap()
         );
@@ -1674,11 +1677,11 @@ mod test {
 
         for number_str in numbers_str {
             assert_eq!(
-                bigint_to_felt(&BigInt::from_str_radix(&number_str[2..], 16).unwrap()),
+                Felt::from(&BigInt::from_str_radix(&number_str[2..], 16).unwrap()),
                 Felt::from_hex(number_str).unwrap()
             );
             assert_eq!(
-                biguint_to_felt(&BigUint::from_str_radix(&number_str[2..], 16).unwrap()),
+                Felt::from(&BigUint::from_str_radix(&number_str[2..], 16).unwrap()),
                 Felt::from_hex(number_str).unwrap()
             )
         }
@@ -1697,12 +1700,12 @@ mod test {
 
         for number_str in numbers_str {
             assert_eq!(
-                felt_to_bigint(Felt::from_hex(number_str).unwrap()),
+                Felt::from_hex(number_str).unwrap().to_bigint(),
                 BigInt::from_str_radix(&number_str[2..], 16).unwrap()
             );
 
             assert_eq!(
-                felt_to_biguint(Felt::from_hex(number_str).unwrap()),
+                Felt::from_hex(number_str).unwrap().to_biguint(),
                 BigUint::from_str_radix(&number_str[2..], 16).unwrap()
             );
         }
