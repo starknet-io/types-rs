@@ -202,8 +202,9 @@ impl Felt {
 
     /// Helper to produce a hexadecimal formatted string.
     /// Equivalent to calling `format!("{self:#x}")`.
-    pub fn to_hex_string(&self) -> String {
-        format!("{self:#x}")
+    #[cfg(feature = "alloc")]
+    pub fn to_hex_string(&self) -> alloc::string::String {
+        alloc::format!("{self:#x}")
     }
 
     /// Converts to little-endian bit representation.
@@ -1026,8 +1027,9 @@ mod test {
         }
 
         #[test]
+        #[cfg(feature = "alloc")]
         fn to_hex_string_is_same_as_format(ref x in any::<Felt>()) {
-            prop_assert_eq!(format!("{x:#x}"), x.to_hex_string());
+            prop_assert_eq!(std::format!("{x:#x}"), x.to_hex_string());
         }
 
         #[test]
