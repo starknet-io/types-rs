@@ -2,7 +2,7 @@ use core::ops::{Add, Mul, Neg};
 
 use bitvec::array::BitArray;
 use lazy_static::lazy_static;
-use num_bigint::{BigInt, BigUint, Sign, ToBigInt};
+use num_bigint::{BigInt, BigUint, Sign};
 use num_integer::Integer;
 use num_traits::Num;
 use num_traits::{FromPrimitive, One, ToPrimitive, Zero};
@@ -367,7 +367,7 @@ impl Felt {
     }
 
     pub fn to_bigint(&self) -> BigInt {
-        self.to_biguint().to_bigint().unwrap()
+        self.to_biguint().into()
     }
 }
 
