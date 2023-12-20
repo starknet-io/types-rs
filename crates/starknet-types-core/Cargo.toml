@@ -29,7 +29,7 @@ lazy_static = { version = "1.4.0", default-features = false, features = [
 default = ["std", "serde", "curve"]
 curve = []
 hash = ["dep:lambdaworks-crypto"]
-std = []
+std = ["alloc"]
 alloc = ["serde?/alloc"]
 arbitrary = ["std", "dep:arbitrary"]
 
