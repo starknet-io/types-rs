@@ -9,6 +9,9 @@ resolver = "2"
 
 [workspace.package]
 authors = [
+    "Pedro Fontana <@pefontana>",
+    "Mario Rugiero <@Oppen>",
+    "Lucas Levy <@LucasLvy>",
     "Shahar Papini <@spapinistarkware>",
     "Abdelhamid Bakhta <@abdelhamidbakhta>",
     "Dan Brownstein <@dan-starkware>",
