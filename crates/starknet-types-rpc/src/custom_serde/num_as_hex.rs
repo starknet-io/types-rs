@@ -16,12 +16,39 @@ impl<'de> NumAsHex<'de> for u64 {
     where
         S: serde::Serializer,
     {
+        /// The symbols to be used for the hexadecimal representation.
         const HEX_DIGITS: [u8; 16] = *b"0123456789abcdef";
 
         if *self == 0 {
             return serializer.serialize_str("0x0");
         }
 
+        // The following code can be very much optimized simply by making everything
+        // `unsafe` and using pointers to write to the buffer.
+        // Let's benchmark it first to ensure that it's actually worth it.
+
+        // The buffer is filled from the end to the beginning.
+        // We know that it will always have the correct size because we made it have the
+        // maximum possible size for a base-16 representation of a `u64`.
+        //
+        // +-----------------------------------+
+        // +                           1 2 f a +
+        // +-----------------------------------+
+        //                           ^ cursor
+        //
+        // Once the number has been written to the buffer, we simply add a `0x` prefix
+        // to the beginning of the buffer. Just like the digits, we know the buffer is
+        // large enough to hold the prefix.
+        //
+        // +-----------------------------------+
+        // +                       0 x 1 2 f a +
+        // +-----------------------------------+
+        //                       ^ cursor
+        // |-----------------------| remaining
+        //
+        // The output string is the part of the buffer that has been written. In other
+        // words, we have to skip all the bytes that *were not* written yet (remaining).
+        
         let mut buffer = [0u8; 18]; // Enough for "0x" prefix and 16 hex digits
         let mut n = *self;
         let mut length = 0;
