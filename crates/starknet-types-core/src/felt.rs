@@ -210,6 +210,13 @@ impl Felt {
         BitArray::new(limbs)
     }
 
+    /// Helper to produce a hexadecimal formatted string.
+    /// Equivalent to calling `format!("{self:#x}")`.
+    #[cfg(feature = "alloc")]
+    pub fn to_hex_string(&self) -> alloc::string::String {
+        alloc::format!("{self:#x}")
+    }
+
     /// Converts to little-endian bit representation.
     /// This is as performant as [to_bits_be](Felt::to_bits_be)
     pub fn to_bits_le(&self) -> BitArray<BitArrayStore> {
@@ -1058,6 +1065,12 @@ mod test {
             }
             let y = &Felt::from_bytes_le(&bytes);
             prop_assert_eq!(x, y);
+        }
+
+        #[test]
+        #[cfg(feature = "alloc")]
+        fn to_hex_string_is_same_as_format(ref x in any::<Felt>()) {
+            prop_assert_eq!(alloc::format!("{x:#x}"), x.to_hex_string());
         }
 
         #[test]
