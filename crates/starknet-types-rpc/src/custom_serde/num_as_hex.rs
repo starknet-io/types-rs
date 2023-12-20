@@ -97,6 +97,15 @@ impl<'de> NumAsHex<'de> for u64 {
                     return Err(E::custom("expected a hexadecimal string starting with 0x"));
                 }
 
+                // Aggregate the digits into `n`,
+                // Digits from `0` to `9` represent numbers from `0` to `9`.
+                // Letters from `a` to `f` represent numbers from `10` to `15`.
+                //
+                // As specified in the spec, both uppercase and lowercase characters are
+                // allowed.
+                //
+                // Because we already checked the size of the string earlier, we know that
+                // the following code will never overflow.
                 let hex_bytes = &bytes[2..];
                 let mut n = 0u64;
                 for &b in hex_bytes {
