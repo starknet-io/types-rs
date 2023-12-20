@@ -464,6 +464,15 @@ impl From<i128> for Felt {
     }
 }
 
+impl From<bool> for Felt {
+    fn from(value: bool) -> Felt {
+        match value {
+            true => Felt::ONE,
+            false => Felt::ZERO,
+        }
+    }
+}
+
 impl From<&BigInt> for Felt {
     fn from(bigint: &BigInt) -> Felt {
         let (sign, bytes) = bigint.mod_floor(&CAIRO_PRIME_BIGINT).to_bytes_le();
@@ -1714,5 +1723,13 @@ mod test {
                 BigUint::from_str_radix(&number_str[2..], 16).unwrap()
             );
         }
+    }
+
+    #[test]
+    fn bool_into_felt() {
+        let zero: Felt = false.into();
+        let one: Felt = true.into();
+        assert_eq!(one, Felt::ONE);
+        assert_eq!(zero, Felt::ZERO);
     }
 }
