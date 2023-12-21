@@ -1,3 +1,4 @@
+use alloc::vec::Vec;
 use core::marker::PhantomData;
 
 /// A trait for types that should be serialized or deserialized as hexadecimal strings.
