@@ -27,11 +27,8 @@ pub type BitArrayStore = [u64; 4];
 #[cfg(not(target_pointer_width = "64"))]
 pub type BitArrayStore = [u32; 8];
 
+#[cfg(any(test, feature = "alloc"))]
 pub extern crate alloc;
-
-use alloc::string::ToString;
-#[cfg(not(target_pointer_width = "64"))]
-use alloc::vec::Vec;
 
 use lambdaworks_math::{
     field::{
@@ -200,16 +197,26 @@ impl Felt {
 
     /// Converts to big-endian bit representation.
     /// This is as performant as [to_bits_le](Felt::to_bits_le)
+    #[cfg(target_pointer_width = "64")]
     pub fn to_bits_be(&self) -> BitArray<BitArrayStore> {
         let mut limbs = self.0.representative().limbs;
         limbs.reverse();
 
-        #[cfg(not(target_pointer_width = "64"))]
+        BitArray::new(limbs)
+    }
+
+    /// Converts to big-endian bit representation.
+    /// This is as performant as [to_bits_le](Felt::to_bits_le)
+    #[cfg(all(feature = "alloc", not(target_pointer_width = "64")))]
+    pub fn to_bits_be(&self) -> BitArray<BitArrayStore> {
+        let mut limbs = self.0.representative().limbs;
+        limbs.reverse();
+
         // Split limbs to adjust to BitArrayStore = [u32; 8]
         let limbs: [u32; 8] = limbs
             .into_iter()
             .flat_map(|n| [(n >> 32) as u32, n as u32])
-            .collect::<Vec<u32>>()
+            .collect::<alloc::vec::Vec<u32>>()
             .try_into()
             .unwrap();
 
@@ -225,15 +232,24 @@ impl Felt {
 
     /// Converts to little-endian bit representation.
     /// This is as performant as [to_bits_be](Felt::to_bits_be)
+    #[cfg(target_pointer_width = "64")]
     pub fn to_bits_le(&self) -> BitArray<BitArrayStore> {
         let limbs = self.0.representative().limbs;
 
-        #[cfg(not(target_pointer_width = "64"))]
+        BitArray::new(limbs)
+    }
+
+    /// Converts to little-endian bit representation.
+    /// This is as performant as [to_bits_be](Felt::to_bits_be)
+    #[cfg(all(feature = "alloc", not(target_pointer_width = "64")))]
+    pub fn to_bits_le(&self) -> BitArray<BitArrayStore> {
+        let limbs = self.0.representative().limbs;
+
         // Split limbs to adjust to BitArrayStore = [u32; 8]
         let limbs: [u32; 8] = limbs
             .into_iter()
             .flat_map(|n| [n as u32, (n >> 32) as u32])
-            .collect::<Vec<u32>>()
+            .collect::<alloc::vec::Vec<u32>>()
             .try_into()
             .unwrap();
 
@@ -929,13 +945,13 @@ mod formatting {
     }
 
     /// Represents [Felt] in uppercase hexadecimal format.
+    #[cfg(feature = "alloc")]
     impl fmt::UpperHex for Felt {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             write!(
                 f,
                 "0x{}",
-                self.0
-                    .to_string()
+                alloc::string::ToString::to_string(&self.0)
                     .strip_prefix("0x")
                     .unwrap()
                     .to_uppercase()
