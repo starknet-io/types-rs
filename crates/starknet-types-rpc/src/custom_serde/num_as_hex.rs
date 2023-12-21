@@ -107,10 +107,14 @@ impl<'de> NumAsHex<'de> for u64 {
                 // Because we already checked the size of the string earlier, we know that
                 // the following code will never overflow.
                 let hex_bytes = &bytes[2..];
+
+                // Trim leading zeros from the hexadecimal part for efficient processing
                 let trimmed_hex = hex_bytes
                     .iter()
                     .skip_while(|&&b| b == b'0')
                     .collect::<Vec<_>>();
+
+                // Check if the significant part of the hexadecimal string is too long for a 64-bit number
                 if trimmed_hex.len() > 16 {
                     return Err(E::custom("hexadecimal string too long for a 64-bit number"));
                 }
