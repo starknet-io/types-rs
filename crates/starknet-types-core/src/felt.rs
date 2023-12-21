@@ -1760,11 +1760,10 @@ mod test {
         use parity_scale_codec::{Decode, Encode};
 
         // use an endianness-asymetric number to test that byte order is correct in serialization
-        let initial_felt: Felt = Felt::from_hex("0xabcdef123").unwrap().try_into().unwrap();
+        let initial_felt = Felt::from_hex("0xabcdef123").unwrap();
 
         // serialize the felt
-        let mut serialized_felt = Vec::new();
-        initial_felt.encode_to(&mut serialized_felt);
+        let serialized_felt = initial_felt.encode();
 
         // deserialize the felt
         let deserialized_felt = Felt::decode(&mut &serialized_felt[..]).unwrap();
