@@ -48,7 +48,7 @@ impl<'de> NumAsHex<'de> for u64 {
         //
         // The output string is the part of the buffer that has been written. In other
         // words, we have to skip all the bytes that *were not* written yet (remaining).
-        
+
         let mut buffer = [0u8; 18]; // Enough for "0x" prefix and 16 hex digits
         let mut n = *self;
         let mut length = 0;
@@ -107,19 +107,23 @@ impl<'de> NumAsHex<'de> for u64 {
                 // Because we already checked the size of the string earlier, we know that
                 // the following code will never overflow.
                 let hex_bytes = &bytes[2..];
+                let trimmed_hex = hex_bytes
+                    .iter()
+                    .skip_while(|&&b| b == b'0')
+                    .collect::<Vec<_>>();
+                if trimmed_hex.len() > 16 {
+                    return Err(E::custom("hexadecimal string too long for a 64-bit number"));
+                }
+
                 let mut n = 0u64;
-                for &b in hex_bytes {
+                for &b in &trimmed_hex {
                     let digit = match b {
                         b'0'..=b'9' => b - b'0',
                         b'a'..=b'f' => 10 + b - b'a',
                         b'A'..=b'F' => 10 + b - b'A',
                         _ => return Err(E::custom("invalid hexadecimal digit")),
                     };
-                    n = n
-                        .checked_mul(16)
-                        .ok_or_else(|| E::custom("integer overflowed 64-bit"))?
-                        .checked_add(digit as u64)
-                        .ok_or_else(|| E::custom("integer overflowed 64-bit"))?;
+                    n = n * 16 + digit as u64;
                 }
 
                 Ok(n)
