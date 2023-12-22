@@ -17,6 +17,10 @@ The `starknet-types-core` crate provides:
 - Provides a Serialization and Deserialization implementations for the `Felt` type
 - No_std support ✅
 
+### Parity Scale Codec
+- Provides Serialization and Deserialization implementations for the `Felt` type within the Parity serialization framework
+- No_std support ✅
+
 ### Arbitrary
 - Provides an Arbitrary implementations for the `Felt` type
 
