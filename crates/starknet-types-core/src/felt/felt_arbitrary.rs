@@ -1,5 +1,4 @@
 use lambdaworks_math::{field::element::FieldElement, unsigned_integer::element::UnsignedInteger};
-use num_traits::Zero;
 use proptest::prelude::*;
 
 use crate::felt::Felt;
@@ -37,7 +36,7 @@ fn any_felt() -> impl Strategy<Value = Felt> {
 /// Returns a [`Strategy`] that generates any nonzero Felt
 /// This is used to generate input values for proptests
 pub fn nonzero_felt() -> impl Strategy<Value = Felt> {
-    any_felt().prop_filter("is zero", |x| !x.is_zero())
+    any_felt().prop_filter("is zero", |&x| x != Felt::ZERO)
 }
 
 impl Arbitrary for Felt {

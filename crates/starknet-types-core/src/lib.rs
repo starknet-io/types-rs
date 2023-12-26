@@ -5,5 +5,3 @@ pub mod curve;
 pub mod hash;
 
 pub mod felt;
-#[cfg(test)]
-mod felt_arbitrary;
