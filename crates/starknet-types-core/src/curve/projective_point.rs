@@ -6,6 +6,7 @@ use lambdaworks_math::cyclic_group::IsGroup;
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::stark_curve::StarkCurve;
 use lambdaworks_math::elliptic_curve::short_weierstrass::point::ShortWeierstrassProjectivePoint;
 use lambdaworks_math::elliptic_curve::traits::EllipticCurveError::InvalidPoint;
+use lambdaworks_math::elliptic_curve::traits::FromAffine;
 use lambdaworks_math::unsigned_integer::traits::IsUnsignedInteger;
 
 /// Represents a projective point on the Stark elliptic curve.
@@ -33,6 +34,13 @@ impl ProjectivePoint {
         Ok(AffinePoint(self.0.to_affine()))
     }
 
+    pub fn from_affine(x: Felt, y: Felt) -> Result<Self, CurveError> {
+        Ok(Self(
+            ShortWeierstrassProjectivePoint::from_affine(x.0, y.0)
+                .map_err(CurveError::EllipticCurveError)?,
+        ))
+    }
+
     /// Returns the `x` coordinate of the point.
     pub fn x(&self) -> Felt {
         Felt(*self.0.x())
@@ -46,6 +54,10 @@ impl ProjectivePoint {
     /// Returns the `z` coordinate of the point.
     pub fn z(&self) -> Felt {
         Felt(*self.0.z())
+    }
+
+    pub fn double(&self) -> Self {
+        Self(self.0.double())
     }
 }
 
