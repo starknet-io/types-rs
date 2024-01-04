@@ -6,6 +6,7 @@ use lambdaworks_math::cyclic_group::IsGroup;
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::stark_curve::StarkCurve;
 use lambdaworks_math::elliptic_curve::short_weierstrass::point::ShortWeierstrassProjectivePoint;
 use lambdaworks_math::elliptic_curve::traits::EllipticCurveError::InvalidPoint;
+use lambdaworks_math::elliptic_curve::traits::FromAffine;
 use lambdaworks_math::unsigned_integer::traits::IsUnsignedInteger;
 
 /// Represents a projective point on the Stark elliptic curve.
@@ -33,6 +34,13 @@ impl ProjectivePoint {
         Ok(AffinePoint(self.0.to_affine()))
     }
 
+    pub fn from_affine(x: Felt, y: Felt) -> Result<Self, CurveError> {
+        Ok(Self(
+            ShortWeierstrassProjectivePoint::from_affine(x.0, y.0)
+                .map_err(CurveError::EllipticCurveError)?,
+        ))
+    }
+
     /// Returns the `x` coordinate of the point.
     pub fn x(&self) -> Felt {
         Felt(*self.0.x())
@@ -46,6 +54,10 @@ impl ProjectivePoint {
     /// Returns the `z` coordinate of the point.
     pub fn z(&self) -> Felt {
         Felt(*self.0.z())
+    }
+
+    pub fn double(&self) -> Self {
+        Self(self.0.double())
     }
 }
 
@@ -211,5 +223,36 @@ mod test {
             )
             .unwrap()
         )
+    }
+
+    #[test]
+    // Results checked against starknet-rs https://github.com/xJonathanLEI/starknet-rs/
+    fn double_operations() {
+        let projective_point = ProjectivePoint::new(
+            Felt::from_dec_str(
+                "874739451078007766457464989774322083649278607533249481151382481072868806602",
+            )
+            .unwrap(),
+            Felt::from_dec_str(
+                "152666792071518830868575557812948353041420400780739481342941381225525861407",
+            )
+            .unwrap(),
+            Felt::from(1),
+        );
+
+        assert_eq!(
+            projective_point.double().to_affine().unwrap(),
+            AffinePoint::new(
+                Felt::from_dec_str(
+                    "3324833730090626974525872402899302150520188025637965566623476530814354734325",
+                )
+                .unwrap(),
+                Felt::from_dec_str(
+                    "3147007486456030910661996439995670279305852583596209647900952752170983517249",
+                )
+                .unwrap()
+            )
+            .unwrap()
+        );
     }
 }
