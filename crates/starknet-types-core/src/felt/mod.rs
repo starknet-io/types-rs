@@ -195,6 +195,10 @@ impl Felt {
         self.0.to_bytes_le()
     }
 
+    pub fn from_mont(value: [u64; 4]) -> Felt {
+        Felt(FieldElement::from_raw(UnsignedInteger::from_limbs(value)))
+    }
+
     /// Converts to big-endian bit representation.
     /// This is as performant as [to_bits_le](Felt::to_bits_le)
     #[cfg(target_pointer_width = "64")]
