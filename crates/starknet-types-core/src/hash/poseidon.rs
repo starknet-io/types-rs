@@ -19,8 +19,13 @@ impl StarkHash for Poseidon {
     /// Computes the Poseidon hash of an array of Felts, as defined
     /// in <https://docs.starknet.io/documentation/architecture_and_concepts/Cryptography/hash-functions/#poseidon_array_hash.>
     fn hash_array(felts: &[Felt]) -> Felt {
+        // Non-copy but less dangerous than transmute
+        // https://doc.rust-lang.org/std/mem/fn.transmute.html#alternatives
         Felt(PoseidonCairoStark252::hash_many(unsafe {
-            core::mem::transmute::<&[Felt], &[FieldElement<Stark252PrimeField>]>(felts)
+            core::slice::from_raw_parts(
+                felts.as_ptr() as *const FieldElement<Stark252PrimeField>,
+                felts.len(),
+            )
         }))
     }
 }
@@ -46,7 +51,7 @@ mod tests {
     }
 
     #[test]
-    fn test_pedersen_hash_array() {
+    fn test_poseidon_hash_array() {
         let a = Felt::from_hex("0xaa").unwrap();
         let b = Felt::from_hex("0xbb").unwrap();
         let c = Felt::from_hex("0xcc").unwrap();
