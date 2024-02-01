@@ -12,6 +12,8 @@ use num_traits::{One, Zero};
 
 #[cfg(feature = "num-traits")]
 mod num_traits_impl;
+#[cfg(feature = "papyrus-encoding")]
+mod papyrus_encoding;
 
 lazy_static! {
     pub static ref CAIRO_PRIME_BIGINT: BigInt = BigInt::from_str_radix(
@@ -50,6 +52,48 @@ pub struct Felt(pub(crate) FieldElement<Stark252PrimeField>);
 #[derive(Debug, Clone, Copy)]
 pub struct NonZeroFelt(FieldElement<Stark252PrimeField>);
 
+impl NonZeroFelt {
+    // /// Create a [NonZeroFelt] as a constant. If the value is zero will panic.
+    // pub const unsafe fn from_felt_const(felt: Felt) -> Self {
+    //     let value = felt.0.representative().limbs;
+    //     let mut i = 0;
+    //     let mut zeros_nb = 0;
+    //     while i < value.len() {
+    //         if value[i] == 0 {
+    //             zeros_nb += 1;
+    //         }
+    //         i += 1;
+    //     }
+    //     assert!(zeros_nb < value.len(), "Felt is zero");
+    //     Self(felt.0)
+    // }
+
+    /// Create a [NonZeroFelt] as a constant.
+    /// # Safety
+    /// If the value is zero will panic.
+    pub const unsafe fn from_raw_const(value: [u64; 4]) -> Self {
+        let mut i = 0;
+        let mut zeros_nb = 0;
+        while i < value.len() {
+            if value[i] == 0 {
+                zeros_nb += 1;
+            }
+            i += 1;
+        }
+        assert!(zeros_nb < value.len(), "Felt is zero");
+        let value = Felt::from_raw_const(value);
+        Self(value.0)
+    }
+
+    /// Create a [NonZeroFelt] without checking it. If the [Felt] is indeed [Felt::ZERO]
+    /// this can lead to undefined behaviour and big security issue.
+    /// You should always use the [TryFrom] implementation
+    #[cfg(feature = "unsafe-non-zero")]
+    pub fn from_felt_unchecked(value: Felt) -> Self {
+        Self(value.0)
+    }
+}
+
 #[derive(Debug)]
 pub struct FeltIsZeroError;
 
@@ -78,6 +122,26 @@ impl Felt {
     pub const MAX: Self = Self(FieldElement::<Stark252PrimeField>::const_from_raw(
         UnsignedInteger::from_limbs([544, 0, 0, 32]),
     ));
+    pub const ELEMENT_UPPER_BOUND: Felt = Felt::from_raw_const([
+        576459263475450960,
+        18446744073709255680,
+        160989183,
+        18446743986131435553,
+    ]);
+
+    pub const fn from_raw_const(val: [u64; 4]) -> Self {
+        Self(FieldElement::<Stark252PrimeField>::const_from_raw(
+            UnsignedInteger::from_limbs(val),
+        ))
+    }
+
+    pub const fn from_u64(val: u64) -> Self {
+        Self(FieldElement::<Stark252PrimeField>::const_from_raw(
+            UnsignedInteger::from_u64(val),
+        ))
+    }
+
+    // pub const fn from_hex_const(hex_string: &str) -> Felt {}
 
     /// Creates a new [Felt] from its big-endian representation in a [u8; 32] array.
     /// This is as performant as [from_bytes_le](Felt::from_bytes_le).
@@ -183,6 +247,14 @@ impl Felt {
         res
     }
 
+    /// Creates a new [Felt] from the raw internal representation.
+    /// See [UnisgnedInteger] to understand how it works under the hood.
+    pub fn from_raw(val: [u64; 4]) -> Self {
+        Self(FieldElement::<Stark252PrimeField>::from_raw(
+            UnsignedInteger::from_limbs(val),
+        ))
+    }
+
     /// Converts to big-endian byte representation in a [u8] array.
     /// This is as performant as [to_bytes_le](Felt::to_bytes_le)
     pub fn to_bytes_be(&self) -> [u8; 32] {
@@ -228,6 +300,18 @@ impl Felt {
     #[cfg(feature = "alloc")]
     pub fn to_hex_string(&self) -> alloc::string::String {
         alloc::format!("{self:#x}")
+    }
+
+    /// Helper to produce a hexadecimal formatted string of 66 chars.
+    /// Equivalent to calling `format!("{self:#066x}")`.
+    #[cfg(feature = "alloc")]
+    pub fn to_fixed_hex_string(&self) -> alloc::string::String {
+        let hex_str = alloc::format!("{self:#x}");
+        if hex_str.len() < 66 {
+            alloc::format!("0x{:0>64}", hex_str.strip_prefix("0x").unwrap())
+        } else {
+            hex_str
+        }
     }
 
     /// Converts to little-endian bit representation.
@@ -367,6 +451,12 @@ impl Felt {
         }
     }
 
+    pub fn to_raw_reversed(&self) -> [u64; 4] {
+        let mut res = self.0.to_raw().limbs;
+        res.reverse();
+        res
+    }
+
     /// Convert `self`'s representative into an array of `u64` digits,
     /// least significant digits first.
     pub fn to_le_digits(&self) -> [u64; 4] {
@@ -397,6 +487,10 @@ impl Felt {
 
     pub fn to_bigint(&self) -> BigInt {
         self.to_biguint().into()
+    }
+
+    pub fn prime() -> BigUint {
+        (*CAIRO_PRIME_BIGINT).to_biguint().unwrap()
     }
 }
 
@@ -527,8 +621,25 @@ impl From<&BigInt> for Felt {
     }
 }
 
+impl From<BigInt> for Felt {
+    fn from(bigint: BigInt) -> Felt {
+        let (sign, bytes) = bigint.mod_floor(&CAIRO_PRIME_BIGINT).to_bytes_le();
+        let felt = Felt::from_bytes_le_slice(&bytes);
+        if sign == Sign::Minus {
+            felt.neg()
+        } else {
+            felt
+        }
+    }
+}
 impl From<&BigUint> for Felt {
     fn from(biguint: &BigUint) -> Felt {
+        Felt::from_bytes_le_slice(&biguint.to_bytes_le())
+    }
+}
+
+impl From<BigUint> for Felt {
+    fn from(biguint: BigUint) -> Felt {
         Felt::from_bytes_le_slice(&biguint.to_bytes_le())
     }
 }
@@ -883,7 +994,7 @@ mod serde_impl {
     impl<'de> de::Visitor<'de> for FeltVisitor {
         type Value = Felt;
 
-        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
             formatter.write_str("Failed to deserialize hexadecimal string")
         }
 

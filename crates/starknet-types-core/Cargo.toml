@@ -28,7 +28,7 @@ lambdaworks-crypto = { version = "0.5.0", default-features = false, optional = t
 parity-scale-codec = { version = "3.2.2", default-features = false, optional = true }
 
 [features]
-default = ["std", "serde", "curve", "num-traits"]
+default = ["std", "serde", "curve", "num-traits", "papyrus-encoding"]
 std = [
   "bitvec/std",
   "lambdaworks-math/std",
@@ -45,6 +45,8 @@ arbitrary = ["std", "dep:arbitrary"]
 parity-scale-codec = ["dep:parity-scale-codec"]
 serde = ["alloc", "dep:serde"]
 num-traits = []
+papyrus-encoding = []
+unsafe-non-zero = []
 
 [dev-dependencies]
 proptest = "1.1.0"
