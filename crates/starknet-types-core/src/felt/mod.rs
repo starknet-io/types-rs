@@ -105,9 +105,7 @@ pub struct FromBytesError;
 
 impl Felt {
     /// [Felt] constant that's equal to 0.
-    pub const ZERO: Self = Self(FieldElement::<Stark252PrimeField>::const_from_raw(
-        UnsignedInteger::from_u64(0),
-    ));
+    pub const ZERO: Self = Self(FieldElement::<Stark252PrimeField>::from_hex_unchecked("0"));
 
     /// [Felt] constant that's equal to 1.
     pub const ONE: Self = Self(FieldElement::<Stark252PrimeField>::from_hex_unchecked("1"));
@@ -135,10 +133,8 @@ impl Felt {
         ))
     }
 
-    pub const fn from_u64(val: u64) -> Self {
-        Self(FieldElement::<Stark252PrimeField>::const_from_raw(
-            UnsignedInteger::from_u64(val),
-        ))
+    pub const fn from_hex_unchecked(val: &str) -> Self {
+        Self(FieldElement::<Stark252PrimeField>::from_hex_unchecked(val))
     }
 
     // pub const fn from_hex_const(hex_string: &str) -> Felt {}
