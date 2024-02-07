@@ -53,21 +53,6 @@ pub struct Felt(pub(crate) FieldElement<Stark252PrimeField>);
 pub struct NonZeroFelt(FieldElement<Stark252PrimeField>);
 
 impl NonZeroFelt {
-    // /// Create a [NonZeroFelt] as a constant. If the value is zero will panic.
-    // pub const unsafe fn from_felt_const(felt: Felt) -> Self {
-    //     let value = felt.0.representative().limbs;
-    //     let mut i = 0;
-    //     let mut zeros_nb = 0;
-    //     while i < value.len() {
-    //         if value[i] == 0 {
-    //             zeros_nb += 1;
-    //         }
-    //         i += 1;
-    //     }
-    //     assert!(zeros_nb < value.len(), "Felt is zero");
-    //     Self(felt.0)
-    // }
-
     /// Create a [NonZeroFelt] as a constant.
     /// # Safety
     /// If the value is zero will panic.
@@ -89,7 +74,7 @@ impl NonZeroFelt {
     /// this can lead to undefined behaviour and big security issue.
     /// You should always use the [TryFrom] implementation
     #[cfg(feature = "unsafe-non-zero")]
-    pub fn from_felt_unchecked(value: Felt) -> Self {
+    pub const fn from_felt_unchecked(value: Felt) -> Self {
         Self(value.0)
     }
 }
@@ -99,9 +84,6 @@ pub struct FeltIsZeroError;
 
 #[derive(Debug)]
 pub struct FromStrError;
-
-#[derive(Debug)]
-pub struct FromBytesError;
 
 impl Felt {
     /// [Felt] constant that's equal to 0.
@@ -120,6 +102,8 @@ impl Felt {
     pub const MAX: Self = Self(FieldElement::<Stark252PrimeField>::const_from_raw(
         UnsignedInteger::from_limbs([544, 0, 0, 32]),
     ));
+
+    /// 2 ** 251
     pub const ELEMENT_UPPER_BOUND: Felt = Felt::from_raw_const([
         576459263475450960,
         18446744073709255680,
@@ -299,7 +283,6 @@ impl Felt {
     }
 
     /// Helper to produce a hexadecimal formatted string of 66 chars.
-    /// Equivalent to calling `format!("{self:#066x}")`.
     #[cfg(feature = "alloc")]
     pub fn to_fixed_hex_string(&self) -> alloc::string::String {
         let hex_str = alloc::format!("{self:#x}");
@@ -447,6 +430,8 @@ impl Felt {
         }
     }
 
+    /// Returns the internal representation of a felt and reverses it to match
+    /// starknet-rs mont representation
     pub fn to_raw_reversed(&self) -> [u64; 4] {
         let mut res = self.0.to_raw().limbs;
         res.reverse();
@@ -1087,15 +1072,6 @@ mod errors {
     impl fmt::Display for FromStrError {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             "Failed to create Felt from string".fmt(f)
-        }
-    }
-
-    #[cfg(feature = "std")]
-    impl std::error::Error for FromBytesError {}
-
-    impl fmt::Display for FromBytesError {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            "Failed to create Felt from bytes".fmt(f)
         }
     }
 }
