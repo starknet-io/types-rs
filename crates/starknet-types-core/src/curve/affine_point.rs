@@ -3,7 +3,6 @@ use crate::felt::Felt;
 use lambdaworks_math::cyclic_group::IsGroup;
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::stark_curve::StarkCurve;
 use lambdaworks_math::elliptic_curve::short_weierstrass::point::ShortWeierstrassProjectivePoint;
-use lambdaworks_math::elliptic_curve::short_weierstrass::traits::IsShortWeierstrass;
 use lambdaworks_math::elliptic_curve::traits::FromAffine;
 
 /// Represents a point on the Stark elliptic curve.
@@ -19,11 +18,6 @@ impl AffinePoint {
         )?))
     }
 
-    pub fn from_x(x: Felt) -> Option<Self> {
-        let y_squared = x * x * x + Felt(StarkCurve::a()) * x + Felt(StarkCurve::b());
-        let y = y_squared.sqrt()?;
-        Self::new(x, y).ok()
-    }
     /// The point at infinity.
     pub fn identity() -> AffinePoint {
         Self(ShortWeierstrassProjectivePoint::neutral_element())

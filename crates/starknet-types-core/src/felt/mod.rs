@@ -12,8 +12,8 @@ use num_traits::{One, Zero};
 
 #[cfg(feature = "num-traits")]
 mod num_traits_impl;
-#[cfg(feature = "papyrus-encoding")]
-mod papyrus_encoding;
+#[cfg(feature = "papyrus-serialization")]
+mod papyrus_serialization;
 
 lazy_static! {
     pub static ref CAIRO_PRIME_BIGINT: BigInt = BigInt::from_str_radix(
@@ -56,7 +56,7 @@ impl NonZeroFelt {
     /// Create a [NonZeroFelt] as a constant.
     /// # Safety
     /// If the value is zero will panic.
-    pub const unsafe fn from_raw_const(value: [u64; 4]) -> Self {
+    pub const fn from_raw(value: [u64; 4]) -> Self {
         let mut i = 0;
         let mut zeros_nb = 0;
         while i < value.len() {
@@ -66,14 +66,13 @@ impl NonZeroFelt {
             i += 1;
         }
         assert!(zeros_nb < value.len(), "Felt is zero");
-        let value = Felt::from_raw_const(value);
+        let value = Felt::from_raw(value);
         Self(value.0)
     }
 
     /// Create a [NonZeroFelt] without checking it. If the [Felt] is indeed [Felt::ZERO]
     /// this can lead to undefined behaviour and big security issue.
     /// You should always use the [TryFrom] implementation
-    #[cfg(feature = "unsafe-non-zero")]
     pub const fn from_felt_unchecked(value: Felt) -> Self {
         Self(value.0)
     }
@@ -104,14 +103,16 @@ impl Felt {
     ));
 
     /// 2 ** 251
-    pub const ELEMENT_UPPER_BOUND: Felt = Felt::from_raw_const([
+    pub const ELEMENT_UPPER_BOUND: Felt = Felt::from_raw([
         576459263475450960,
         18446744073709255680,
         160989183,
         18446743986131435553,
     ]);
 
-    pub const fn from_raw_const(val: [u64; 4]) -> Self {
+    /// Creates a new [Felt] from the raw internal representation.
+    /// See [UnisgnedInteger] to understand how it works under the hood.
+    pub const fn from_raw(val: [u64; 4]) -> Self {
         Self(FieldElement::<Stark252PrimeField>::const_from_raw(
             UnsignedInteger::from_limbs(val),
         ))
@@ -120,8 +121,6 @@ impl Felt {
     pub const fn from_hex_unchecked(val: &str) -> Self {
         Self(FieldElement::<Stark252PrimeField>::from_hex_unchecked(val))
     }
-
-    // pub const fn from_hex_const(hex_string: &str) -> Felt {}
 
     /// Creates a new [Felt] from its big-endian representation in a [u8; 32] array.
     /// This is as performant as [from_bytes_le](Felt::from_bytes_le).
@@ -225,14 +224,6 @@ impl Felt {
         res += digit * factor;
 
         res
-    }
-
-    /// Creates a new [Felt] from the raw internal representation.
-    /// See [UnisgnedInteger] to understand how it works under the hood.
-    pub fn from_raw(val: [u64; 4]) -> Self {
-        Self(FieldElement::<Stark252PrimeField>::from_raw(
-            UnsignedInteger::from_limbs(val),
-        ))
     }
 
     /// Converts to big-endian byte representation in a [u8] array.
