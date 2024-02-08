@@ -86,14 +86,6 @@ impl NonZeroFelt {
             UnsignedInteger::from_limbs([544, 0, 0, 32]),
         )));
 
-    /// 2 ** 251
-    pub const ELEMENT_UPPER_BOUND: Felt = Felt::from_raw([
-        576459263475450960,
-        18446744073709255680,
-        160989183,
-        18446743986131435553,
-    ]);
-
     /// Create a [NonZeroFelt] without checking it. If the [Felt] is indeed [Felt::ZERO]
     /// this can lead to undefined behaviour and big security issue.
     /// You should always use the [TryFrom] implementation
@@ -453,6 +445,10 @@ impl Felt {
         res
     }
 
+    /// Returns the internal representation of a felt
+    pub fn to_raw(&self) -> [u64; 4] {
+        self.0.to_raw().limbs
+    }
     /// Convert `self`'s representative into an array of `u64` digits,
     /// least significant digits first.
     pub fn to_le_digits(&self) -> [u64; 4] {
@@ -1363,6 +1359,11 @@ mod test {
             prop_assert_eq!(felt.to_raw_reversed(), x);
         }
 
+        #[test]
+        fn to_raw(x in any::<[u64; 4]>()) {
+            let felt = Felt::from_raw(x);
+            prop_assert_eq!(felt.to_raw(), x);
+        }
         #[test]
         fn non_zero_felt_new_is_ok_when_not_zero(x in nonzero_felt()) {
             prop_assert!(NonZeroFelt::try_from(x).is_ok());
