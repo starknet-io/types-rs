@@ -12,6 +12,8 @@ use num_traits::{One, Zero};
 
 #[cfg(feature = "num-traits")]
 mod num_traits_impl;
+#[cfg(feature = "papyrus-serialization")]
+mod papyrus_serialization;
 
 lazy_static! {
     pub static ref CAIRO_PRIME_BIGINT: BigInt = BigInt::from_str_radix(
@@ -47,8 +49,50 @@ use arbitrary::{self, Arbitrary, Unstructured};
 pub struct Felt(pub(crate) FieldElement<Stark252PrimeField>);
 
 /// A non-zero [Felt].
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Ord)]
 pub struct NonZeroFelt(FieldElement<Stark252PrimeField>);
+
+impl NonZeroFelt {
+    /// Create a [NonZeroFelt] as a constant.
+    /// # Safety
+    /// If the value is zero will panic.
+    pub const fn from_raw(value: [u64; 4]) -> Self {
+        assert!(
+            value[0] != 0 || value[1] != 0 || value[2] != 0 || value[3] != 0,
+            "Felt is zero"
+        );
+        let value = Felt::from_raw(value);
+        Self(value.0)
+    }
+
+    /// [Felt] constant that's equal to 1.
+    pub const ONE: Self = Self::from_felt_unchecked(Felt(
+        FieldElement::<Stark252PrimeField>::from_hex_unchecked("1"),
+    ));
+
+    /// [Felt] constant that's equal to 2.
+    pub const TWO: Self = Self::from_felt_unchecked(Felt(
+        FieldElement::<Stark252PrimeField>::from_hex_unchecked("2"),
+    ));
+
+    /// [Felt] constant that's equal to 3.
+    pub const THREE: Self = Self::from_felt_unchecked(Felt(
+        FieldElement::<Stark252PrimeField>::from_hex_unchecked("3"),
+    ));
+
+    /// Maximum value of [Felt]. Equals to 2^251 + 17 * 2^192.
+    pub const MAX: Self =
+        Self::from_felt_unchecked(Felt(FieldElement::<Stark252PrimeField>::const_from_raw(
+            UnsignedInteger::from_limbs([544, 0, 0, 32]),
+        )));
+
+    /// Create a [NonZeroFelt] without checking it. If the [Felt] is indeed [Felt::ZERO]
+    /// this can lead to undefined behaviour and big security issue.
+    /// You should always use the [TryFrom] implementation
+    pub const fn from_felt_unchecked(value: Felt) -> Self {
+        Self(value.0)
+    }
+}
 
 #[derive(Debug)]
 pub struct FeltIsZeroError;
@@ -56,14 +100,9 @@ pub struct FeltIsZeroError;
 #[derive(Debug)]
 pub struct FromStrError;
 
-#[derive(Debug)]
-pub struct FromBytesError;
-
 impl Felt {
     /// [Felt] constant that's equal to 0.
-    pub const ZERO: Self = Self(FieldElement::<Stark252PrimeField>::const_from_raw(
-        UnsignedInteger::from_u64(0),
-    ));
+    pub const ZERO: Self = Self(FieldElement::<Stark252PrimeField>::from_hex_unchecked("0"));
 
     /// [Felt] constant that's equal to 1.
     pub const ONE: Self = Self(FieldElement::<Stark252PrimeField>::from_hex_unchecked("1"));
@@ -78,6 +117,26 @@ impl Felt {
     pub const MAX: Self = Self(FieldElement::<Stark252PrimeField>::const_from_raw(
         UnsignedInteger::from_limbs([544, 0, 0, 32]),
     ));
+
+    /// 2 ** 251
+    pub const ELEMENT_UPPER_BOUND: Felt = Felt::from_raw([
+        576459263475450960,
+        18446744073709255680,
+        160989183,
+        18446743986131435553,
+    ]);
+
+    /// Creates a new [Felt] from the raw internal representation.
+    /// See [UnisgnedInteger] to understand how it works under the hood.
+    pub const fn from_raw(val: [u64; 4]) -> Self {
+        Self(FieldElement::<Stark252PrimeField>::const_from_raw(
+            UnsignedInteger::from_limbs(val),
+        ))
+    }
+
+    pub const fn from_hex_unchecked(val: &str) -> Self {
+        Self(FieldElement::<Stark252PrimeField>::from_hex_unchecked(val))
+    }
 
     /// Creates a new [Felt] from its big-endian representation in a [u8; 32] array.
     /// This is as performant as [from_bytes_le](Felt::from_bytes_le).
@@ -230,6 +289,17 @@ impl Felt {
         alloc::format!("{self:#x}")
     }
 
+    /// Helper to produce a hexadecimal formatted string of 66 chars.
+    #[cfg(feature = "alloc")]
+    pub fn to_fixed_hex_string(&self) -> alloc::string::String {
+        let hex_str = alloc::format!("{self:#x}");
+        if hex_str.len() < 66 {
+            alloc::format!("0x{:0>64}", hex_str.strip_prefix("0x").unwrap())
+        } else {
+            hex_str
+        }
+    }
+
     /// Converts to little-endian bit representation.
     /// This is as performant as [to_bits_be](Felt::to_bits_be)
     #[cfg(target_pointer_width = "64")]
@@ -367,6 +437,18 @@ impl Felt {
         }
     }
 
+    /// Returns the internal representation of a felt and reverses it to match
+    /// starknet-rs mont representation
+    pub fn to_raw_reversed(&self) -> [u64; 4] {
+        let mut res = self.0.to_raw().limbs;
+        res.reverse();
+        res
+    }
+
+    /// Returns the internal representation of a felt
+    pub fn to_raw(&self) -> [u64; 4] {
+        self.0.to_raw().limbs
+    }
     /// Convert `self`'s representative into an array of `u64` digits,
     /// least significant digits first.
     pub fn to_le_digits(&self) -> [u64; 4] {
@@ -397,6 +479,10 @@ impl Felt {
 
     pub fn to_bigint(&self) -> BigInt {
         self.to_biguint().into()
+    }
+
+    pub fn prime() -> BigUint {
+        (*CAIRO_PRIME_BIGINT).to_biguint().unwrap()
     }
 }
 
@@ -527,8 +613,25 @@ impl From<&BigInt> for Felt {
     }
 }
 
+impl From<BigInt> for Felt {
+    fn from(bigint: BigInt) -> Felt {
+        let (sign, bytes) = bigint.mod_floor(&CAIRO_PRIME_BIGINT).to_bytes_le();
+        let felt = Felt::from_bytes_le_slice(&bytes);
+        if sign == Sign::Minus {
+            felt.neg()
+        } else {
+            felt
+        }
+    }
+}
 impl From<&BigUint> for Felt {
     fn from(biguint: &BigUint) -> Felt {
+        Felt::from_bytes_le_slice(&biguint.to_bytes_le())
+    }
+}
+
+impl From<BigUint> for Felt {
+    fn from(biguint: BigUint) -> Felt {
         Felt::from_bytes_le_slice(&biguint.to_bytes_le())
     }
 }
@@ -883,7 +986,7 @@ mod serde_impl {
     impl<'de> de::Visitor<'de> for FeltVisitor {
         type Value = Felt;
 
-        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
             formatter.write_str("Failed to deserialize hexadecimal string")
         }
 
@@ -982,15 +1085,6 @@ mod errors {
             "Failed to create Felt from string".fmt(f)
         }
     }
-
-    #[cfg(feature = "std")]
-    impl std::error::Error for FromBytesError {}
-
-    impl fmt::Display for FromBytesError {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            "Failed to create Felt from bytes".fmt(f)
-        }
-    }
 }
 
 #[cfg(test)]
@@ -1000,6 +1094,7 @@ mod test {
     use super::*;
     use core::ops::Shl;
     use proptest::prelude::*;
+    use regex::Regex;
     #[cfg(feature = "serde")]
     use serde_test::{assert_de_tokens, assert_ser_tokens, Configure, Token};
 
@@ -1258,15 +1353,54 @@ mod test {
         }
 
         #[test]
+        fn to_raw_reversed(mut x in any::<[u64; 4]>()) {
+            let felt = Felt::from_raw(x);
+            x.reverse();
+            prop_assert_eq!(felt.to_raw_reversed(), x);
+        }
+
+        #[test]
+        fn to_raw(x in any::<[u64; 4]>()) {
+            let felt = Felt::from_raw(x);
+            prop_assert_eq!(felt.to_raw(), x);
+        }
+        #[test]
         fn non_zero_felt_new_is_ok_when_not_zero(x in nonzero_felt()) {
             prop_assert!(NonZeroFelt::try_from(x).is_ok());
             prop_assert_eq!(NonZeroFelt::try_from(x).unwrap().0, x.0);
         }
+        #[test]
+        fn felt_from_bigint(mut x in any::<[u8; 32]>()) {
+            x[0] = 0;
+            let bigint = BigInt::from_bytes_be(Sign::Plus, &x);
+            let felt_from_ref: Felt = (&bigint).into();
+            let felt: Felt = bigint.into();
+            prop_assert_eq!(felt_from_ref, felt);
+            prop_assert_eq!(felt_from_ref.to_bytes_be(), x);
+            prop_assert_eq!(felt.to_bytes_be(), x);
+        }
 
+        #[test]
+        fn felt_from_biguint(mut x in any::<[u8; 32]>()) {
+            x[0] = 0;
+            let biguint = BigUint::from_bytes_be( &x);
+            let felt_from_ref: Felt = (&biguint).into();
+            let felt: Felt = biguint.into();
+            prop_assert_eq!(felt_from_ref, felt);
+            prop_assert_eq!(felt_from_ref.to_bytes_be(), x);
+            prop_assert_eq!(felt.to_bytes_be(), x);
+        }
         #[test]
         fn iter_sum(a in any::<Felt>(), b in any::<Felt>(), c in any::<Felt>()) {
             prop_assert_eq!([a, b, c].iter().sum::<Felt>(), a + b + c);
             prop_assert_eq!([a, b, c].iter().map(Clone::clone).sum::<Felt>(), a + b + c);
+        }
+
+        #[test]
+        fn felt_to_fixed_hex_string(a in any::<Felt>()) {
+            prop_assert_eq!(a.to_fixed_hex_string().len(), 66);
+            let re = Regex::new(r"^0x([0-9a-fA-F]{64})$").unwrap();
+            prop_assert!(re.is_match(&a.to_fixed_hex_string()));
         }
     }
 
@@ -1305,6 +1439,107 @@ mod test {
             0, 0, 0,
         ];
         assert_eq!(Felt::MAX.to_bytes_be(), max_bytes);
+    }
+
+    #[test]
+    fn prime() {
+        assert_eq!(Felt::prime(), CAIRO_PRIME_BIGINT.to_biguint().unwrap());
+    }
+
+    #[test]
+    fn felt_from_raw() {
+        let zero_bytes = [0; 4];
+        assert_eq!(Felt::from_raw(zero_bytes), Felt::ZERO);
+        let one_raw = [
+            576460752303422960,
+            18446744073709551615,
+            18446744073709551615,
+            18446744073709551585,
+        ];
+        assert_eq!(Felt::from_raw(one_raw), Felt::ONE);
+        let nineteen_raw = [
+            576460752303413168,
+            18446744073709551615,
+            18446744073709551615,
+            18446744073709551009,
+        ];
+        assert_eq!(Felt::from_raw(nineteen_raw), Felt::from(19));
+    }
+
+    #[test]
+    fn felt_from_hex_unchecked() {
+        assert_eq!(Felt::from_hex_unchecked("0"), Felt::from(0));
+        assert_eq!(Felt::from_hex_unchecked("1"), Felt::from(1));
+        assert_eq!(Felt::from_hex_unchecked("0x2"), Felt::from(2));
+        assert_eq!(Felt::from_hex_unchecked("0x0000000003"), Felt::from(3));
+        assert_eq!(Felt::from_hex_unchecked("000004"), Felt::from(4));
+        assert_eq!(Felt::from_hex_unchecked("0x05b"), Felt::from(91));
+        assert_eq!(Felt::from_hex_unchecked("A"), Felt::from(10));
+    }
+    #[test]
+    fn nonzerofelt_from_raw() {
+        let one_raw = [
+            576460752303422960,
+            18446744073709551615,
+            18446744073709551615,
+            18446744073709551585,
+        ];
+        assert_eq!(NonZeroFelt::from_raw(one_raw), NonZeroFelt::ONE);
+        let two_raw = [
+            576460752303422416,
+            18446744073709551615,
+            18446744073709551615,
+            18446744073709551553,
+        ];
+        assert_eq!(NonZeroFelt::from_raw(two_raw), NonZeroFelt::TWO);
+        let nineteen_raw = [
+            576460752303413168,
+            18446744073709551615,
+            18446744073709551615,
+            18446744073709551009,
+        ];
+        assert_eq!(
+            NonZeroFelt::from_raw(nineteen_raw),
+            NonZeroFelt::try_from(Felt::from(19)).unwrap()
+        );
+    }
+
+    #[test]
+    fn nonzerofelt_from_felt_unchecked() {
+        assert_eq!(
+            NonZeroFelt::from_felt_unchecked(Felt::from_hex_unchecked("9028392")),
+            NonZeroFelt::try_from(Felt::from(0x9028392)).unwrap()
+        );
+        assert_eq!(
+            NonZeroFelt::from_felt_unchecked(Felt::from_hex_unchecked("1")),
+            NonZeroFelt::try_from(Felt::from(1)).unwrap()
+        );
+        assert_eq!(
+            NonZeroFelt::from_felt_unchecked(Felt::from_hex_unchecked("0x2")),
+            NonZeroFelt::try_from(Felt::from(2)).unwrap()
+        );
+        assert_eq!(
+            NonZeroFelt::from_felt_unchecked(Felt::from_hex_unchecked("0x0000000003")),
+            NonZeroFelt::try_from(Felt::from(3)).unwrap()
+        );
+        assert_eq!(
+            NonZeroFelt::from_felt_unchecked(Felt::from_hex_unchecked("000004")),
+            NonZeroFelt::try_from(Felt::from(4)).unwrap()
+        );
+        assert_eq!(
+            NonZeroFelt::from_felt_unchecked(Felt::from_hex_unchecked("0x05b")),
+            NonZeroFelt::try_from(Felt::from(91)).unwrap()
+        );
+        assert_eq!(
+            NonZeroFelt::from_felt_unchecked(Felt::from_hex_unchecked("A")),
+            NonZeroFelt::try_from(Felt::from(10)).unwrap()
+        );
+    }
+
+    #[test]
+    #[should_panic(expected = "Felt is zero")]
+    fn nonzerofelt_is_zero_from_raw() {
+        NonZeroFelt::from_raw([0; 4]);
     }
 
     #[test]
@@ -1734,5 +1969,32 @@ mod test {
             initial_felt, deserialized_felt,
             "mismatch between original and deserialized felts"
         );
+    }
+    #[cfg(feature = "papyrus-serialization")]
+    #[test]
+    fn hash_serde() {
+        fn enc_len(n_nibbles: usize) -> usize {
+            match n_nibbles {
+                0..=27 => n_nibbles / 2 + 1,
+                28..=33 => 17,
+                _ => 32,
+            }
+        }
+
+        // 64 nibbles are invalid.
+        for n_nibbles in 0..64 {
+            let mut bytes = [0u8; 32];
+            // Set all nibbles to 0xf.
+            for i in 0..n_nibbles {
+                bytes[31 - (i >> 1)] |= 15 << (4 * (i & 1));
+            }
+            let h = Felt::from_bytes_be(&bytes);
+            let mut res = Vec::new();
+            assert!(h.serialize(&mut res).is_ok());
+            assert_eq!(res.len(), enc_len(n_nibbles));
+            let mut reader = &res[..];
+            let d = Felt::deserialize(&mut reader).unwrap();
+            assert_eq!(Felt::from_bytes_be(&bytes), d);
+        }
     }
 }
