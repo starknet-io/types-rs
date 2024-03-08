@@ -79,6 +79,20 @@ impl ops::AddAssign<&ProjectivePoint> for ProjectivePoint {
     }
 }
 
+impl ops::Add<ProjectivePoint> for ProjectivePoint {
+    type Output = ProjectivePoint;
+
+    fn add(self, rhs: ProjectivePoint) -> ProjectivePoint {
+        ProjectivePoint(self.0.operate_with(&rhs.0))
+    }
+}
+
+impl ops::AddAssign<ProjectivePoint> for ProjectivePoint {
+    fn add_assign(&mut self, rhs: ProjectivePoint) {
+        self.0 = self.0.operate_with(&rhs.0);
+    }
+}
+
 impl core::ops::Neg for &ProjectivePoint {
     type Output = ProjectivePoint;
 
@@ -98,6 +112,20 @@ impl core::ops::Sub<&ProjectivePoint> for &ProjectivePoint {
 impl core::ops::SubAssign<&ProjectivePoint> for ProjectivePoint {
     fn sub_assign(&mut self, rhs: &ProjectivePoint) {
         *self += &-rhs;
+    }
+}
+
+impl core::ops::Sub<ProjectivePoint> for ProjectivePoint {
+    type Output = ProjectivePoint;
+
+    fn sub(self, rhs: ProjectivePoint) -> ProjectivePoint {
+        &self - &rhs
+    }
+}
+
+impl core::ops::SubAssign<ProjectivePoint> for ProjectivePoint {
+    fn sub_assign(&mut self, rhs: ProjectivePoint) {
+        *self -= &rhs;
     }
 }
 
@@ -325,7 +353,7 @@ mod test {
     }
 
     #[test]
-    fn sub_operations() {
+    fn sub_operations_pointers() {
         let mut a = ProjectivePoint::new(
             Felt::from_dec_str(
                 "685118385380464480289795596422487144864558069280897344382334516257395969277",
@@ -343,6 +371,28 @@ mod test {
         assert_eq!(&a - &a, ProjectivePoint::identity());
         assert_eq!(&(&a - &a) + &a, a);
         a -= &b;
+        assert_eq!(a, ProjectivePoint::identity());
+    }
+
+    #[test]
+    fn sub_operations() {
+        let mut a = ProjectivePoint::new(
+            Felt::from_dec_str(
+                "685118385380464480289795596422487144864558069280897344382334516257395969277",
+            )
+            .unwrap(),
+            Felt::from_dec_str(
+                "2157469546853095472290556201984093730375838368522549154974787195581425752638",
+            )
+            .unwrap(),
+            Felt::from(1),
+        );
+        let b = a.clone();
+
+        assert_eq!(ProjectivePoint::identity() - a.clone(), -&a);
+        assert_eq!(a.clone() - a.clone(), ProjectivePoint::identity());
+        assert_eq!(a.clone() - a.clone() + a.clone(), a);
+        a -= b;
         assert_eq!(a, ProjectivePoint::identity());
     }
 }
