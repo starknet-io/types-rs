@@ -27,19 +27,3 @@ mod custom_serde;
 pub mod v0_5_0;
 
 pub use self::v0_5_0::*;
-
-use starknet_types_core::curve::ProjectivePoint;
-
-fn double_operations() {
-    let projective_point = ProjectivePoint::new(
-        Felt::from_dec_str(
-            "874739451078007766457464989774322083649278607533249481151382481072868806602",
-        )
-        .unwrap(),
-        Felt::from_dec_str(
-            "152666792071518830868575557812948353041420400780739481342941381225525861407",
-        )
-        .unwrap(),
-        Felt::from(1),
-    );
-}
