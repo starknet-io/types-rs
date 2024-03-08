@@ -23,6 +23,10 @@ impl AffinePoint {
         Self(ShortWeierstrassProjectivePoint::neutral_element())
     }
 
+    pub fn is_identity(&self) -> bool {
+        self == &Self::identity()
+    }
+
     /// Returns the `x` coordinate of the point.
     pub fn x(&self) -> Felt {
         Felt(*self.0.x())
@@ -34,6 +38,14 @@ impl AffinePoint {
     }
 }
 
+impl core::ops::Neg for &AffinePoint {
+    type Output = AffinePoint;
+
+    fn neg(self) -> AffinePoint {
+        AffinePoint(ShortWeierstrassProjectivePoint::from_affine(self.x().0, -self.y().0).unwrap())
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -42,7 +54,36 @@ mod test {
     fn affine_point_identity() {
         let identity = AffinePoint::identity();
 
+        assert!(identity.is_identity());
         assert_eq!(identity.x(), Felt::from(0));
         assert_eq!(identity.y(), Felt::from(1));
+
+        let a = AffinePoint::new(
+            Felt::from_hex_unchecked("0x2d39148a92f479fb077389d"),
+            Felt::from_hex_unchecked(
+                "0x11a2681208d7c128580162110d9e6ddb0bd34e42ace22dcc7f52f9939e11df6",
+            ),
+        );
+        assert!(!a.unwrap().is_identity());
+    }
+
+    #[test]
+    fn affine_neg() {
+        assert_eq!(
+            -&AffinePoint::new(
+                Felt::from_hex_unchecked("0x2d39148a92f479fb077389d"),
+                Felt::from_hex_unchecked(
+                    "0x11a2681208d7c128580162110d9e6ddb0bd34e42ace22dcc7f52f9939e11df6"
+                ),
+            )
+            .unwrap(),
+            AffinePoint::new(
+                Felt::from_hex_unchecked("0x2d39148a92f479fb077389d"),
+                Felt::from_hex_unchecked(
+                    "0x6e5d97edf7283fe7a7fe9deef2619224f42cb1bd531dd23380ad066c61ee20b"
+                ),
+            )
+            .unwrap()
+        )
     }
 }

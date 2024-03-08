@@ -24,6 +24,10 @@ impl ProjectivePoint {
         Self(ShortWeierstrassProjectivePoint::neutral_element())
     }
 
+    pub fn is_identity(&self) -> bool {
+        self == &Self::identity()
+    }
+
     /// Creates the same point in affine coordinates. That is,
     /// returns (x * inv_z, y* inv_z,  1)
     /// where `self` is the point (x, y, z) and inv_z is the multiplicative inverse of z
@@ -75,6 +79,28 @@ impl ops::AddAssign<&ProjectivePoint> for ProjectivePoint {
     }
 }
 
+impl core::ops::Neg for &ProjectivePoint {
+    type Output = ProjectivePoint;
+
+    fn neg(self) -> ProjectivePoint {
+        ProjectivePoint(self.0.neg())
+    }
+}
+
+impl core::ops::Sub<&ProjectivePoint> for &ProjectivePoint {
+    type Output = ProjectivePoint;
+
+    fn sub(self, rhs: &ProjectivePoint) -> ProjectivePoint {
+        self + &-rhs
+    }
+}
+
+impl core::ops::SubAssign<&ProjectivePoint> for ProjectivePoint {
+    fn sub_assign(&mut self, rhs: &ProjectivePoint) {
+        *self += &-rhs;
+    }
+}
+
 impl ops::Mul<Felt> for &ProjectivePoint {
     type Output = ProjectivePoint;
 
@@ -101,7 +127,7 @@ mod test {
     #[test]
     fn projective_point_identity() {
         let identity = ProjectivePoint::identity();
-
+        assert!(identity.is_identity());
         assert_eq!(
             identity,
             ProjectivePoint::new(Felt::from(0), Felt::from(1), Felt::from(0))
@@ -111,6 +137,19 @@ mod test {
             identity.to_affine(),
             Err(CurveError::EllipticCurveError(InvalidPoint))
         );
+
+        let a = ProjectivePoint::new(
+            Felt::from_dec_str(
+                "874739451078007766457464989774322083649278607533249481151382481072868806602",
+            )
+            .unwrap(),
+            Felt::from_dec_str(
+                "152666792071518830868575557812948353041420400780739481342941381225525861407",
+            )
+            .unwrap(),
+            Felt::from(1),
+        );
+        assert!(!a.is_identity());
     }
 
     #[test]
@@ -254,5 +293,56 @@ mod test {
             )
             .unwrap()
         );
+    }
+
+    #[test]
+    fn neg_operations() {
+        let a = ProjectivePoint::new(
+            Felt::from_dec_str(
+                "685118385380464480289795596422487144864558069280897344382334516257395969277",
+            )
+            .unwrap(),
+            Felt::from_dec_str(
+                "2157469546853095472290556201984093730375838368522549154974787195581425752638",
+            )
+            .unwrap(),
+            Felt::from(1),
+        );
+
+        let b = ProjectivePoint::new(
+            Felt::from_dec_str(
+                "685118385380464480289795596422487144864558069280897344382334516257395969277",
+            )
+            .unwrap(),
+            -Felt::from_dec_str(
+                "2157469546853095472290556201984093730375838368522549154974787195581425752638",
+            )
+            .unwrap(),
+            Felt::from(1),
+        );
+
+        assert_eq!(-&a, b);
+    }
+
+    #[test]
+    fn sub_operations() {
+        let mut a = ProjectivePoint::new(
+            Felt::from_dec_str(
+                "685118385380464480289795596422487144864558069280897344382334516257395969277",
+            )
+            .unwrap(),
+            Felt::from_dec_str(
+                "2157469546853095472290556201984093730375838368522549154974787195581425752638",
+            )
+            .unwrap(),
+            Felt::from(1),
+        );
+        let b = a.clone();
+
+        assert_eq!(&ProjectivePoint::identity() - &a, -&a);
+        assert_eq!(&a - &a, ProjectivePoint::identity());
+        assert_eq!(&(&a - &a) + &a, a);
+        a -= &b;
+        assert_eq!(a, ProjectivePoint::identity());
     }
 }
