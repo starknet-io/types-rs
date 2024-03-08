@@ -42,7 +42,6 @@ impl core::ops::Neg for &AffinePoint {
     type Output = AffinePoint;
 
     fn neg(self) -> AffinePoint {
-        // AffinePoint(ShortWeierstrassProjectivePoint::from_affine(self.x().0, -self.y().0).unwrap())
         AffinePoint(self.0.neg())
     }
 }
