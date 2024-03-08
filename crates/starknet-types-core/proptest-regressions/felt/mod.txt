@@ -1,0 +1,7 @@
+# Seeds for failure cases proptest has generated in the past. It is
+# automatically read and these particular cases re-run before any
+# novel cases are generated.
+#
+# It is recommended to check this file in to source control so that
+# everyone who runs the test benefits from these saved cases.
+cc 7cc7e05316cf3a4fc6fc302a9d0addd5ec76e6cd733ef30c109c14be6d0bf9d5 # shrinks to x = Felt(FieldElement { value: UnsignedInteger { limbs: [300729720636178304, 1831347307108920996, 11337269826263459472, 8939133563709308857] } })

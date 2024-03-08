@@ -360,6 +360,11 @@ impl Felt {
         Self(self.0.square())
     }
 
+    /// Doubles the point `self`
+    pub fn double(&self) -> Self {
+        Self(self.0.add(self.0))
+    }
+
     /// Raises `self` to the power of `exponent`.
     pub fn pow(&self, exponent: impl Into<u128>) -> Self {
         Self(self.0.pow(exponent.into()))
@@ -1304,6 +1309,11 @@ mod test {
         }
 
         #[test]
+        fn double_in_range(x in any::<Felt>()) {
+            prop_assert!(x.double() == x + x);
+        }
+
+         #[test]
         fn square_in_range(x in any::<Felt>()) {
             prop_assert!(x.square() <= Felt::MAX);
         }
