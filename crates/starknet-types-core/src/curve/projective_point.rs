@@ -75,6 +75,34 @@ impl ops::AddAssign<&ProjectivePoint> for ProjectivePoint {
     }
 }
 
+impl ops::Add<&AffinePoint> for &ProjectivePoint {
+    type Output = ProjectivePoint;
+
+    fn add(self, rhs: &AffinePoint) -> ProjectivePoint {
+        ProjectivePoint(self.0.operate_with_affine(&rhs.0))
+    }
+}
+
+impl ops::AddAssign<&AffinePoint> for ProjectivePoint {
+    fn add_assign(&mut self, rhs: &AffinePoint) {
+        self.0 = self.0.operate_with_affine(&rhs.0);
+    }
+}
+
+impl ops::Add<AffinePoint> for ProjectivePoint {
+    type Output = ProjectivePoint;
+
+    fn add(self, rhs: AffinePoint) -> ProjectivePoint {
+        ProjectivePoint(self.0.operate_with_affine(&rhs.0))
+    }
+}
+
+impl ops::AddAssign<AffinePoint> for ProjectivePoint {
+    fn add_assign(&mut self, rhs: AffinePoint) {
+        self.0 = self.0.operate_with_affine(&rhs.0);
+    }
+}
+
 impl ops::Mul<Felt> for &ProjectivePoint {
     type Output = ProjectivePoint;
 
@@ -150,6 +178,72 @@ mod test {
 
     #[test]
     // Results checked against starknet-rs https://github.com/xJonathanLEI/starknet-rs/
+    fn add_operations_with_affine() {
+        let projective_point = ProjectivePoint::new(
+            Felt::from_dec_str(
+                "874739451078007766457464989774322083649278607533249481151382481072868806602",
+            )
+            .unwrap(),
+            Felt::from_dec_str(
+                "152666792071518830868575557812948353041420400780739481342941381225525861407",
+            )
+            .unwrap(),
+            Felt::from(1),
+        );
+        let affine_point = projective_point.clone().to_affine().unwrap();
+        let result = (&projective_point + &affine_point).to_affine().unwrap();
+
+        assert_eq!(
+            result,
+            AffinePoint::new(
+                Felt::from_dec_str(
+                    "3324833730090626974525872402899302150520188025637965566623476530814354734325",
+                )
+                .unwrap(),
+                Felt::from_dec_str(
+                    "3147007486456030910661996439995670279305852583596209647900952752170983517249",
+                )
+                .unwrap()
+            )
+            .unwrap()
+        )
+    }
+
+    #[test]
+    // Results checked against starknet-rs https://github.com/xJonathanLEI/starknet-rs/
+    fn add_operations_with_affine_no_pointer() {
+        let projective_point = ProjectivePoint::new(
+            Felt::from_dec_str(
+                "874739451078007766457464989774322083649278607533249481151382481072868806602",
+            )
+            .unwrap(),
+            Felt::from_dec_str(
+                "152666792071518830868575557812948353041420400780739481342941381225525861407",
+            )
+            .unwrap(),
+            Felt::from(1),
+        );
+        let affine_point = projective_point.clone().to_affine().unwrap();
+        let result = (projective_point + affine_point).to_affine().unwrap();
+
+        assert_eq!(
+            result,
+            AffinePoint::new(
+                Felt::from_dec_str(
+                    "3324833730090626974525872402899302150520188025637965566623476530814354734325",
+                )
+                .unwrap(),
+                Felt::from_dec_str(
+                    "3147007486456030910661996439995670279305852583596209647900952752170983517249",
+                )
+                .unwrap()
+            )
+            .unwrap()
+        )
+    }
+
+    #[test]
+    // Results checked against starknet-rs https://github.com/xJonathanLEI/starknet-rs/
     fn add_assign_operations() {
         let mut projective_point_1 = ProjectivePoint::new(
             Felt::from_dec_str(
@@ -166,6 +260,78 @@ mod test {
         projective_point_1 += &projective_point_2;
 
         let result = projective_point_1.to_affine().unwrap();
+
+        assert_eq!(
+            result.x(),
+            Felt::from_dec_str(
+                "3324833730090626974525872402899302150520188025637965566623476530814354734325",
+            )
+            .unwrap()
+        );
+
+        assert_eq!(
+            result.y(),
+            Felt::from_dec_str(
+                "3147007486456030910661996439995670279305852583596209647900952752170983517249",
+            )
+            .unwrap()
+        );
+    }
+
+    #[test]
+    // Results checked against starknet-rs https://github.com/xJonathanLEI/starknet-rs/
+    fn add_assign_operations_with_affine() {
+        let mut projective_point = ProjectivePoint::new(
+            Felt::from_dec_str(
+                "874739451078007766457464989774322083649278607533249481151382481072868806602",
+            )
+            .unwrap(),
+            Felt::from_dec_str(
+                "152666792071518830868575557812948353041420400780739481342941381225525861407",
+            )
+            .unwrap(),
+            Felt::from(1),
+        );
+        let affine_point = projective_point.clone().to_affine().unwrap();
+        projective_point += &affine_point;
+
+        let result = projective_point.to_affine().unwrap();
+
+        assert_eq!(
+            result.x(),
+            Felt::from_dec_str(
+                "3324833730090626974525872402899302150520188025637965566623476530814354734325",
+            )
+            .unwrap()
+        );
+
+        assert_eq!(
+            result.y(),
+            Felt::from_dec_str(
+                "3147007486456030910661996439995670279305852583596209647900952752170983517249",
+            )
+            .unwrap()
+        );
+    }
+
+    #[test]
+    // Results checked against starknet-rs https://github.com/xJonathanLEI/starknet-rs/
+    fn add_assign_operations_with_affine_no_pointer() {
+        let mut projective_point = ProjectivePoint::new(
+            Felt::from_dec_str(
+                "874739451078007766457464989774322083649278607533249481151382481072868806602",
+            )
+            .unwrap(),
+            Felt::from_dec_str(
+                "152666792071518830868575557812948353041420400780739481342941381225525861407",
+            )
+            .unwrap(),
+            Felt::from(1),
+        );
+        let affine_point = projective_point.clone().to_affine().unwrap();
+        projective_point += affine_point;
+
+        let result = projective_point.to_affine().unwrap();
 
         assert_eq!(
             result.x(),
