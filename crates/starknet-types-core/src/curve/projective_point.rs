@@ -104,10 +104,10 @@ impl ops::Add<AffinePoint> for ProjectivePoint {
 impl ops::AddAssign<AffinePoint> for ProjectivePoint {
     fn add_assign(&mut self, rhs: AffinePoint) {
         self.0 = self.0.operate_with_affine(&rhs.0);
-  }
+    }
 }
 
-      impl ops::Add<ProjectivePoint> for ProjectivePoint {
+impl ops::Add<ProjectivePoint> for ProjectivePoint {
     type Output = ProjectivePoint;
 
     fn add(self, rhs: ProjectivePoint) -> ProjectivePoint {
