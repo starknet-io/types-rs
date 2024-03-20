@@ -459,6 +459,30 @@ mod test {
     }
 
     #[test]
+    fn mul_by_scalar_operations_with_felt() {
+        let a = ProjectivePoint::new(
+            Felt::from_dec_str(
+                "685118385380464480289795596422487144864558069280897344382334516257395969277",
+            )
+            .unwrap(),
+            Felt::from_dec_str(
+                "2157469546853095472290556201984093730375838368522549154974787195581425752638",
+            )
+            .unwrap(),
+            Felt::from(1),
+        );
+        let b = Felt::from(1812);
+
+        let mut expected = a.clone();
+
+        for _ in 0..1811 {
+            expected += a.clone();
+        }
+
+        assert_eq!((&a * b).to_affine().unwrap(), expected.to_affine().unwrap());
+    }
+
+    #[test]
     // Results checked against starknet-rs https://github.com/xJonathanLEI/starknet-rs/
     fn double_operations() {
         let projective_point = ProjectivePoint::new(
