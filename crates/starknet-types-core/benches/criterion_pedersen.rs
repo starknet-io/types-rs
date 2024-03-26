@@ -15,9 +15,7 @@ fn pedersen_benchmarks(c: &mut Criterion) {
     let x = Felt::from_bytes_be(&felt1);
     let y = Felt::from_bytes_be(&felt2);
     let mut group = c.benchmark_group("Pedersen Benchmark");
-    // let pedersen = black_box(Pedersen::default());
 
-    // Benchmark with black_box is 0.41% faster
     group.bench_function("Hashing with black_box", |bench| {
         bench.iter(|| black_box(Pedersen::hash(&x, &y)))
     });
