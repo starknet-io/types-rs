@@ -18,6 +18,9 @@ impl AffinePoint {
         )?))
     }
 
+    /// Constructs a new affine point without checking whether the coordinates specify a point in the subgroup.
+    /// This method should be used with caution, as it does not validate whether the provided coordinates
+    /// correspond to a valid point on the curve.
     pub const fn new_unchecked(x: Felt, y: Felt) -> AffinePoint {
         Self(ShortWeierstrassProjectivePoint::new([
             x.0,
