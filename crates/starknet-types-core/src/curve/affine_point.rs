@@ -18,7 +18,7 @@ impl AffinePoint {
         )?))
     }
 
-    pub fn new_unchecked(x: Felt, y: Felt) -> AffinePoint {
+    pub const fn new_unchecked(x: Felt, y: Felt) -> AffinePoint {
         Self(ShortWeierstrassProjectivePoint::new([
             x.0,
             y.0,
