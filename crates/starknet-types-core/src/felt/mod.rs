@@ -4,17 +4,18 @@ mod felt_arbitrary;
 use core::ops::{Add, Mul, Neg};
 
 use bitvec::array::BitArray;
-use lazy_static::lazy_static;
 use num_bigint::{BigInt, BigUint, Sign};
 use num_integer::Integer;
-use num_traits::Num;
 use num_traits::{One, Zero};
+#[cfg(any(feature = "prime-bigint", test))]
+use {lazy_static::lazy_static, num_traits::Num};
 
 #[cfg(feature = "num-traits")]
 mod num_traits_impl;
 #[cfg(feature = "papyrus-serialization")]
 mod papyrus_serialization;
 
+#[cfg(any(feature = "prime-bigint", test))]
 lazy_static! {
     pub static ref CAIRO_PRIME_BIGINT: BigInt = BigInt::from_str_radix(
         "800000000000011000000000000000000000000000000000000000000000001",
@@ -486,6 +487,7 @@ impl Felt {
         self.to_biguint().into()
     }
 
+    #[cfg(feature = "prime-bigint")]
     pub fn prime() -> BigUint {
         (*CAIRO_PRIME_BIGINT).to_biguint().unwrap()
     }
@@ -608,7 +610,7 @@ impl From<bool> for Felt {
 
 impl From<&BigInt> for Felt {
     fn from(bigint: &BigInt) -> Felt {
-        let (sign, bytes) = bigint.mod_floor(&CAIRO_PRIME_BIGINT).to_bytes_le();
+        let (sign, bytes) = bigint.to_bytes_le();
         let felt = Felt::from_bytes_le_slice(&bytes);
         if sign == Sign::Minus {
             felt.neg()
@@ -620,7 +622,7 @@ impl From<&BigInt> for Felt {
 
 impl From<BigInt> for Felt {
     fn from(bigint: BigInt) -> Felt {
-        let (sign, bytes) = bigint.mod_floor(&CAIRO_PRIME_BIGINT).to_bytes_le();
+        let (sign, bytes) = bigint.to_bytes_le();
         let felt = Felt::from_bytes_le_slice(&bytes);
         if sign == Sign::Minus {
             felt.neg()
@@ -1451,6 +1453,7 @@ mod test {
         assert_eq!(Felt::MAX.to_bytes_be(), max_bytes);
     }
 
+    #[cfg(feature = "prime-bigint")]
     #[test]
     fn prime() {
         assert_eq!(Felt::prime(), CAIRO_PRIME_BIGINT.to_biguint().unwrap());
