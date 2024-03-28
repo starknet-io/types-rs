@@ -18,6 +18,14 @@ impl AffinePoint {
         )?))
     }
 
+    pub fn new_unchecked(x: Felt, y: Felt) -> AffinePoint {
+        Self(ShortWeierstrassProjectivePoint::new([
+            x.0,
+            y.0,
+            Felt::ONE.0,
+        ]))
+    }
+
     /// The point at infinity.
     pub fn identity() -> AffinePoint {
         Self(ShortWeierstrassProjectivePoint::neutral_element())
@@ -49,6 +57,25 @@ impl core::ops::Neg for &AffinePoint {
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    fn affine_point_new_unchecked() {
+        let a = AffinePoint::new(
+            Felt::from_hex_unchecked("0x2d39148a92f479fb077389d"),
+            Felt::from_hex_unchecked(
+                "0x11a2681208d7c128580162110d9e6ddb0bd34e42ace22dcc7f52f9939e11df6",
+            ),
+        )
+        .unwrap();
+
+        let b = AffinePoint::new_unchecked(
+            Felt::from_hex_unchecked("0x2d39148a92f479fb077389d"),
+            Felt::from_hex_unchecked(
+                "0x11a2681208d7c128580162110d9e6ddb0bd34e42ace22dcc7f52f9939e11df6",
+            ),
+        );
+        assert!(a.eq(&b));
+    }
 
     #[test]
     fn affine_point_identity() {
