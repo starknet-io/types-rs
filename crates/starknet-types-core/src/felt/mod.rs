@@ -128,7 +128,7 @@ impl Felt {
     ]);
 
     /// Creates a new [Felt] from the raw internal representation.
-    /// See [UnsignedInteger] to understand how it works under the hood.
+    /// See [UnisgnedInteger] to understand how it works under the hood.
     pub const fn from_raw(val: [u64; 4]) -> Self {
         Self(FieldElement::<Stark252PrimeField>::const_from_raw(
             UnsignedInteger::from_limbs(val),
@@ -952,48 +952,6 @@ mod arithmetic {
             base
         }
     }
-
-    impl ops::BitAnd for Felt {
-        type Output = Self;
-
-        fn bitand(self, rhs: Self) -> Self {
-            Self::from_raw((self.0.to_raw() & rhs.0.to_raw()).limbs)
-        }
-    }
-
-    impl ops::BitAndAssign for Felt {
-        fn bitand_assign(&mut self, rhs: Self) {
-            *self = Self::from_raw((self.0.to_raw() & rhs.0.to_raw()).limbs);
-        }
-    }
-
-    impl ops::BitOr for Felt {
-        type Output = Self;
-
-        fn bitor(self, rhs: Self) -> Self {
-            Self::from_raw((self.0.to_raw() | rhs.0.to_raw()).limbs)
-        }
-    }
-
-    impl ops::BitOrAssign for Felt {
-        fn bitor_assign(&mut self, rhs: Self) {
-            *self = Self::from_raw((self.0.to_raw() | rhs.0.to_raw()).limbs);
-        }
-    }
-
-    impl ops::BitXor for Felt {
-        type Output = Self;
-
-        fn bitxor(self, rhs: Self) -> Self {
-            Self::from_raw((self.0.to_raw() ^ rhs.0.to_raw()).limbs)
-        }
-    }
-
-    impl ops::BitXorAssign for Felt {
-        fn bitxor_assign(&mut self, rhs: Self) {
-            *self = Self::from_raw((self.0.to_raw() ^ rhs.0.to_raw()).limbs);
-        }
-    }
 }
 
 #[cfg(feature = "serde")]
@@ -1328,112 +1286,6 @@ mod test {
         }
 
         #[test]
-        fn bit_and(x in any::<Felt>(), y in any::<Felt>()){
-            let x_raw = x.to_raw();
-            let y_raw = y.to_raw();
-
-            prop_assert_eq!(
-                x & y,
-                Felt::from_raw([
-                    x_raw[0] & y_raw[0],
-                    x_raw[1] & y_raw[1],
-                    x_raw[2] & y_raw[2],
-                    x_raw[3] & y_raw[3],
-                ])
-            );
-        }
-
-        #[test]
-        fn bit_and_assign(x in any::<Felt>(), y in any::<Felt>()){
-            let x_raw = x.to_raw();
-            let y_raw = y.to_raw();
-
-            let mut res = x;
-            res &= y;
-
-            prop_assert_eq!(
-                res,
-                Felt::from_raw([
-                    x_raw[0] & y_raw[0],
-                    x_raw[1] & y_raw[1],
-                    x_raw[2] & y_raw[2],
-                    x_raw[3] & y_raw[3],
-                ])
-            );
-        }
-
-        #[test]
-        fn bit_or(x in any::<Felt>(), y in any::<Felt>()) {
-            let x_raw = x.to_raw();
-            let y_raw = y.to_raw();
-
-            assert_eq!(
-                x | y,
-                Felt::from_raw([
-                    x_raw[0] | y_raw[0],
-                    x_raw[1] | y_raw[1],
-                    x_raw[2] | y_raw[2],
-                    x_raw[3] | y_raw[3],
-                ])
-            );
-        }
-
-        #[test]
-        fn bit_or_assign(x in any::<Felt>(), y in any::<Felt>()) {
-            let x_raw = x.to_raw();
-            let y_raw = y.to_raw();
-
-            let mut res = x;
-            res |= y;
-
-            assert_eq!(
-                res,
-                Felt::from_raw([
-                    x_raw[0] | y_raw[0],
-                    x_raw[1] | y_raw[1],
-                    x_raw[2] | y_raw[2],
-                    x_raw[3] | y_raw[3],
-                ])
-            );
-        }
-
-        #[test]
-        fn bit_xor(x in any::<Felt>(), y in any::<Felt>()) {
-            let x_raw = x.to_raw();
-            let y_raw = y.to_raw();
-
-            assert_eq!(
-                x ^ y,
-                Felt::from_raw([
-                    x_raw[0] ^ y_raw[0],
-                    x_raw[1] ^ y_raw[1],
-                    x_raw[2] ^ y_raw[2],
-                    x_raw[3] ^ y_raw[3],
-                ])
-            );
-        }
-
-        #[test]
-        fn bit_xor_assign(x in any::<Felt>(), y in any::<Felt>()) {
-            let x_raw = x.to_raw();
-            let y_raw = y.to_raw();
-
-            let mut res = x;
-            res ^= y;
-
-            assert_eq!(
-                res,
-                Felt::from_raw([
-                    x_raw[0] ^ y_raw[0],
-                    x_raw[1] ^ y_raw[1],
-                    x_raw[2] ^ y_raw[2],
-                    x_raw[3] ^ y_raw[3],
-                ])
-            );
-        }
-
-
-        #[test]
         fn zero_additive_identity(x in any::<Felt>()) {
             prop_assert_eq!(x, x + Felt::ZERO);
             prop_assert_eq!(x, Felt::ZERO + x);
@@ -1550,7 +1402,6 @@ mod test {
             prop_assert_eq!(felt_from_ref.to_bytes_be(), x);
             prop_assert_eq!(felt.to_bytes_be(), x);
         }
-
         #[test]
         fn iter_sum(a in any::<Felt>(), b in any::<Felt>(), c in any::<Felt>()) {
             prop_assert_eq!([a, b, c].iter().sum::<Felt>(), a + b + c);
