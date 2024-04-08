@@ -237,10 +237,10 @@ mod test {
             TryInto::<ProjectivePoint>::try_into(affine_point),
             Err(CurveError::EllipticCurveError(_))
         ));
-  }
-  
-     #[test]
-      fn from_affine_unchecked() {
+    }
+
+    #[test]
+    fn from_affine_unchecked() {
         let a = AffinePoint::new(
             Felt::from_dec_str(
                 "3324833730090626974525872402899302150520188025637965566623476530814354734325",
