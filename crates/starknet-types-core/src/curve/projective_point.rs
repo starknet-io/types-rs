@@ -45,6 +45,17 @@ impl ProjectivePoint {
         ))
     }
 
+    /// Constructs a new projective point without checking whether the coordinates specify a point in the subgroup.
+    /// This method should be used with caution, as it does not validate whether the provided coordinates
+    /// correspond to a valid point on the curve.
+    pub fn from_affine_unchecked(x: Felt, y: Felt) -> Self {
+        Self(ShortWeierstrassProjectivePoint::new([
+            x.0,
+            y.0,
+            Felt::ONE.0,
+        ]))
+    }
+
     /// Returns the `x` coordinate of the point.
     pub fn x(&self) -> Felt {
         Felt(*self.0.x())
@@ -226,6 +237,26 @@ mod test {
             TryInto::<ProjectivePoint>::try_into(affine_point),
             Err(CurveError::EllipticCurveError(_))
         ));
+  }
+  
+     #[test]
+      fn from_affine_unchecked() {
+        let a = AffinePoint::new(
+            Felt::from_dec_str(
+                "3324833730090626974525872402899302150520188025637965566623476530814354734325",
+            )
+            .unwrap(),
+            Felt::from_dec_str(
+                "3147007486456030910661996439995670279305852583596209647900952752170983517249",
+            )
+            .unwrap(),
+        )
+        .unwrap();
+
+        assert_eq!(
+            ProjectivePoint::from_affine_unchecked(a.x(), a.y()),
+            ProjectivePoint::from_affine(a.x(), a.y()).unwrap()
+        );
     }
 
     #[test]
