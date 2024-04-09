@@ -76,6 +76,14 @@ impl ProjectivePoint {
     }
 }
 
+impl TryFrom<AffinePoint> for ProjectivePoint {
+    type Error = CurveError;
+
+    fn try_from(affine_point: AffinePoint) -> Result<Self, Self::Error> {
+        Self::from_affine(affine_point.x(), affine_point.y())
+    }
+}
+
 impl ops::Add<&ProjectivePoint> for &ProjectivePoint {
     type Output = ProjectivePoint;
 
@@ -190,6 +198,46 @@ where
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    fn try_from_affine() {
+        let projective_point = ProjectivePoint::new(
+            Felt::from_dec_str(
+                "874739451078007766457464989774322083649278607533249481151382481072868806602",
+            )
+            .unwrap(),
+            Felt::from_dec_str(
+                "152666792071518830868575557812948353041420400780739481342941381225525861407",
+            )
+            .unwrap(),
+            Felt::from(1),
+        );
+        let affine_point = projective_point.clone().to_affine().unwrap();
+
+        assert_eq!(
+            TryInto::<ProjectivePoint>::try_into(affine_point).unwrap(),
+            projective_point
+        );
+    }
+
+    #[test]
+    fn try_from_affine_invalid_point() {
+        let affine_point = AffinePoint::new_unchecked(
+            Felt::from_dec_str(
+                "4739451078007766457464989774322083649278607533249481151382481072868806602",
+            )
+            .unwrap(),
+            Felt::from_dec_str(
+                "152666792071518830868575557812948353041420400780739481342941381225525861407",
+            )
+            .unwrap(),
+        );
+
+        assert!(matches!(
+            TryInto::<ProjectivePoint>::try_into(affine_point),
+            Err(CurveError::EllipticCurveError(_))
+        ));
+    }
 
     #[test]
     fn from_affine_unchecked() {
