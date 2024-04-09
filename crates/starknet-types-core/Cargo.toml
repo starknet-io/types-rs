@@ -58,5 +58,6 @@ rand = "0.8.5"
 lazy_static = { version = "1.4.0", default-features = false }
 
 [[bench]]
-name = "criterion_pedersen"
+name = "criterion_hashes"
 harness = false
+
