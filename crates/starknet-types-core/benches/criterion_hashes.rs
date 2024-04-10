@@ -51,7 +51,7 @@ fn poseidon_hash_array(c: &mut Criterion) {
 
     let mut group = c.benchmark_group("Poseidon");
 
-    for n in [2, 4, 8, 16].iter() {
+    for n in [2, 10, 100, 1000].iter() {
         group.bench_with_input(BenchmarkId::new("hash_array", n), n, |bench, &n| {
             bench.iter_batched(
                 || rnd_felts(&mut rng, n),
@@ -90,7 +90,7 @@ fn pedersen_hash_array(c: &mut Criterion) {
 
     let mut group = c.benchmark_group("Pedersen");
 
-    for n in [2, 4, 8, 16].iter() {
+    for n in [2, 10, 100, 1000].iter() {
         group.bench_with_input(BenchmarkId::new("hash_array", n), n, |bench, &n| {
             bench.iter_batched(
                 || rnd_felts(&mut rng, n),
