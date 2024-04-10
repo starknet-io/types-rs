@@ -1,5 +1,5 @@
 use criterion::{BatchSize, BenchmarkId, black_box, Criterion, criterion_group, criterion_main};
-use rand::{RngCore, SeedableRng};
+use rand::{Rng, RngCore, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 
 use starknet_types_core::felt::Felt;
@@ -10,7 +10,8 @@ const SEED: u64 = 3;
 
 fn rnd_felt(rng: &mut ChaCha8Rng) -> Felt {
     let mut felt: [u8; 32] = Default::default();
-    rng.fill_bytes(&mut felt);
+    let first_non_zero = rng.gen_range(0..32);
+    rng.fill_bytes(&mut felt[first_non_zero..32]);
     Felt::from_bytes_be(&felt)
 }
 
