@@ -7,4 +7,4 @@ test:
 	cargo test 
 
 bench:
-	cargo bench --bench criterion_pedersen --features hash
+	cargo bench --bench criterion_hashes --features hash
