@@ -14,11 +14,9 @@ The `Felt` type is currently defined in many different crates and repositories, 
 
 ## Crates
 
-This repository hosts three crates:
+This repository hosts two crates:
 
-- `stark-felt`: This crate provides the universal Felt (Field Element) type for Cairo and STARK proofs.
-
-- `starknet-types-core`: This crate focuses on Starknet types related to computation and execution, requiring performance and optimization for specific arithmetic and cryptographic operations.
+- `starknet-types-core`: This crate provides the universal Felt (Field Element) type for Cairo and STARK proofs. It also focuses on Starknet types related to computation and execution, requiring performance and optimization for specific arithmetic and cryptographic operations.
 
 - `starknet-types-rpc`: This crate deals with Starknet types used in RPC communication, serde, and transport.
 
