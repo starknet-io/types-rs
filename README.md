@@ -5,7 +5,7 @@
  [![GitHub Workflow Status](https://github.com/starknet-io/types-rs/actions/workflows/test.yml/badge.svg)](https://github.com/starknet-io/types-rs/actions/workflows/test.yml)
 [![Project license](https://img.shields.io/github/license/starknet-io/types-rs.svg?style=flat-square)](LICENSE)
 [![Pull Requests welcome](https://img.shields.io/badge/PRs-welcome-ff69b4.svg?style=flat-square)](https://github.com/starknet-io/types-rs/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
-[![Rust docs](https://docs.rs/stark-felt/badge.svg)](https://docs.rs/stark-felt)
+[![Rust docs](https://docs.rs/starknet-types-core/badge.svg)](https://docs.rs/starknet-types-core)
 [![Rust crate](https://img.shields.io/crates/v/sstarknet-types-core.svg)](https://crates.io/crates/starknet-types-core)
 
 This repository is an initiative by a group of maintainers to address the fragmentation in the Starknet Rust ecosystem and improve its interoperability. The key motivation behind this repository is to standardize the representation of the `Felt` (Field Element) type in Rust, which is massively used as the core and atomic type of the Cairo language and its Virtual Machine.
