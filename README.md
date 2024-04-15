@@ -22,21 +22,20 @@ This repository hosts two crates:
 
 ## Usage
 
-You can include any of these crates in your library via crates.io or as a git dependency. For example, to include the `stark-felt` crate, add the following to your `Cargo.toml`:
+You can include any of these crates in your library via crates.io or as a git dependency. For example, to include the `starknet-types-core` crate, add the following to your `Cargo.toml`:
 
 As a crates.io dependency:
 
 ```toml
 [dependencies]
-stark-felt = "0.0.1"
+starknet-types-core = "0.1.0"
 ```
 
 As a git dependency:
 
 ```toml
 [dependencies]
-stark-felt = { git = "https://github.com/starknet-io/types-rs" }
-starknet-types-core = { git = "https://github.com/starknet-io/types-rs.git", version = "0.0.1", default-features = false, features = ["serde"] }
+starknet-types-core = { git = "https://github.com/starknet-io/types-rs.git", version = "0.1.0", default-features = false, features = ["serde"] }
 ```
 
 ## Build from source
