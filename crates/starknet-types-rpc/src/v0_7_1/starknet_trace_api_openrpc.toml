@@ -1,0 +1,56 @@
+debug-path = false
+run-rustfmt = true
+
+[generation]
+additional-imports = [
+    "super::{Felt, FunctionCall, Event, MsgToL1, BlockId, FeeEstimate, BroadcastedTxn, StateDiff, TxnHash, ExecutionResources, ComputationResources}",
+    "alloc::vec::Vec",
+    "alloc::string::String",
+]
+method-name-prefix = "starknet_"
+param-types = true
+use-core = true
+
+[formatters]
+num-as-hex = "NumAsHex"
+
+[fixes]
+strip-enum-variants = true
+flatten = [
+    "#/components/schemas/EXECUTION_RESOURCES",
+    "#/components/schemas/COMPUTATION_RESOURCES",
+]
+
+[fixes.replace]
+"#/components/schemas/FELT" = "Felt"
+"#/components/schemas/FUNCTION_CALL" = "FunctionCall"
+"#/components/schemas/EVENT" = "Event"
+"#/components/schemas/MSG_TO_L1" = "MsgToL1"
+"#/components/schemas/BLOCK_ID" = "BlockId"
+"#/components/schemas/FEE_ESTIMATE" = "FeeEstimate"
+"#/components/schemas/BROADCASTED_TXN" = "BroadcastedTxn"
+"#/components/schemas/STATE_DIFF" = "StateDiff"
+"./starknet_api_openrpc.json#/components/schemas/TXN_HASH" = "TxnHash"
+"./api/starknet_api_openrpc.json#/components/schemas/EXECUTION_RESOURCES" = "ExecutionResources"
+"./api/starknet_api_openrpc.json#/components/schemas/COMPUTATION_RESOURCES" = "ComputationResources"
+
+[fixes.rename]
+"#/components/schemas/CALL_TYPE/CALL" = "Regular"
+"#/components/schemas/TRANSACTION_TRACE/variant0" = "Invoke"
+"#/components/schemas/TRANSACTION_TRACE/variant0/_anon" = "InvokeTransactionTrace"
+"#/components/schemas/TRANSACTION_TRACE/variant1" = "Declare"
+"#/components/schemas/TRANSACTION_TRACE/variant1/_anon" = "DeclareTransactionTrace"
+"#/components/schemas/TRANSACTION_TRACE/variant2" = "DeployAccount"
+"#/components/schemas/TRANSACTION_TRACE/variant2/_anon" = "DeployAccountTransactionTrace"
+"#/components/schemas/TRANSACTION_TRACE/variant3" = "L1Handler"
+"#/components/schemas/TRANSACTION_TRACE/variant3/_anon" = "L1HandlerTransactionTrace"
+"#/components/schemas/TRANSACTION_TRACE/variant0/_anon/execute_invocation/_anon/variant1/_anon" = "RevertedInvocation"
+"#/components/schemas/TRANSACTION_TRACE/variant0/_anon/execute_invocation/_anon" = "ExecuteInvocation"
+"#/methods/starknet_simulateTransactions/result/_anon/_anon" = "SimulateTransactionsResult"
+"#/methods/starknet_traceBlockTransactions/result/_anon/_anon" = "TraceBlockTransactionsResult"
+
+[fixes.tagged-enums]
+"#/components/schemas/TRANSACTION_TRACE" = "type"
+
+[primitives]
+integer = "u64"
