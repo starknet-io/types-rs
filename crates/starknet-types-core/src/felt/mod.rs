@@ -1056,6 +1056,32 @@ mod test {
     #[cfg(feature = "serde")]
     use serde_test::{assert_de_tokens, assert_ser_tokens, Configure, Token};
 
+    // Helper function to generate a vector of bits for testing purposes
+    fn generate_be_bits(x: &Felt) -> Vec<bool> {
+        // Initialize an empty vector to store the expected bits
+        let mut bits = Vec::new();
+
+        // Iterate over each limb in the representative of x
+        for limb in x.0.representative().limbs {
+            // Convert the limb to a sequence of 8 bytes (u8) in big-endian
+            let bytes = limb.to_be_bytes();
+
+            // Iterate over each byte
+            for byte in &bytes {
+                // Iterate over each bit of the byte
+                for i in 0..8 {
+                    // Extract the i-th bit of the byte
+                    let bit = (*byte >> (7 - i)) & 1;
+
+                    // Push the bit into the expected_bits vector
+                    bits.push(bit == 1);
+                }
+            }
+        }
+
+        bits
+    }
+
     proptest! {
         #[test]
         fn new_in_range(ref x in any::<[u8; 32]>()) {
@@ -1084,26 +1110,8 @@ mod test {
             // Generate the little-endian representation of Felt type x
             let bits: Vec<bool> = x.to_bits_le().into_iter().collect();
 
-            // Initialize an empty vector to store the expected bits
-            let mut expected_bits = Vec::new();
-
-            // Iterate over each limb in the representative of x
-            for limb in x.0.representative().limbs {
-                // Convert the limb to a sequence of 8 bytes (u8) in big-endian
-                let bytes = limb.to_be_bytes();
-
-                // Iterate over each byte
-                for byte in &bytes {
-                    // Iterate over each bit of the byte
-                    for i in 0..8 {
-                        // Extract the i-th bit of the byte
-                        let bit = (*byte >> (7 - i)) & 1;
-
-                        // Push the bit into the expected_bits vector
-                        expected_bits.push(bit == 1);
-                    }
-                }
-            }
+            // Get the expected bits in big-endian order
+            let mut expected_bits = generate_be_bits(x);
 
             // Reverse the expected_bits to convert from big-endian to little-endian
             expected_bits.reverse();
@@ -1117,26 +1125,8 @@ mod test {
             // Generate the big-endian representation of Felt type x
             let bits: Vec<bool> = x.to_bits_be().into_iter().collect();
 
-            // Initialize an empty vector to store the expected bits
-            let mut expected_bits = Vec::new();
-
-            // Iterate over each limb in the representative of x
-            for limb in x.0.representative().limbs {
-                // Convert the limb to a sequence of 8 bytes (u8) in big-endian
-                let bytes = limb.to_be_bytes();
-
-                // Iterate over each byte
-                for byte in &bytes {
-                    // Iterate over each bit of the byte
-                    for i in 0..8 {
-                        // Extract the i-th bit of the byte
-                        let bit = (*byte >> (7 - i)) & 1;
-
-                        // Push the bit into the expected_bits vector
-                        expected_bits.push(bit == 1);
-                    }
-                }
-            }
+            // Get the expected bits in big-endian order
+            let expected_bits = generate_be_bits(x);
 
             // Assert that the generated bits match the expected bits
             prop_assert_eq!(bits, expected_bits);
