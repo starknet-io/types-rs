@@ -3,7 +3,6 @@ mod felt_arbitrary;
 
 use core::ops::{Add, Mul, Neg};
 
-use bitvec::array::BitArray;
 use num_bigint::{BigInt, BigUint, Sign};
 use num_integer::Integer;
 use num_traits::{One, Zero};
@@ -23,12 +22,6 @@ lazy_static! {
     )
     .unwrap();
 }
-
-#[cfg(target_pointer_width = "64")]
-pub type BitArrayStore = [u64; 4];
-
-#[cfg(not(target_pointer_width = "64"))]
-pub type BitArrayStore = [u32; 8];
 
 #[cfg(any(test, feature = "alloc"))]
 pub extern crate alloc;
@@ -255,34 +248,6 @@ impl Felt {
         self.0.to_bytes_le()
     }
 
-    /// Converts to big-endian bit representation.
-    /// This is as performant as [to_bits_le](Felt::to_bits_le)
-    #[cfg(target_pointer_width = "64")]
-    pub fn to_bits_be(&self) -> BitArray<BitArrayStore> {
-        let mut limbs = self.0.representative().limbs;
-        limbs.reverse();
-
-        BitArray::new(limbs)
-    }
-
-    /// Converts to big-endian bit representation.
-    /// This is as performant as [to_bits_le](Felt::to_bits_le)
-    #[cfg(all(feature = "alloc", not(target_pointer_width = "64")))]
-    pub fn to_bits_be(&self) -> BitArray<BitArrayStore> {
-        let mut limbs = self.0.representative().limbs;
-        limbs.reverse();
-
-        // Split limbs to adjust to BitArrayStore = [u32; 8]
-        let limbs: [u32; 8] = limbs
-            .into_iter()
-            .flat_map(|n| [(n >> 32) as u32, n as u32])
-            .collect::<alloc::vec::Vec<u32>>()
-            .try_into()
-            .unwrap();
-
-        BitArray::new(limbs)
-    }
-
     /// Helper to produce a hexadecimal formatted string.
     /// Equivalent to calling `format!("{self:#x}")`.
     #[cfg(feature = "alloc")]
@@ -302,29 +267,15 @@ impl Felt {
     }
 
     /// Converts to little-endian bit representation.
-    /// This is as performant as [to_bits_be](Felt::to_bits_be)
-    #[cfg(target_pointer_width = "64")]
-    pub fn to_bits_le(&self) -> BitArray<BitArrayStore> {
-        let limbs = self.0.representative().limbs;
-
-        BitArray::new(limbs)
+    pub fn to_bits_le(&self) -> [bool; 256] {
+        self.0.to_bits_le()
     }
 
-    /// Converts to little-endian bit representation.
-    /// This is as performant as [to_bits_be](Felt::to_bits_be)
-    #[cfg(all(feature = "alloc", not(target_pointer_width = "64")))]
-    pub fn to_bits_le(&self) -> BitArray<BitArrayStore> {
-        let limbs = self.0.representative().limbs;
-
-        // Split limbs to adjust to BitArrayStore = [u32; 8]
-        let limbs: [u32; 8] = limbs
-            .into_iter()
-            .flat_map(|n| [n as u32, (n >> 32) as u32])
-            .collect::<alloc::vec::Vec<u32>>()
-            .try_into()
-            .unwrap();
-
-        BitArray::new(limbs)
+    /// Converts to big-endian bit representation.
+    pub fn to_bits_be(&self) -> [bool; 256] {
+        let mut bits = self.0.to_bits_le();
+        bits.reverse();
+        bits
     }
 
     /// Finite field division.
@@ -1105,6 +1056,32 @@ mod test {
     #[cfg(feature = "serde")]
     use serde_test::{assert_de_tokens, assert_ser_tokens, Configure, Token};
 
+    // Helper function to generate a vector of bits for testing purposes
+    fn generate_be_bits(x: &Felt) -> Vec<bool> {
+        // Initialize an empty vector to store the expected bits
+        let mut bits = Vec::new();
+
+        // Iterate over each limb in the representative of x
+        for limb in x.0.representative().limbs {
+            // Convert the limb to a sequence of 8 bytes (u8) in big-endian
+            let bytes = limb.to_be_bytes();
+
+            // Iterate over each byte
+            for byte in &bytes {
+                // Iterate over each bit of the byte
+                for i in 0..8 {
+                    // Extract the i-th bit of the byte
+                    let bit = (*byte >> (7 - i)) & 1;
+
+                    // Push the bit into the expected_bits vector
+                    bits.push(bit == 1);
+                }
+            }
+        }
+
+        bits
+    }
+
     proptest! {
         #[test]
         fn new_in_range(ref x in any::<[u8; 32]>()) {
@@ -1129,45 +1106,32 @@ mod test {
         }
 
         #[test]
-        fn to_bits_be(ref x in any::<Felt>()) {
-            let bits: Vec<bool> = x.to_bits_be().into_iter().rev().collect();
-            let mut res = [0;32];
-            let mut acc: u8 = 0;
-            for (i, bits64) in bits.chunks(8).enumerate() {
-                for bit in bits64.iter() {
-                    acc <<= 1;
-                    acc += *bit as u8;
-                }
-                res[i] = acc;
-                acc = 0;
-            }
-            let y = &Felt::from_bytes_be(&res);
-            prop_assert_eq!(x, y);
+        fn to_bits_le(ref x in any::<Felt>()) {
+            // Generate the little-endian representation of Felt type x
+            let bits: Vec<bool> = x.to_bits_le().into_iter().collect();
+
+            // Get the expected bits in big-endian order
+            let mut expected_bits = generate_be_bits(x);
+
+            // Reverse the expected_bits to convert from big-endian to little-endian
+            expected_bits.reverse();
+
+            // Assert that the generated bits match the expected bits
+            prop_assert_eq!(bits, expected_bits);
         }
 
         #[test]
-        fn to_bits_le(ref x in any::<Felt>()) {
-            let bits: Vec<bool> = x.to_bits_le().into_iter().collect();
-            let mut res = [0;4];
-            let mut acc: u64 = 0;
-            for (i, bits64) in bits.chunks(64).enumerate() {
-                for bit in bits64.iter().rev() {
-                    acc <<= 1;
-                    acc += *bit as u64;
-                }
-                res[i] = acc;
-                acc = 0;
-            }
-            let mut bytes = [0u8; 32];
-            for i in (0..4).rev() {
-                let limb_bytes = res[i].to_le_bytes();
-                for j in 0..8 {
-                    bytes[(3 - i) * 8 + j] = limb_bytes[j]
-                }
-            }
-            let y = &Felt::from_bytes_le(&bytes);
-            prop_assert_eq!(x, y);
+        fn to_bits_be(ref x in any::<Felt>()) {
+            // Generate the big-endian representation of Felt type x
+            let bits: Vec<bool> = x.to_bits_be().into_iter().collect();
+
+            // Get the expected bits in big-endian order
+            let expected_bits = generate_be_bits(x);
+
+            // Assert that the generated bits match the expected bits
+            prop_assert_eq!(bits, expected_bits);
         }
+
 
         #[test]
         #[cfg(feature = "alloc")]

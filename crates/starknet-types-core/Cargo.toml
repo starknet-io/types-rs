@@ -11,7 +11,6 @@ description = "Core types representation for Starknet"
 readme = "README.md"
 
 [dependencies]
-bitvec = { version = "1.0.1", default-features = false }
 lambdaworks-math = { version = "0.6.0", default-features = false }
 
 num-traits = { version = "0.2.18", default-features = false }
@@ -30,7 +29,6 @@ lazy_static = { version = "1.4.0", default-features = false, optional = true }
 [features]
 default = ["std", "serde", "curve", "num-traits"]
 std = [
-  "bitvec/std",
   "lambdaworks-math/std",
   "num-traits/std",
   "num-bigint/std",
