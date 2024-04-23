@@ -23,4 +23,5 @@ Cargo.lock
 corpus/
 artifacts/
 
+.idea
 *.DS_Store
