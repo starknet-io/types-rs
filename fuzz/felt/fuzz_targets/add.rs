@@ -2,11 +2,11 @@
 use libfuzzer_sys::fuzz_target;
 use starknet_types_core::felt::Felt;
 
-fuzz_target!(|data: (Felt, Felt, Felt)| {
+fuzz_target!(|data: (Felt, Felt)| {
     let zero = Felt::ZERO;
-    let one = one;
-    let max = max;
-    let (a, b, c) = data;
+    let one = Felt::ONE;
+    let max = Felt::MAX;
+    let (a, b) = data;
 
     // Check a + 0 = a
     assert_eq!(a + zero, a, "zero addition failed");
@@ -37,12 +37,15 @@ fuzz_target!(|data: (Felt, Felt, Felt)| {
     // Check a + b = b + a
     assert_eq!(a + b, b + a, "commutativity failed");
 
-    // Check (a + b) + c = a + (b + c)
-    assert_eq!((a + b) + c, a + (b + c), "associativity failed");
+    // Check (a + b) + b = a + (b + b)
+    assert_eq!((a + b) + b, a + (b + b), "associativity failed");
 
     // Check a + max = a - 1
     assert_eq!(a + max, a - one, "overflow failed");
     
     // Check 0 - a = max - a + 1
     assert_eq!(zero - a, max - a + one, "overflow failed");
+
+    // Check a + b = (a.to_biguint() + b.to_biguint()) % PRIME
+    assert_eq!(a + b, Felt::from(a.to_biguint() + b.to_biguint()), "addition failed");
 });

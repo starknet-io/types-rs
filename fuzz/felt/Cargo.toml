@@ -14,7 +14,7 @@ readme = "README.md"
 cargo-fuzz = true
 
 [dependencies]
-starknet-types-core.workspace = true
+starknet-types-core = { path = "../../crates/starknet-types-core", default-features = false, features = ["arbitrary", "alloc"] }
 libfuzzer-sys.workspace = true
 
 [[bin]]
@@ -28,3 +28,16 @@ name = "mul_fuzzer"
 path = "fuzz_targets/mul.rs"
 test = false
 doc = false
+[[bin]]
+name = "conversions_fuzzer"
+path = "fuzz_targets/conversions.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "div_fuzzer"
+path = "fuzz_targets/div.rs"
+test = false
+doc = false
+bench = false
