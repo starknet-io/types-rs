@@ -23,3 +23,15 @@ path = "fuzz_targets/add.rs"
 test = false
 doc = false
 
+
+[[bin]]
+name = "sub_fuzzer"
+path = "fuzz_targets/sub.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "mul_fuzzer"
+path = "fuzz_targets/mul.rs"
+test = false
+doc = false
