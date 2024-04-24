@@ -1,6 +1,6 @@
 #![no_main]
 use libfuzzer_sys::fuzz_target;
-use starknet_types_core::felt::Felt;
+use starknet_types_core::felt::{Felt, NonZeroFelt};
 
 fuzz_target!(|data: (Felt, Felt)| {
     let zero = Felt::ZERO;
@@ -28,5 +28,4 @@ fuzz_target!(|data: (Felt, Felt)| {
 
     // Check a * b = b * a
     assert_eq!(a * b, b * a, "commutativity failed");
-
 });
