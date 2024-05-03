@@ -27,7 +27,7 @@ fuzz_target!(|data: (Felt, Felt)| {
     if b != zero {
         let b_non_zero = NonZeroFelt::try_from(b).unwrap();
         let b_inverse = b.inverse().unwrap();
-        assert_eq!(a.field_div(&b_non_zero), a * b_inverse, "multiplicative inverse failed");
+        assert_eq!(a.field_div(&b_non_zero), a * b_inverse, "division failed");
     }
 
     // Check (a / b) / b  = a / (b * b)

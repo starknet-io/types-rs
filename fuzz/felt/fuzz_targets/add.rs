@@ -33,6 +33,7 @@ fuzz_target!(|data: (Felt, Felt)| {
 
     // Check a + a = 2 * a
     assert_eq!(a + a, Felt::TWO * a, "doubling failed");
+    assert_eq!(b + b, Felt::TWO * b, "doubling failed");
 
     // Check a + b = b + a
     assert_eq!(a + b, b + a, "commutativity failed");
@@ -42,9 +43,11 @@ fuzz_target!(|data: (Felt, Felt)| {
 
     // Check a + max = a - 1
     assert_eq!(a + max, a - one, "overflow failed");
-    
+    assert_eq!(b + max, b - one, "overflow failed");
+
     // Check 0 - a = max - a + 1
     assert_eq!(zero - a, max - a + one, "overflow failed");
+    assert_eq!(zero - b, max - b + one, "overflow failed");
 
     // Check a + b = (a.to_biguint() + b.to_biguint()) % PRIME
     assert_eq!(a + b, Felt::from(a.to_biguint() + b.to_biguint()), "addition failed");
