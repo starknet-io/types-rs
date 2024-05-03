@@ -5,6 +5,8 @@ use starknet_types_core::felt::Felt;
 use num_bigint::BigUint;
 use num_traits::{One, Zero};
 
+use lambdaworks_math::unsigned_integer::element::UnsignedInteger;
+
 fn pad_left_with_0(v: Vec<u8>) -> Vec<u8> {
     let mut padded = vec![0; 32_usize.saturating_sub(v.len())];
     padded.extend(v);
@@ -17,7 +19,7 @@ fn pad_right_with_0(v: Vec<u8>) -> Vec<u8> {
 }
 
 fuzz_target!(|felt: Felt| {
-    // to_bytes_be and to_bytes_le
+    // to_bytes_be, to_bytes_le
     assert_eq!(felt, Felt::from_bytes_be(&felt.to_bytes_be()));
     assert_eq!(felt, Felt::from_bytes_le(&felt.to_bytes_le()));
     assert_eq!(felt, Felt::from_bytes_be_slice(&felt.to_bytes_be()));
@@ -61,4 +63,16 @@ fuzz_target!(|felt: Felt| {
 
     // to_raw, from_raw
     assert_eq!(felt, Felt::from_raw(felt.to_raw()));
+
+    // to_be_digits, to_le_digits
+    assert_eq!(
+        UnsignedInteger::<4>::from_hex(&felt.to_hex_string()).unwrap(),
+        UnsignedInteger::<4>::from_limbs(felt.to_be_digits())
+    );
+    let mut le_digits_reversed = felt.to_le_digits();
+    le_digits_reversed.reverse();
+    assert_eq!(
+        UnsignedInteger::<4>::from_hex(&felt.to_hex_string()).unwrap(),
+        UnsignedInteger::<4>::from_limbs(le_digits_reversed)
+    );
 });
