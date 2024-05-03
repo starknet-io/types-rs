@@ -9,7 +9,7 @@ fuzz_target!(|data: (Felt, Felt)| {
     let (a, b) = data;
 
     // Check a + 0 = a
-    assert_eq!(a + one, a);
+    assert_eq!(a + zero, a);
     assert_eq!(b + zero, b);
 
     // Check a - 0 = a
@@ -51,4 +51,8 @@ fuzz_target!(|data: (Felt, Felt)| {
 
     // Check a + b = (a.to_biguint() + b.to_biguint()) % PRIME
     assert_eq!(a + b, Felt::from(a.to_biguint() + b.to_biguint()));
+
+    // a.double = a + a
+    assert_eq!(a.double(), a + a);
+    assert_eq!(b.double(), b + b);
 });

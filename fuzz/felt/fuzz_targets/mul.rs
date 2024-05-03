@@ -30,5 +30,8 @@ fuzz_target!(|data: (Felt, Felt)| {
     assert_eq!(a * b, b * a);
 
     // Check a * b = (a.to_biguint() * b.to_biguint()) % PRIME
-    assert_eq!(a * b, Felt::from(a.to_biguint() * b.to_biguint()),);
+    assert_eq!(a * b, Felt::from(a.to_biguint() * b.to_biguint()));
+
+    assert_eq!(a.square(), a * a);
+    assert_eq!(b.square(), b * b);
 });
