@@ -16,6 +16,8 @@ cargo-fuzz = true
 [dependencies]
 starknet-types-core = { path = "../../crates/starknet-types-core", default-features = false, features = ["arbitrary", "alloc"] }
 libfuzzer-sys.workspace = true
+num-bigint = "0.4.4"
+num-traits = "0.2.18"
 
 [[bin]]
 name = "add_fuzzer"

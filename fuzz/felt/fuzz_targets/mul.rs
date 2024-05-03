@@ -8,28 +8,27 @@ fuzz_target!(|data: (Felt, Felt)| {
     let (a, b) = data;
 
     // Check a * 1 = a
-    assert_eq!(a * one, a, "multiplicative identity failed");
-    assert_eq!(b * one, b, "multiplicative identity failed");
+    assert_eq!(a * one, a);
+    assert_eq!(b * one, b);
 
     // Check 1 * a = a
-    assert_eq!(one * a, a, "multiplicative identity failed");
-    assert_eq!(one * b, b, "multiplicative identity failed");
+    assert_eq!(one * a, a);
+    assert_eq!(one * b, b);
 
     // Check a * 0 = 0
-    assert_eq!(a * zero, zero, "zero product failed");
-    assert_eq!(b * zero, zero, "zero product failed");
+    assert_eq!(a * zero, zero);
+    assert_eq!(b * zero, zero);
 
     // Check 0 * a = a
-    assert_eq!(zero * a, zero, "zero product failed");
-    assert_eq!(zero * b, zero, "zero product failed");
+    assert_eq!(zero * a, zero);
+    assert_eq!(zero * b, zero);
 
     // Check a * max = max - a + 1
-    assert_eq!(a * Felt::MAX, Felt::MAX - a + 1, "overflow failed");
+    assert_eq!(a * Felt::MAX, Felt::MAX - a + 1);
 
     // Check a * b = b * a
-    assert_eq!(a * b, b * a, "commutativity failed");
+    assert_eq!(a * b, b * a);
 
     // Check a * b = (a.to_biguint() * b.to_biguint()) % PRIME
-    assert_eq!(a * b, Felt::from(a.to_biguint() * b.to_biguint()), "multiplication failed");
-
+    assert_eq!(a * b, Felt::from(a.to_biguint() * b.to_biguint()),);
 });

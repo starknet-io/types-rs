@@ -9,46 +9,46 @@ fuzz_target!(|data: (Felt, Felt)| {
     let (a, b) = data;
 
     // Check a + 0 = a
-    assert_eq!(a + zero, a, "zero addition failed");
-    assert_eq!(b + zero, b, "zero addition failed");
+    assert_eq!(a + one, a);
+    assert_eq!(b + zero, b);
 
     // Check a - 0 = a
-    assert_eq!(a - zero, a, "zero subtraction failed");
-    assert_eq!(b - zero, b, "zero subtraction failed");
+    assert_eq!(a - zero, a);
+    assert_eq!(b - zero, b);
 
     // Check a - a = 0
-    assert_eq!(a - a, zero, "unary subtraction failed");
-    assert_eq!(b - b, zero, "unary subtraction failed");
-    
+    assert_eq!(a - a, zero);
+    assert_eq!(b - b, zero);
+
     // Check a + (-a) = 0
-    assert_eq!(a + (-a), zero, "unary addition failed");
-    assert_eq!(b + (-b), zero, "unary addition failed");
+    assert_eq!(a + (-a), zero);
+    assert_eq!(b + (-b), zero);
 
     // Check a + b = a - (-b)
-    assert_eq!(a + b, a - (-b), "addition failed");
+    assert_eq!(a + b, a - (-b));
 
     // Check a + a = a - (-a)
-    assert_eq!(a + a, a - (-a), "addition failed");
-    assert_eq!(b + b, b - (-b), "addition failed");
+    assert_eq!(a + a, a - (-a));
+    assert_eq!(b + b, b - (-b));
 
     // Check a + a = 2 * a
-    assert_eq!(a + a, Felt::TWO * a, "doubling failed");
-    assert_eq!(b + b, Felt::TWO * b, "doubling failed");
+    assert_eq!(a + a, Felt::TWO * a);
+    assert_eq!(b + b, Felt::TWO * b);
 
     // Check a + b = b + a
-    assert_eq!(a + b, b + a, "commutativity failed");
+    assert_eq!(a + b, b + a);
 
     // Check (a + b) + b = a + (b + b)
-    assert_eq!((a + b) + b, a + (b + b), "associativity failed");
+    assert_eq!((a + b) + b, a + (b + b));
 
     // Check a + max = a - 1
-    assert_eq!(a + max, a - one, "overflow failed");
-    assert_eq!(b + max, b - one, "overflow failed");
+    assert_eq!(a + max, a - one);
+    assert_eq!(b + max, b - one);
 
     // Check 0 - a = max - a + 1
-    assert_eq!(zero - a, max - a + one, "overflow failed");
-    assert_eq!(zero - b, max - b + one, "overflow failed");
+    assert_eq!(zero - a, max - a + one);
+    assert_eq!(zero - b, max - b + one);
 
     // Check a + b = (a.to_biguint() + b.to_biguint()) % PRIME
-    assert_eq!(a + b, Felt::from(a.to_biguint() + b.to_biguint()), "addition failed");
+    assert_eq!(a + b, Felt::from(a.to_biguint() + b.to_biguint()));
 });
