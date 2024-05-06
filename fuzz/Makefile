@@ -1,7 +1,7 @@
 .PHONY: fuzz-add fuzz-div fuzz-mul fuzz-conversions
 
-fuzz-add:
-	cargo +nightly fuzz run add_fuzzer --fuzz-dir=./felt
+fuzz-add_sub:
+	cargo +nightly fuzz run add_sub_fuzzer --fuzz-dir=./felt
 
 fuzz-div:
 	cargo +nightly fuzz run div_fuzzer --fuzz-dir=./felt

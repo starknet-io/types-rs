@@ -21,8 +21,8 @@ num-traits = "0.2.18"
 lambdaworks-math = { version = "0.7.0", default-features = false }
 
 [[bin]]
-name = "add_fuzzer"
-path = "fuzz_targets/add.rs"
+name = "add_sub_fuzzer"
+path = "fuzz_targets/add_sub.rs"
 test = false
 doc = false
 
