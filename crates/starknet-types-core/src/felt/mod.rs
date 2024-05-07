@@ -121,7 +121,7 @@ impl Felt {
     ]);
 
     /// Creates a new [Felt] from the raw internal representation.
-    /// See [UnisgnedInteger] to understand how it works under the hood.
+    /// See [UnsignedInteger] to understand how it works under the hood.
     pub const fn from_raw(val: [u64; 4]) -> Self {
         Self(FieldElement::<Stark252PrimeField>::const_from_raw(
             UnsignedInteger::from_limbs(val),
