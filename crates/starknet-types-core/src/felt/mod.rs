@@ -919,7 +919,7 @@ mod serde_impl {
             S: ::serde::Serializer,
         {
             if serializer.is_human_readable() {
-                serializer.serialize_str(&format!("{:x}", self))
+                serializer.serialize_str(&format!("{:#x}", self))
             } else {
                 let mut seq = serializer.serialize_seq(Some(32))?;
                 for b in self.to_bytes_be() {
@@ -999,9 +999,27 @@ mod formatting {
     }
 
     /// Represents [Felt] in lowercase hexadecimal format.
+    #[cfg(feature = "alloc")]
     impl fmt::LowerHex for Felt {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            fmt::Display::fmt(&self.0, f)
+            let hex = alloc::string::ToString::to_string(&self.0);
+            let hex = hex.strip_prefix("0x").unwrap();
+
+            let width = if f.sign_aware_zero_pad() {
+                f.width().unwrap().min(64)
+            } else {
+                1
+            };
+            if f.alternate() {
+                write!(f, "0x")?;
+            }
+
+            if hex.len() < width {
+                for _ in 0..(width - hex.len()) {
+                    write!(f, "0")?;
+                }
+            }
+            write!(f, "{}", hex)
         }
     }
 
@@ -1009,14 +1027,24 @@ mod formatting {
     #[cfg(feature = "alloc")]
     impl fmt::UpperHex for Felt {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            write!(
-                f,
-                "0x{}",
-                alloc::string::ToString::to_string(&self.0)
-                    .strip_prefix("0x")
-                    .unwrap()
-                    .to_uppercase()
-            )
+            let hex = alloc::string::ToString::to_string(&self.0);
+            let hex = hex.strip_prefix("0x").unwrap().to_uppercase();
+
+            let width = if f.sign_aware_zero_pad() {
+                f.width().unwrap().min(64)
+            } else {
+                1
+            };
+            if f.alternate() {
+                write!(f, "0x")?;
+            }
+
+            if hex.len() < width {
+                for _ in 0..(width - hex.len()) {
+                    write!(f, "0")?;
+                }
+            }
+            write!(f, "{}", hex)
         }
     }
 }
