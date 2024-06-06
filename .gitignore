@@ -18,5 +18,10 @@ Cargo.lock
 # Added by cargo
 
 /target
+.DS_Store
 
+corpus/
+artifacts/
+
+.idea
 *.DS_Store

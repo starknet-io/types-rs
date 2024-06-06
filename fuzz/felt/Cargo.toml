@@ -1,0 +1,46 @@
+[package]
+name = "fuzzing_felt"
+version = "0.0.1"
+edition = "2021"
+license = "MIT"
+homepage = "https://github.com/starknet-io/types-rs"
+repository = "https://github.com/starknet-io/types-rs"
+categories = ["types", "math", "crypto", "fuzzing"]
+keywords = ["stark", "zkp", "cairo", "fuzzing"]
+description = "Fuzzing crate for the starknet common felt type"
+readme = "README.md"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+starknet-types-core = { path = "../../crates/starknet-types-core", default-features = false, features = ["arbitrary", "alloc"] }
+libfuzzer-sys.workspace = true
+num-bigint = "0.4.4"
+num-traits = "0.2.18"
+lambdaworks-math = { version = "0.7.0", default-features = false }
+
+[[bin]]
+name = "add_sub_fuzzer"
+path = "fuzz_targets/add_sub.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "mul_fuzzer"
+path = "fuzz_targets/mul.rs"
+test = false
+doc = false
+[[bin]]
+name = "conversions_fuzzer"
+path = "fuzz_targets/conversions.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "div_fuzzer"
+path = "fuzz_targets/div.rs"
+test = false
+doc = false
+bench = false
