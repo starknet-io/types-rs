@@ -9,7 +9,7 @@
 //
 
 use super::{
-    BlockId, BroadcastedTxn, ComputationResources, Event, ExecutionResources, FeeEstimate, Felt,
+    BlockId, BroadcastedTxn, ComputationResources, Event, ExecutionResources, FeeEstimate,
     FunctionCall, MsgToL1, StateDiff, TxnHash,
 };
 use alloc::string::String;
@@ -38,47 +38,47 @@ pub enum EntryPointType {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FunctionInvocation {
+pub struct FunctionInvocation<F> {
     #[serde(flatten)]
-    pub function_call: FunctionCall,
+    pub function_call: FunctionCall<F>,
     pub call_type: CallType,
     /// The address of the invoking contract. 0 for the root invocation
-    pub caller_address: Felt,
+    pub caller_address: F,
     /// The calls made by this invocation
-    pub calls: Vec<NestedCall>,
+    pub calls: Vec<NestedCall<F>>,
     /// The hash of the class being called
-    pub class_hash: Felt,
+    pub class_hash: F,
     pub entry_point_type: EntryPointType,
     /// The events emitted in this invocation
-    pub events: Vec<OrderedEvent>,
+    pub events: Vec<OrderedEvent<F>>,
     /// Resources consumed by the internal call. This is named execution_resources for legacy reasons
     pub execution_resources: ComputationResources,
     /// The messages sent by this invocation to L1
-    pub messages: Vec<OrderedMessage>,
+    pub messages: Vec<OrderedMessage<F>>,
     /// The value returned from the function invocation
-    pub result: Vec<Felt>,
+    pub result: Vec<F>,
 }
 
-pub type NestedCall = FunctionInvocation;
+pub type NestedCall<F> = FunctionInvocation<F>;
 
 /// an event alongside its order within the transaction
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OrderedEvent {
+pub struct OrderedEvent<F> {
     /// the order of the event within the transaction
     #[serde(default)]
     pub order: Option<u64>,
     #[serde(flatten)]
-    pub event: Event,
+    pub event: Event<F>,
 }
 
 /// a message alongside its order within the transaction
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OrderedMessage {
+pub struct OrderedMessage<F> {
     /// the order of the message within the transaction
     #[serde(default)]
     pub order: Option<u64>,
     #[serde(flatten)]
-    pub msg_to_l_1: MsgToL1,
+    pub msg_to_l_1: MsgToL1<F>,
 }
 
 /// Flags that indicate how to simulate a given transaction. By default, the sequencer behavior is replicated locally (enough funds are expected to be in the account, and fee will be deducted from the balance before the simulation of the next transaction). To skip the fee charge, use the SKIP_FEE_CHARGE flag.
@@ -92,42 +92,42 @@ pub enum SimulationFlag {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(tag = "type")]
-pub enum TransactionTrace {
+pub enum TransactionTrace<F: Default> {
     /// the execution trace of an invoke transaction
     #[serde(rename = "INVOKE")]
-    Invoke(InvokeTransactionTrace),
+    Invoke(InvokeTransactionTrace<F>),
     /// the execution trace of a declare transaction
     #[serde(rename = "DECLARE")]
-    Declare(DeclareTransactionTrace),
+    Declare(DeclareTransactionTrace<F>),
     /// the execution trace of a deploy account transaction
     #[serde(rename = "DEPLOY_ACCOUNT")]
-    DeployAccount(DeployAccountTransactionTrace),
+    DeployAccount(DeployAccountTransactionTrace<F>),
     /// the execution trace of an L1 handler transaction
     #[serde(rename = "L1_HANDLER")]
-    L1Handler(L1HandlerTransactionTrace),
+    L1Handler(L1HandlerTransactionTrace<F>),
 }
 
 /// the execution trace of an invoke transaction
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InvokeTransactionTrace {
+pub struct InvokeTransactionTrace<F: Default> {
     /// the trace of the __execute__ call or constructor call, depending on the transaction type (none for declare transactions)
-    pub execute_invocation: ExecuteInvocation,
+    pub execute_invocation: ExecuteInvocation<F>,
     /// the resources consumed by the transaction, includes both computation and data
     pub execution_resources: ExecutionResources,
     #[serde(default)]
-    pub fee_transfer_invocation: Option<FunctionInvocation>,
+    pub fee_transfer_invocation: Option<FunctionInvocation<F>>,
     /// the state diffs induced by the transaction
     #[serde(default)]
-    pub state_diff: Option<StateDiff>,
+    pub state_diff: Option<StateDiff<F>>,
     #[serde(default)]
-    pub validate_invocation: Option<FunctionInvocation>,
+    pub validate_invocation: Option<FunctionInvocation<F>>,
 }
 
 /// the trace of the __execute__ call or constructor call, depending on the transaction type (none for declare transactions)
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(untagged)]
-pub enum ExecuteInvocation {
-    FunctionInvocation(FunctionInvocation),
+pub enum ExecuteInvocation<F> {
+    FunctionInvocation(FunctionInvocation<F>),
     Anon(RevertedInvocation),
 }
 
@@ -139,71 +139,71 @@ pub struct RevertedInvocation {
 
 /// the execution trace of a declare transaction
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeclareTransactionTrace {
+pub struct DeclareTransactionTrace<F: Default> {
     /// the resources consumed by the transaction, includes both computation and data
     pub execution_resources: ExecutionResources,
     #[serde(default)]
-    pub fee_transfer_invocation: Option<FunctionInvocation>,
+    pub fee_transfer_invocation: Option<FunctionInvocation<F>>,
     /// the state diffs induced by the transaction
     #[serde(default)]
-    pub state_diff: Option<StateDiff>,
+    pub state_diff: Option<StateDiff<F>>,
     #[serde(default)]
-    pub validate_invocation: Option<FunctionInvocation>,
+    pub validate_invocation: Option<FunctionInvocation<F>>,
 }
 
 /// the execution trace of a deploy account transaction
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeployAccountTransactionTrace {
+pub struct DeployAccountTransactionTrace<F: Default> {
     /// the trace of the __execute__ call or constructor call, depending on the transaction type (none for declare transactions)
-    pub constructor_invocation: FunctionInvocation,
+    pub constructor_invocation: FunctionInvocation<F>,
     /// the resources consumed by the transaction, includes both computation and data
     pub execution_resources: ExecutionResources,
     #[serde(default)]
-    pub fee_transfer_invocation: Option<FunctionInvocation>,
+    pub fee_transfer_invocation: Option<FunctionInvocation<F>>,
     /// the state diffs induced by the transaction
     #[serde(default)]
-    pub state_diff: Option<StateDiff>,
+    pub state_diff: Option<StateDiff<F>>,
     #[serde(default)]
-    pub validate_invocation: Option<FunctionInvocation>,
+    pub validate_invocation: Option<FunctionInvocation<F>>,
 }
 
 /// the execution trace of an L1 handler transaction
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct L1HandlerTransactionTrace {
+pub struct L1HandlerTransactionTrace<F: Default> {
     /// the resources consumed by the transaction, includes both computation and data
     pub execution_resources: ExecutionResources,
     /// the trace of the __execute__ call or constructor call, depending on the transaction type (none for declare transactions)
-    pub function_invocation: FunctionInvocation,
+    pub function_invocation: FunctionInvocation<F>,
     /// the state diffs induced by the transaction
     #[serde(default)]
-    pub state_diff: Option<StateDiff>,
+    pub state_diff: Option<StateDiff<F>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SimulateTransactionsResult {
+pub struct SimulateTransactionsResult<F: Default> {
     #[serde(default)]
-    pub fee_estimation: Option<FeeEstimate>,
+    pub fee_estimation: Option<FeeEstimate<F>>,
     #[serde(default)]
-    pub transaction_trace: Option<TransactionTrace>,
+    pub transaction_trace: Option<TransactionTrace<F>>,
 }
 
 /// A single pair of transaction hash and corresponding trace
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TraceBlockTransactionsResult {
+pub struct TraceBlockTransactionsResult<F: Default> {
     #[serde(default)]
-    pub trace_root: Option<TransactionTrace>,
+    pub trace_root: Option<TransactionTrace<F>>,
     #[serde(default)]
-    pub transaction_hash: Option<Felt>,
+    pub transaction_hash: Option<F>,
 }
 
 /// Parameters of the `starknet_traceTransaction` method.
 #[derive(Debug, Clone)]
-pub struct TraceTransactionParams {
+pub struct TraceTransactionParams<F> {
     /// The hash of the transaction to trace
-    pub transaction_hash: TxnHash,
+    pub transaction_hash: TxnHash<F>,
 }
 
-impl Serialize for TraceTransactionParams {
+impl<F: Serialize> Serialize for TraceTransactionParams<F> {
     #[allow(unused_mut)]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -215,15 +215,17 @@ impl Serialize for TraceTransactionParams {
     }
 }
 
-impl<'de> Deserialize<'de> for TraceTransactionParams {
+impl<'de, F: Deserialize<'de>> Deserialize<'de> for TraceTransactionParams<F> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
-        struct Visitor;
+        struct Visitor<F> {
+            marker: core::marker::PhantomData<F>,
+        }
 
-        impl<'de> serde::de::Visitor<'de> for Visitor {
-            type Value = TraceTransactionParams;
+        impl<'de, F: Deserialize<'de>> serde::de::Visitor<'de> for Visitor<F> {
+            type Value = TraceTransactionParams<F>;
 
             fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_traceTransaction`")
@@ -234,7 +236,7 @@ impl<'de> Deserialize<'de> for TraceTransactionParams {
             where
                 A: serde::de::SeqAccess<'de>,
             {
-                let transaction_hash: TxnHash = seq
+                let transaction_hash: TxnHash<F> = seq
                     .next_element()?
                     .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 1 parameters"))?;
 
@@ -254,8 +256,8 @@ impl<'de> Deserialize<'de> for TraceTransactionParams {
                 A: serde::de::MapAccess<'de>,
             {
                 #[derive(Deserialize)]
-                struct Helper {
-                    transaction_hash: TxnHash,
+                struct Helper<F> {
+                    transaction_hash: TxnHash<F>,
                 }
 
                 let helper =
@@ -267,22 +269,24 @@ impl<'de> Deserialize<'de> for TraceTransactionParams {
             }
         }
 
-        deserializer.deserialize_any(Visitor)
+        deserializer.deserialize_any(Visitor::<F> {
+            marker: core::marker::PhantomData,
+        })
     }
 }
 
 /// Parameters of the `starknet_simulateTransactions` method.
 #[derive(Debug, Clone)]
-pub struct SimulateTransactionsParams {
+pub struct SimulateTransactionsParams<F: Default> {
     /// The hash of the requested block, or number (height) of the requested block, or a block tag, for the block referencing the state or call the transaction on.
-    pub block_id: BlockId,
+    pub block_id: BlockId<F>,
     /// The transactions to simulate
-    pub transactions: Vec<BroadcastedTxn>,
+    pub transactions: Vec<BroadcastedTxn<F>>,
     /// describes what parts of the transaction should be executed
     pub simulation_flags: Vec<SimulationFlag>,
 }
 
-impl Serialize for SimulateTransactionsParams {
+impl<F: Copy + Default + Serialize> Serialize for SimulateTransactionsParams<F> {
     #[allow(unused_mut)]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -296,15 +300,17 @@ impl Serialize for SimulateTransactionsParams {
     }
 }
 
-impl<'de> Deserialize<'de> for SimulateTransactionsParams {
+impl<'de, F: Copy + Default + Deserialize<'de>> Deserialize<'de> for SimulateTransactionsParams<F> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
-        struct Visitor;
+        struct Visitor<F> {
+            marker: core::marker::PhantomData<F>,
+        }
 
-        impl<'de> serde::de::Visitor<'de> for Visitor {
-            type Value = SimulateTransactionsParams;
+        impl<'de, F: Copy + Default + Deserialize<'de>> serde::de::Visitor<'de> for Visitor<F> {
+            type Value = SimulateTransactionsParams<F>;
 
             fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_simulateTransactions`")
@@ -315,10 +321,10 @@ impl<'de> Deserialize<'de> for SimulateTransactionsParams {
             where
                 A: serde::de::SeqAccess<'de>,
             {
-                let block_id: BlockId = seq
+                let block_id: BlockId<F> = seq
                     .next_element()?
                     .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 3 parameters"))?;
-                let transactions: Vec<BroadcastedTxn> = seq
+                let transactions: Vec<BroadcastedTxn<F>> = seq
                     .next_element()?
                     .ok_or_else(|| serde::de::Error::invalid_length(2, &"expected 3 parameters"))?;
                 let simulation_flags: Vec<SimulationFlag> = seq
@@ -345,9 +351,9 @@ impl<'de> Deserialize<'de> for SimulateTransactionsParams {
                 A: serde::de::MapAccess<'de>,
             {
                 #[derive(Deserialize)]
-                struct Helper {
-                    block_id: BlockId,
-                    transactions: Vec<BroadcastedTxn>,
+                struct Helper<F: Default> {
+                    block_id: BlockId<F>,
+                    transactions: Vec<BroadcastedTxn<F>>,
                     simulation_flags: Vec<SimulationFlag>,
                 }
 
@@ -362,18 +368,20 @@ impl<'de> Deserialize<'de> for SimulateTransactionsParams {
             }
         }
 
-        deserializer.deserialize_any(Visitor)
+        deserializer.deserialize_any(Visitor::<F> {
+            marker: core::marker::PhantomData,
+        })
     }
 }
 
 /// Parameters of the `starknet_traceBlockTransactions` method.
 #[derive(Debug, Clone)]
-pub struct TraceBlockTransactionsParams {
+pub struct TraceBlockTransactionsParams<F> {
     /// The hash of the requested block, or number (height) of the requested block, or a block tag
-    pub block_id: BlockId,
+    pub block_id: BlockId<F>,
 }
 
-impl Serialize for TraceBlockTransactionsParams {
+impl<F: Copy + Serialize> Serialize for TraceBlockTransactionsParams<F> {
     #[allow(unused_mut)]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -385,15 +393,17 @@ impl Serialize for TraceBlockTransactionsParams {
     }
 }
 
-impl<'de> Deserialize<'de> for TraceBlockTransactionsParams {
+impl<'de, F: Deserialize<'de>> Deserialize<'de> for TraceBlockTransactionsParams<F> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
-        struct Visitor;
+        struct Visitor<F> {
+            marker: core::marker::PhantomData<F>,
+        }
 
-        impl<'de> serde::de::Visitor<'de> for Visitor {
-            type Value = TraceBlockTransactionsParams;
+        impl<'de, F: Deserialize<'de>> serde::de::Visitor<'de> for Visitor<F> {
+            type Value = TraceBlockTransactionsParams<F>;
 
             fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_traceBlockTransactions`")
@@ -404,7 +414,7 @@ impl<'de> Deserialize<'de> for TraceBlockTransactionsParams {
             where
                 A: serde::de::SeqAccess<'de>,
             {
-                let block_id: BlockId = seq
+                let block_id: BlockId<F> = seq
                     .next_element()?
                     .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 1 parameters"))?;
 
@@ -424,8 +434,8 @@ impl<'de> Deserialize<'de> for TraceBlockTransactionsParams {
                 A: serde::de::MapAccess<'de>,
             {
                 #[derive(Deserialize)]
-                struct Helper {
-                    block_id: BlockId,
+                struct Helper<F> {
+                    block_id: BlockId<F>,
                 }
 
                 let helper =
@@ -437,6 +447,8 @@ impl<'de> Deserialize<'de> for TraceBlockTransactionsParams {
             }
         }
 
-        deserializer.deserialize_any(Visitor)
+        deserializer.deserialize_any(Visitor::<F> {
+            marker: core::marker::PhantomData,
+        })
     }
 }

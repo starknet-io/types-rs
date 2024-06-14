@@ -24,8 +24,8 @@ mod custom_serde;
 //
 // Generated files.
 //
-pub mod v0_5_0;
-pub mod v0_6_0;
+// pub mod v0_5_0;
+// pub mod v0_6_0;
 pub mod v0_7_1;
 
 pub use self::v0_7_1::*;

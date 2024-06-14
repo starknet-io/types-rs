@@ -8,49 +8,48 @@
 //     https://github.com/nils-mathieu/openrpc-gen
 //
 
-use super::{
-    BlockId, BroadcastedDeclareTxn, BroadcastedDeployAccountTxn, BroadcastedInvokeTxn, Felt,
-};
+use super::{BlockId, BroadcastedDeclareTxn, BroadcastedDeployAccountTxn, BroadcastedInvokeTxn};
 use crate::custom_serde::NumAsHex;
 use alloc::string::String;
 use alloc::vec::Vec;
+use core::marker::PhantomData;
 use serde::ser::SerializeMap;
 use serde::{Deserialize, Serialize};
 
-pub type Address = Felt;
+pub type Address<F> = F;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TransactionAndReceipt {
-    pub receipt: TxnReceipt,
-    pub transaction: Txn,
+pub struct TransactionAndReceipt<F> {
+    pub receipt: TxnReceipt<F>,
+    pub transaction: Txn<F>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TxnWithHash {
+pub struct TxnWithHash<F> {
     #[serde(flatten)]
-    pub transaction: Txn,
-    pub transaction_hash: TxnHash,
+    pub transaction: Txn<F>,
+    pub transaction_hash: TxnHash<F>,
 }
 
-pub type BlockHash = Felt;
+pub type BlockHash<F> = F;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BlockHeader {
-    pub block_hash: BlockHash,
+pub struct BlockHeader<F> {
+    pub block_hash: BlockHash<F>,
     /// The block number (its height)
     pub block_number: BlockNumber,
     /// specifies whether the data of this block is published via blob data or calldata
     pub l1_da_mode: L1DaMode,
     /// The price of l1 data gas in the block
-    pub l1_data_gas_price: ResourcePrice,
+    pub l1_data_gas_price: ResourcePrice<F>,
     /// The price of l1 gas in the block
-    pub l1_gas_price: ResourcePrice,
+    pub l1_gas_price: ResourcePrice<F>,
     /// The new global state root
-    pub new_root: Felt,
+    pub new_root: F,
     /// The hash of this block's parent
-    pub parent_hash: BlockHash,
+    pub parent_hash: BlockHash<F>,
     /// The StarkNet identity of the sequencer submitting this block
-    pub sequencer_address: Felt,
+    pub sequencer_address: F,
     /// Semver of the current Starknet protocol
     pub starknet_version: String,
     /// The time in which the block was created, encoded in Unix time
@@ -84,87 +83,87 @@ pub enum BlockTag {
 
 /// The block object
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BlockWithReceipts {
+pub struct BlockWithReceipts<F> {
     /// The transactions in this block
-    pub transactions: Vec<TransactionAndReceipt>,
+    pub transactions: Vec<TransactionAndReceipt<F>>,
     pub status: BlockStatus,
     #[serde(flatten)]
-    pub block_header: BlockHeader,
+    pub block_header: BlockHeader<F>,
 }
 
 /// The block object
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BlockWithTxs {
+pub struct BlockWithTxs<F> {
     /// The transactions in this block
-    pub transactions: Vec<TxnWithHash>,
+    pub transactions: Vec<TxnWithHash<F>>,
     pub status: BlockStatus,
     #[serde(flatten)]
-    pub block_header: BlockHeader,
+    pub block_header: BlockHeader<F>,
 }
 
 /// The block object
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BlockWithTxHashes {
+pub struct BlockWithTxHashes<F> {
     /// The hashes of the transactions included in this block
-    pub transactions: Vec<TxnHash>,
+    pub transactions: Vec<TxnHash<F>>,
     pub status: BlockStatus,
     #[serde(flatten)]
-    pub block_header: BlockHeader,
+    pub block_header: BlockHeader<F>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BroadcastedDeclareTxnV1 {
+pub struct BroadcastedDeclareTxnV1<F: Default> {
     /// The class to be declared
-    pub contract_class: DeprecatedContractClass,
+    pub contract_class: DeprecatedContractClass<F>,
     /// The maximal fee that can be charged for including the transaction
-    pub max_fee: Felt,
-    pub nonce: Felt,
+    pub max_fee: F,
+    pub nonce: F,
     /// The address of the account contract sending the declaration transaction
-    pub sender_address: Address,
-    pub signature: Signature,
+    pub sender_address: Address<F>,
+    pub signature: Signature<F>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BroadcastedDeclareTxnV2 {
+pub struct BroadcastedDeclareTxnV2<F> {
     /// The hash of the Cairo assembly resulting from the Sierra compilation
-    pub compiled_class_hash: Felt,
+    pub compiled_class_hash: F,
     /// The class to be declared
-    pub contract_class: ContractClass,
+    pub contract_class: ContractClass<F>,
     /// The maximal fee that can be charged for including the transaction
-    pub max_fee: Felt,
-    pub nonce: Felt,
+    pub max_fee: F,
+    pub nonce: F,
     /// The address of the account contract sending the declaration transaction
-    pub sender_address: Address,
-    pub signature: Signature,
+    pub sender_address: Address<F>,
+    pub signature: Signature<F>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(tag = "type")]
-pub enum BroadcastedTxn {
+pub enum BroadcastedTxn<F: Default> {
     #[serde(rename = "INVOKE")]
-    Invoke(BroadcastedInvokeTxn),
+    Invoke(BroadcastedInvokeTxn<F>),
     #[serde(rename = "DECLARE")]
-    Declare(BroadcastedDeclareTxn),
+    Declare(BroadcastedDeclareTxn<F>),
     #[serde(rename = "DEPLOY_ACCOUNT")]
-    DeployAccount(BroadcastedDeployAccountTxn),
+    DeployAccount(BroadcastedDeployAccountTxn<F>),
 }
 
 /// StarkNet chain id, given in hex representation.
 pub type ChainId = u64;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CommonReceiptProperties {
+pub struct CommonReceiptProperties<F> {
     /// The fee that was charged by the sequencer
-    pub actual_fee: FeePayment,
+    pub actual_fee: FeePayment<F>,
     /// The events emitted as part of this transaction
-    pub events: Vec<Event>,
+    pub events: Vec<Event<F>>,
     /// The resources consumed by the transaction
     pub execution_resources: ExecutionResources,
     /// finality status of the tx
     pub finality_status: TxnFinalityStatus,
-    pub messages_sent: Vec<MsgToL1>,
+    pub messages_sent: Vec<MsgToL1<F>>,
     /// The hash identifying the transaction
-    pub transaction_hash: TxnHash,
+    pub transaction_hash: TxnHash<F>,
     #[serde(flatten)]
     pub anon: Anonymous,
 }
@@ -239,43 +238,43 @@ pub enum ContractAbiEntry {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ContractClass {
+pub struct ContractClass<F> {
     /// The class ABI, as supplied by the user declaring the class
     #[serde(default)]
     pub abi: Option<String>,
     /// The version of the contract class object. Currently, the Starknet OS supports version 0.1.0
     pub contract_class_version: String,
-    pub entry_points_by_type: EntryPointsByType,
+    pub entry_points_by_type: EntryPointsByType<F>,
     /// The list of Sierra instructions of which the program consists
-    pub sierra_program: Vec<Felt>,
+    pub sierra_program: Vec<F>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EntryPointsByType {
+pub struct EntryPointsByType<F> {
     #[serde(rename = "CONSTRUCTOR")]
-    pub constructor: Vec<SierraEntryPoint>,
+    pub constructor: Vec<SierraEntryPoint<F>>,
     #[serde(rename = "EXTERNAL")]
-    pub external: Vec<SierraEntryPoint>,
+    pub external: Vec<SierraEntryPoint<F>>,
     #[serde(rename = "L1_HANDLER")]
-    pub l1_handler: Vec<SierraEntryPoint>,
+    pub l1_handler: Vec<SierraEntryPoint<F>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ContractStorageDiffItem {
+pub struct ContractStorageDiffItem<F: Default> {
     /// The contract address for which the storage changed
-    pub address: Felt,
+    pub address: F,
     /// The changes in the storage of the contract
-    pub storage_entries: Vec<KeyValuePair>,
+    pub storage_entries: Vec<KeyValuePair<F>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct KeyValuePair {
+pub struct KeyValuePair<F> {
     /// The key of the changed value
     #[serde(default)]
-    pub key: Option<Felt>,
+    pub key: Option<F>,
     /// The new value applied to the given address
     #[serde(default)]
-    pub value: Option<Felt>,
+    pub value: Option<F>,
 }
 
 /// Specifies a storage domain in Starknet. Each domain has different gurantess regarding availability
@@ -287,214 +286,214 @@ pub enum DaMode {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(tag = "version")]
-pub enum DeclareTxn {
+pub enum DeclareTxn<F> {
     #[serde(rename = "0x0")]
-    V0(DeclareTxnV0),
+    V0(DeclareTxnV0<F>),
     #[serde(rename = "0x1")]
-    V1(DeclareTxnV1),
+    V1(DeclareTxnV1<F>),
     #[serde(rename = "0x2")]
-    V2(DeclareTxnV2),
+    V2(DeclareTxnV2<F>),
     #[serde(rename = "0x3")]
-    V3(DeclareTxnV3),
+    V3(DeclareTxnV3<F>),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeclareTxnReceipt {
+pub struct DeclareTxnReceipt<F> {
     #[serde(flatten)]
-    pub common_receipt_properties: CommonReceiptProperties,
+    pub common_receipt_properties: CommonReceiptProperties<F>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeclareTxnV0 {
+pub struct DeclareTxnV0<F> {
     /// The hash of the declared class
-    pub class_hash: Felt,
+    pub class_hash: F,
     /// The maximal fee that can be charged for including the transaction
-    pub max_fee: Felt,
+    pub max_fee: F,
     /// The address of the account contract sending the declaration transaction
-    pub sender_address: Address,
-    pub signature: Signature,
+    pub sender_address: Address<F>,
+    pub signature: Signature<F>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeclareTxnV1 {
+pub struct DeclareTxnV1<F> {
     /// The hash of the declared class
-    pub class_hash: Felt,
+    pub class_hash: F,
     /// The maximal fee that can be charged for including the transaction
-    pub max_fee: Felt,
-    pub nonce: Felt,
+    pub max_fee: F,
+    pub nonce: F,
     /// The address of the account contract sending the declaration transaction
-    pub sender_address: Address,
-    pub signature: Signature,
+    pub sender_address: Address<F>,
+    pub signature: Signature<F>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeclareTxnV2 {
+pub struct DeclareTxnV2<F> {
     /// The hash of the declared class
-    pub class_hash: Felt,
+    pub class_hash: F,
     /// The hash of the Cairo assembly resulting from the Sierra compilation
-    pub compiled_class_hash: Felt,
+    pub compiled_class_hash: F,
     /// The maximal fee that can be charged for including the transaction
-    pub max_fee: Felt,
-    pub nonce: Felt,
+    pub max_fee: F,
+    pub nonce: F,
     /// The address of the account contract sending the declaration transaction
-    pub sender_address: Address,
-    pub signature: Signature,
+    pub sender_address: Address<F>,
+    pub signature: Signature<F>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeclareTxnV3 {
+pub struct DeclareTxnV3<F> {
     /// data needed to deploy the account contract from which this tx will be initiated
-    pub account_deployment_data: Vec<Felt>,
+    pub account_deployment_data: Vec<F>,
     /// The hash of the declared class
-    pub class_hash: Felt,
+    pub class_hash: F,
     /// The hash of the Cairo assembly resulting from the Sierra compilation
-    pub compiled_class_hash: Felt,
+    pub compiled_class_hash: F,
     /// The storage domain of the account's balance from which fee will be charged
     pub fee_data_availability_mode: DaMode,
-    pub nonce: Felt,
+    pub nonce: F,
     /// The storage domain of the account's nonce (an account has a nonce per DA mode)
     pub nonce_data_availability_mode: DaMode,
     /// data needed to allow the paymaster to pay for the transaction in native tokens
-    pub paymaster_data: Vec<Felt>,
+    pub paymaster_data: Vec<F>,
     /// resource bounds for the transaction execution
     pub resource_bounds: ResourceBoundsMapping,
     /// The address of the account contract sending the declaration transaction
-    pub sender_address: Address,
-    pub signature: Signature,
+    pub sender_address: Address<F>,
+    pub signature: Signature<F>,
     /// the tip for the transaction
     pub tip: U64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeployedContractItem {
+pub struct DeployedContractItem<F> {
     /// The address of the contract
-    pub address: Felt,
+    pub address: F,
     /// The hash of the contract code
-    pub class_hash: Felt,
+    pub class_hash: F,
 }
 
 /// deploys a new account contract
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(tag = "version")]
-pub enum DeployAccountTxn {
+pub enum DeployAccountTxn<F> {
     #[serde(rename = "0x1")]
-    V1(DeployAccountTxnV1),
+    V1(DeployAccountTxnV1<F>),
     #[serde(rename = "0x3")]
-    V3(DeployAccountTxnV3),
+    V3(DeployAccountTxnV3<F>),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeployAccountTxnReceipt {
+pub struct DeployAccountTxnReceipt<F> {
     #[serde(flatten)]
-    pub common_receipt_properties: CommonReceiptProperties,
+    pub common_receipt_properties: CommonReceiptProperties<F>,
     /// The address of the deployed contract
-    pub contract_address: Felt,
+    pub contract_address: F,
 }
 
 /// Deploys an account contract, charges fee from the pre-funded account addresses
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeployAccountTxnV1 {
+pub struct DeployAccountTxnV1<F> {
     /// The hash of the deployed contract's class
-    pub class_hash: Felt,
+    pub class_hash: F,
     /// The parameters passed to the constructor
-    pub constructor_calldata: Vec<Felt>,
+    pub constructor_calldata: Vec<F>,
     /// The salt for the address of the deployed contract
-    pub contract_address_salt: Felt,
+    pub contract_address_salt: F,
     /// The maximal fee that can be charged for including the transaction
-    pub max_fee: Felt,
-    pub nonce: Felt,
-    pub signature: Signature,
+    pub max_fee: F,
+    pub nonce: F,
+    pub signature: Signature<F>,
 }
 
 /// Deploys an account contract, charges fee from the pre-funded account addresses
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeployAccountTxnV3 {
+pub struct DeployAccountTxnV3<F> {
     /// The hash of the deployed contract's class
-    pub class_hash: Felt,
+    pub class_hash: F,
     /// The parameters passed to the constructor
-    pub constructor_calldata: Vec<Felt>,
+    pub constructor_calldata: Vec<F>,
     /// The salt for the address of the deployed contract
-    pub contract_address_salt: Felt,
+    pub contract_address_salt: F,
     /// The storage domain of the account's balance from which fee will be charged
     pub fee_data_availability_mode: DaMode,
-    pub nonce: Felt,
+    pub nonce: F,
     /// The storage domain of the account's nonce (an account has a nonce per DA mode)
     pub nonce_data_availability_mode: DaMode,
     /// data needed to allow the paymaster to pay for the transaction in native tokens
-    pub paymaster_data: Vec<Felt>,
+    pub paymaster_data: Vec<F>,
     /// resource bounds for the transaction execution
     pub resource_bounds: ResourceBoundsMapping,
-    pub signature: Signature,
+    pub signature: Signature<F>,
     /// the tip for the transaction
     pub tip: U64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeployTxn {
+pub struct DeployTxn<F> {
     /// The hash of the deployed contract's class
-    pub class_hash: Felt,
+    pub class_hash: F,
     /// The parameters passed to the constructor
-    pub constructor_calldata: Vec<Felt>,
+    pub constructor_calldata: Vec<F>,
     /// The salt for the address of the deployed contract
-    pub contract_address_salt: Felt,
+    pub contract_address_salt: F,
     /// Version of the transaction scheme
-    pub version: Felt,
+    pub version: F,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeployTxnReceipt {
+pub struct DeployTxnReceipt<F> {
     #[serde(flatten)]
-    pub common_receipt_properties: CommonReceiptProperties,
+    pub common_receipt_properties: CommonReceiptProperties<F>,
     /// The address of the deployed contract
-    pub contract_address: Felt,
+    pub contract_address: F,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeprecatedCairoEntryPoint {
+pub struct DeprecatedCairoEntryPoint<F> {
     /// The offset of the entry point in the program
     #[serde(with = "NumAsHex")]
     pub offset: u64,
     /// A unique identifier of the entry point (function) in the program
-    pub selector: Felt,
+    pub selector: F,
 }
 
 /// The definition of a StarkNet contract class
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeprecatedContractClass {
+pub struct DeprecatedContractClass<F: Default> {
     #[serde(default)]
     pub abi: Option<ContractAbi>,
-    pub entry_points_by_type: DeprecatedEntryPointsByType,
+    pub entry_points_by_type: DeprecatedEntryPointsByType<F>,
     /// A base64 representation of the compressed program code
     pub program: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DeprecatedEntryPointsByType {
+pub struct DeprecatedEntryPointsByType<F> {
     #[serde(default)]
     #[serde(rename = "CONSTRUCTOR")]
-    pub constructor: Option<Vec<DeprecatedCairoEntryPoint>>,
+    pub constructor: Option<Vec<DeprecatedCairoEntryPoint<F>>>,
     #[serde(default)]
     #[serde(rename = "EXTERNAL")]
-    pub external: Option<Vec<DeprecatedCairoEntryPoint>>,
+    pub external: Option<Vec<DeprecatedCairoEntryPoint<F>>>,
     #[serde(default)]
     #[serde(rename = "L1_HANDLER")]
-    pub l1_handler: Option<Vec<DeprecatedCairoEntryPoint>>,
+    pub l1_handler: Option<Vec<DeprecatedCairoEntryPoint<F>>>,
 }
 
 /// Event information decorated with metadata on where it was emitted / An event emitted as a result of transaction execution
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EmittedEvent {
+pub struct EmittedEvent<F> {
     /// The event information
     #[serde(flatten)]
-    pub event: Event,
+    pub event: Event<F>,
     /// The hash of the block in which the event was emitted
     #[serde(default)]
-    pub block_hash: Option<BlockHash>,
+    pub block_hash: Option<BlockHash<F>>,
     /// The number of the block in which the event was emitted
     #[serde(default)]
     pub block_number: Option<BlockNumber>,
     /// The transaction that emitted the event
-    pub transaction_hash: TxnHash,
+    pub transaction_hash: TxnHash<F>,
 }
 
 /// an ethereum address represented as 40 hex digits
@@ -502,18 +501,18 @@ pub type EthAddress = String;
 
 /// A StarkNet event
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Event {
-    pub from_address: Address,
-    pub data: Vec<Felt>,
-    pub keys: Vec<Felt>,
+pub struct Event<F> {
+    pub from_address: Address<F>,
+    pub data: Vec<F>,
+    pub keys: Vec<F>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EventsChunk {
+pub struct EventsChunk<F: Default> {
     /// Use this token in a subsequent query to obtain the next page. Should not appear if there are no more pages.
     #[serde(default)]
     pub continuation_token: Option<String>,
-    pub events: Vec<EmittedEvent>,
+    pub events: Vec<EmittedEvent<F>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -572,26 +571,26 @@ pub struct DataAvailability {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FeeEstimate {
+pub struct FeeEstimate<F> {
     /// The Ethereum data gas consumption of the transaction
-    pub data_gas_consumed: Felt,
+    pub data_gas_consumed: F,
     /// The data gas price (in wei or fri, depending on the tx version) that was used in the cost estimation
-    pub data_gas_price: Felt,
+    pub data_gas_price: F,
     /// The Ethereum gas consumption of the transaction
-    pub gas_consumed: Felt,
+    pub gas_consumed: F,
     /// The gas price (in wei or fri, depending on the tx version) that was used in the cost estimation
-    pub gas_price: Felt,
+    pub gas_price: F,
     /// The estimated fee for the transaction (in wei or fri, depending on the tx version), equals to gas_consumed*gas_price + data_gas_consumed*data_gas_price
-    pub overall_fee: Felt,
+    pub overall_fee: F,
     /// units in which the fee is given
     pub unit: PriceUnit,
 }
 
 /// fee payment info as it appears in receipts
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FeePayment {
+pub struct FeePayment<F> {
     /// amount paid
-    pub amount: Felt,
+    pub amount: F,
     /// units in which the fee is given
     pub unit: PriceUnit,
 }
@@ -621,11 +620,11 @@ pub enum FunctionAbiType {
 
 /// Function call information
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FunctionCall {
+pub struct FunctionCall<F> {
     /// The parameters passed to the function
-    pub calldata: Vec<Felt>,
-    pub contract_address: Address,
-    pub entry_point_selector: Felt,
+    pub calldata: Vec<F>,
+    pub contract_address: Address<F>,
+    pub entry_point_selector: F,
 }
 
 pub type FunctionStateMutability = String;
@@ -633,120 +632,120 @@ pub type FunctionStateMutability = String;
 /// Initiate a transaction from an account
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(tag = "version")]
-pub enum InvokeTxn {
+pub enum InvokeTxn<F> {
     #[serde(rename = "0x0")]
-    V0(InvokeTxnV0),
+    V0(InvokeTxnV0<F>),
     #[serde(rename = "0x1")]
-    V1(InvokeTxnV1),
+    V1(InvokeTxnV1<F>),
     #[serde(rename = "0x3")]
-    V3(InvokeTxnV3),
+    V3(InvokeTxnV3<F>),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InvokeTxnReceipt {
+pub struct InvokeTxnReceipt<F> {
     #[serde(flatten)]
-    pub common_receipt_properties: CommonReceiptProperties,
+    pub common_receipt_properties: CommonReceiptProperties<F>,
 }
 
 /// invokes a specific function in the desired contract (not necessarily an account)
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InvokeTxnV0 {
+pub struct InvokeTxnV0<F> {
     /// The parameters passed to the function
-    pub calldata: Vec<Felt>,
-    pub contract_address: Address,
-    pub entry_point_selector: Felt,
+    pub calldata: Vec<F>,
+    pub contract_address: Address<F>,
+    pub entry_point_selector: F,
     /// The maximal fee that can be charged for including the transaction
-    pub max_fee: Felt,
-    pub signature: Signature,
+    pub max_fee: F,
+    pub signature: Signature<F>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InvokeTxnV1 {
+pub struct InvokeTxnV1<F> {
     /// The data expected by the account's `execute` function (in most usecases, this includes the called contract address and a function selector)
-    pub calldata: Vec<Felt>,
+    pub calldata: Vec<F>,
     /// The maximal fee that can be charged for including the transaction
-    pub max_fee: Felt,
-    pub nonce: Felt,
-    pub sender_address: Address,
-    pub signature: Signature,
+    pub max_fee: F,
+    pub nonce: F,
+    pub sender_address: Address<F>,
+    pub signature: Signature<F>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InvokeTxnV3 {
+pub struct InvokeTxnV3<F> {
     /// data needed to deploy the account contract from which this tx will be initiated
-    pub account_deployment_data: Vec<Felt>,
+    pub account_deployment_data: Vec<F>,
     /// The data expected by the account's `execute` function (in most usecases, this includes the called contract address and a function selector)
-    pub calldata: Vec<Felt>,
+    pub calldata: Vec<F>,
     /// The storage domain of the account's balance from which fee will be charged
     pub fee_data_availability_mode: DaMode,
-    pub nonce: Felt,
+    pub nonce: F,
     /// The storage domain of the account's nonce (an account has a nonce per DA mode)
     pub nonce_data_availability_mode: DaMode,
     /// data needed to allow the paymaster to pay for the transaction in native tokens
-    pub paymaster_data: Vec<Felt>,
+    pub paymaster_data: Vec<F>,
     /// resource bounds for the transaction execution
     pub resource_bounds: ResourceBoundsMapping,
-    pub sender_address: Address,
-    pub signature: Signature,
+    pub sender_address: Address<F>,
+    pub signature: Signature<F>,
     /// the tip for the transaction
     pub tip: U64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct L1HandlerTxn {
+pub struct L1HandlerTxn<F> {
     /// The L1->L2 message nonce field of the SN Core L1 contract at the time the transaction was sent
     #[serde(with = "NumAsHex")]
     pub nonce: u64,
     /// Version of the transaction scheme
     pub version: String, /* 0x0 */
     #[serde(flatten)]
-    pub function_call: FunctionCall,
+    pub function_call: FunctionCall<F>,
 }
 
 /// receipt for l1 handler transaction
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct L1HandlerTxnReceipt {
+pub struct L1HandlerTxnReceipt<F> {
     /// The message hash as it appears on the L1 core contract
     #[serde(with = "NumAsHex")]
     pub message_hash: u64,
     #[serde(flatten)]
-    pub common_receipt_properties: CommonReceiptProperties,
+    pub common_receipt_properties: CommonReceiptProperties<F>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MsgFromL1 {
+pub struct MsgFromL1<F> {
     /// The selector of the l1_handler in invoke in the target contract
-    pub entry_point_selector: Felt,
+    pub entry_point_selector: F,
     /// The address of the L1 contract sending the message
     pub from_address: EthAddress,
     /// The payload of the message
-    pub payload: Vec<Felt>,
+    pub payload: Vec<F>,
     /// The target L2 address the message is sent to
-    pub to_address: Address,
+    pub to_address: Address<F>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MsgToL1 {
+pub struct MsgToL1<F> {
     /// The address of the L2 contract sending the message
-    pub from_address: Felt,
+    pub from_address: F,
     /// The payload of the message
-    pub payload: Vec<Felt>,
+    pub payload: Vec<F>,
     /// The target L1 address the message is sent to
-    pub to_address: Felt,
+    pub to_address: F,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PendingBlockHeader {
+pub struct PendingBlockHeader<F> {
     /// specifies whether the data of this block is published via blob data or calldata
     pub l1_da_mode: L1DaMode,
     /// The price of l1 data gas in the block
-    pub l1_data_gas_price: ResourcePrice,
+    pub l1_data_gas_price: ResourcePrice<F>,
     /// The price of l1 gas in the block
-    pub l1_gas_price: ResourcePrice,
+    pub l1_gas_price: ResourcePrice<F>,
     /// The hash of this block's parent
-    pub parent_hash: BlockHash,
+    pub parent_hash: BlockHash<F>,
     /// The StarkNet identity of the sequencer submitting this block
-    pub sequencer_address: Felt,
+    pub sequencer_address: F,
     /// Semver of the current Starknet protocol
     pub starknet_version: String,
     /// The time in which the block was created, encoded in Unix time
@@ -764,37 +763,37 @@ pub enum L1DaMode {
 
 /// The dynamic block being constructed by the sequencer. Note that this object will be deprecated upon decentralization.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PendingBlockWithReceipts {
+pub struct PendingBlockWithReceipts<F> {
     /// The transactions in this block
-    pub transactions: Vec<TransactionAndReceipt>,
+    pub transactions: Vec<TransactionAndReceipt<F>>,
     #[serde(flatten)]
-    pub pending_block_header: PendingBlockHeader,
+    pub pending_block_header: PendingBlockHeader<F>,
 }
 
 /// The dynamic block being constructed by the sequencer. Note that this object will be deprecated upon decentralization.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PendingBlockWithTxs {
+pub struct PendingBlockWithTxs<F> {
     /// The transactions in this block
-    pub transactions: Vec<TxnWithHash>,
+    pub transactions: Vec<TxnWithHash<F>>,
     #[serde(flatten)]
-    pub pending_block_header: PendingBlockHeader,
+    pub pending_block_header: PendingBlockHeader<F>,
 }
 
 /// The dynamic block being constructed by the sequencer. Note that this object will be deprecated upon decentralization.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PendingBlockWithTxHashes {
+pub struct PendingBlockWithTxHashes<F> {
     /// The hashes of the transactions included in this block
-    pub transactions: Vec<TxnHash>,
+    pub transactions: Vec<TxnHash<F>>,
     #[serde(flatten)]
-    pub pending_block_header: PendingBlockHeader,
+    pub pending_block_header: PendingBlockHeader<F>,
 }
 
 /// Pending state update
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PendingStateUpdate {
+pub struct PendingStateUpdate<F: Default> {
     /// The previous global state root
-    pub old_root: Felt,
-    pub state_diff: StateDiff,
+    pub old_root: F,
+    pub state_diff: StateDiff<F>,
 }
 
 #[derive(Serialize, Deserialize, Copy, PartialEq, Eq, Hash, Clone, Debug)]
@@ -822,79 +821,79 @@ pub struct ResourceBoundsMapping {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResourcePrice {
+pub struct ResourcePrice<F> {
     /// the price of one unit of the given resource, denominated in fri (10^-18 strk)
-    pub price_in_fri: Felt,
+    pub price_in_fri: F,
     /// the price of one unit of the given resource, denominated in wei
-    pub price_in_wei: Felt,
+    pub price_in_wei: F,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SierraEntryPoint {
+pub struct SierraEntryPoint<F> {
     /// The index of the function in the program
     pub function_idx: u64,
     /// A unique identifier of the entry point (function) in the program
-    pub selector: Felt,
+    pub selector: F,
 }
 
 /// A transaction signature
-pub type Signature = Vec<Felt>;
+pub type Signature<F> = Vec<F>;
 
 /// Flags that indicate how to simulate a given transaction. By default, the sequencer behavior is replicated locally
 pub type SimulationFlagForEstimateFee = String;
 
 /// The change in state applied in this block, given as a mapping of addresses to the new values and/or new contracts
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StateDiff {
-    pub declared_classes: Vec<NewClasses>,
-    pub deployed_contracts: Vec<DeployedContractItem>,
-    pub deprecated_declared_classes: Vec<Felt>,
-    pub nonces: Vec<NonceUpdate>,
-    pub replaced_classes: Vec<ReplacedClass>,
-    pub storage_diffs: Vec<ContractStorageDiffItem>,
+pub struct StateDiff<F: Default> {
+    pub declared_classes: Vec<NewClasses<F>>,
+    pub deployed_contracts: Vec<DeployedContractItem<F>>,
+    pub deprecated_declared_classes: Vec<F>,
+    pub nonces: Vec<NonceUpdate<F>>,
+    pub replaced_classes: Vec<ReplacedClass<F>>,
+    pub storage_diffs: Vec<ContractStorageDiffItem<F>>,
 }
 
 /// The declared class hash and compiled class hash
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NewClasses {
+pub struct NewClasses<F> {
     /// The hash of the declared class
     #[serde(default)]
-    pub class_hash: Option<Felt>,
+    pub class_hash: Option<F>,
     /// The Cairo assembly hash corresponding to the declared class
     #[serde(default)]
-    pub compiled_class_hash: Option<Felt>,
+    pub compiled_class_hash: Option<F>,
 }
 
 /// The updated nonce per contract address
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NonceUpdate {
+pub struct NonceUpdate<F> {
     /// The address of the contract
     #[serde(default)]
-    pub contract_address: Option<Address>,
+    pub contract_address: Option<Address<F>>,
     /// The nonce for the given address at the end of the block
     #[serde(default)]
-    pub nonce: Option<Felt>,
+    pub nonce: Option<F>,
 }
 
 /// The list of contracts whose class was replaced
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ReplacedClass {
+pub struct ReplacedClass<F> {
     /// The new class hash
     #[serde(default)]
-    pub class_hash: Option<Felt>,
+    pub class_hash: Option<F>,
     /// The address of the contract whose class was replaced
     #[serde(default)]
-    pub contract_address: Option<Address>,
+    pub contract_address: Option<Address<F>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StateUpdate {
-    pub block_hash: BlockHash,
+pub struct StateUpdate<F: Default> {
+    pub block_hash: BlockHash<F>,
     /// The new global state root
-    pub new_root: Felt,
+    pub new_root: F,
     /// The previous global state root
-    pub old_root: Felt,
-    pub state_diff: StateDiff,
+    pub old_root: F,
+    pub state_diff: StateDiff<F>,
 }
 
 /// A storage key. Represented as up to 62 hex digits, 3 bits, and 5 leading zeroes.
@@ -923,17 +922,17 @@ pub struct StructMember {
 
 /// An object describing the node synchronization status
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SyncStatus {
+pub struct SyncStatus<F> {
     /// The hash of the current block being synchronized
-    pub current_block_hash: BlockHash,
+    pub current_block_hash: BlockHash<F>,
     /// The number (height) of the current block being synchronized
     pub current_block_num: BlockNumber,
     /// The hash of the estimated highest block to be synchronized
-    pub highest_block_hash: BlockHash,
+    pub highest_block_hash: BlockHash<F>,
     /// The number (height) of the estimated highest block to be synchronized
     pub highest_block_num: BlockNumber,
     /// The hash of the block from which the sync started
-    pub starting_block_hash: BlockHash,
+    pub starting_block_hash: BlockHash<F>,
     /// The number (height) of the block from which the sync started
     pub starting_block_num: BlockNumber,
 }
@@ -941,17 +940,17 @@ pub struct SyncStatus {
 /// The transaction schema, as it appears inside a block
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(tag = "type")]
-pub enum Txn {
+pub enum Txn<F> {
     #[serde(rename = "INVOKE")]
-    Invoke(InvokeTxn),
+    Invoke(InvokeTxn<F>),
     #[serde(rename = "L1_HANDLER")]
-    L1Handler(L1HandlerTxn),
+    L1Handler(L1HandlerTxn<F>),
     #[serde(rename = "DECLARE")]
-    Declare(DeclareTxn),
+    Declare(DeclareTxn<F>),
     #[serde(rename = "DEPLOY")]
-    Deploy(DeployTxn),
+    Deploy(DeployTxn<F>),
     #[serde(rename = "DEPLOY_ACCOUNT")]
-    DeployAccount(DeployAccountTxn),
+    DeployAccount(DeployAccountTxn<F>),
 }
 
 /// The execution status of the transaction
@@ -973,30 +972,31 @@ pub enum TxnFinalityStatus {
 }
 
 /// The transaction hash, as assigned in StarkNet
-pub type TxnHash = Felt;
+// pub type TxnHash<F: Serialize + for<'de> Deserialize<'de>> = F;
+pub type TxnHash<F> = F;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(tag = "type")]
-pub enum TxnReceipt {
+pub enum TxnReceipt<F> {
     #[serde(rename = "INVOKE")]
-    Invoke(InvokeTxnReceipt),
+    Invoke(InvokeTxnReceipt<F>),
     #[serde(rename = "L1_HANDLER")]
-    L1Handler(L1HandlerTxnReceipt),
+    L1Handler(L1HandlerTxnReceipt<F>),
     #[serde(rename = "DECLARE")]
-    Declare(DeclareTxnReceipt),
+    Declare(DeclareTxnReceipt<F>),
     #[serde(rename = "DEPLOY")]
-    Deploy(DeployTxnReceipt),
+    Deploy(DeployTxnReceipt<F>),
     #[serde(rename = "DEPLOY_ACCOUNT")]
-    DeployAccount(DeployAccountTxnReceipt),
+    DeployAccount(DeployAccountTxnReceipt<F>),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TxnReceiptWithBlockInfo {
+pub struct TxnReceiptWithBlockInfo<F> {
     #[serde(flatten)]
-    pub transaction_receipt: TxnReceipt,
+    pub transaction_receipt: TxnReceipt<F>,
     /// If this field is missing, it means the receipt belongs to the pending block
     #[serde(default)]
-    pub block_hash: Option<BlockHash>,
+    pub block_hash: Option<BlockHash<F>>,
     /// If this field is missing, it means the receipt belongs to the pending block
     #[serde(default)]
     pub block_number: Option<BlockNumber>,
@@ -1031,50 +1031,50 @@ pub type U128 = String;
 pub type U64 = String;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BlockHashAndNumber {
-    pub block_hash: BlockHash,
+pub struct BlockHashAndNumber<F> {
+    pub block_hash: BlockHash<F>,
     pub block_number: BlockNumber,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(untagged)]
-pub enum StarknetGetBlockWithTxsAndReceiptsResult {
-    Block(BlockWithReceipts),
-    Pending(PendingBlockWithReceipts),
+pub enum StarknetGetBlockWithTxsAndReceiptsResult<F> {
+    Block(BlockWithReceipts<F>),
+    Pending(PendingBlockWithReceipts<F>),
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(untagged)]
-pub enum MaybePendingBlockWithTxHashes {
-    Block(BlockWithTxHashes),
-    Pending(PendingBlockWithTxHashes),
+pub enum MaybePendingBlockWithTxHashes<F> {
+    Block(BlockWithTxHashes<F>),
+    Pending(PendingBlockWithTxHashes<F>),
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(untagged)]
-pub enum MaybePendingBlockWithTxs {
-    Block(BlockWithTxs),
-    Pending(PendingBlockWithTxs),
+pub enum MaybePendingBlockWithTxs<F> {
+    Block(BlockWithTxs<F>),
+    Pending(PendingBlockWithTxs<F>),
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(untagged)]
-pub enum MaybeDeprecatedContractClass {
-    Deprecated(DeprecatedContractClass),
-    ContractClass(ContractClass),
+pub enum MaybeDeprecatedContractClass<F: Default> {
+    Deprecated(DeprecatedContractClass<F>),
+    ContractClass(ContractClass<F>),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EventFilterWithPageRequest {
+pub struct EventFilterWithPageRequest<F: Copy> {
     #[serde(default)]
-    pub address: Option<Address>,
+    pub address: Option<Address<F>>,
     #[serde(default)]
-    pub from_block: Option<BlockId>,
+    pub from_block: Option<BlockId<F>>,
     /// The values used to filter the events
     #[serde(default)]
-    pub keys: Option<Vec<Vec<Felt>>>,
+    pub keys: Option<Vec<Vec<F>>>,
     #[serde(default)]
-    pub to_block: Option<BlockId>,
+    pub to_block: Option<BlockId<F>>,
     pub chunk_size: u64,
     /// The token returned from the previous query. If no token is provided the first page is returned.
     #[serde(default)]
@@ -1083,9 +1083,9 @@ pub struct EventFilterWithPageRequest {
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(untagged)]
-pub enum MaybePendingStateUpdate {
-    Block(StateUpdate),
-    Pending(PendingStateUpdate),
+pub enum MaybePendingStateUpdate<F: Default> {
+    Block(StateUpdate<F>),
+    Pending(PendingStateUpdate<F>),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1160,12 +1160,12 @@ impl<'de> Deserialize<'de> for SpecVersionParams {
 
 /// Parameters of the `starknet_getBlockWithTxHashes` method.
 #[derive(Debug, Clone)]
-pub struct GetBlockWithTxHashesParams {
+pub struct GetBlockWithTxHashesParams<F> {
     /// The hash of the requested block, or number (height) of the requested block, or a block tag
-    pub block_id: BlockId,
+    pub block_id: BlockId<F>,
 }
 
-impl Serialize for GetBlockWithTxHashesParams {
+impl<F: Copy + Serialize> Serialize for GetBlockWithTxHashesParams<F> {
     #[allow(unused_mut)]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -1177,15 +1177,17 @@ impl Serialize for GetBlockWithTxHashesParams {
     }
 }
 
-impl<'de> Deserialize<'de> for GetBlockWithTxHashesParams {
+impl<'de, F: Serialize + Deserialize<'de>> Deserialize<'de> for GetBlockWithTxHashesParams<F> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
-        struct Visitor;
+        struct Visitor<F> {
+            marker: PhantomData<F>,
+        }
 
-        impl<'de> serde::de::Visitor<'de> for Visitor {
-            type Value = GetBlockWithTxHashesParams;
+        impl<'de, F: Serialize + Deserialize<'de>> serde::de::Visitor<'de> for Visitor<F> {
+            type Value = GetBlockWithTxHashesParams<F>;
 
             fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_getBlockWithTxHashes`")
@@ -1196,7 +1198,7 @@ impl<'de> Deserialize<'de> for GetBlockWithTxHashesParams {
             where
                 A: serde::de::SeqAccess<'de>,
             {
-                let block_id: BlockId = seq
+                let block_id: BlockId<F> = seq
                     .next_element()?
                     .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 1 parameters"))?;
 
@@ -1216,8 +1218,8 @@ impl<'de> Deserialize<'de> for GetBlockWithTxHashesParams {
                 A: serde::de::MapAccess<'de>,
             {
                 #[derive(Deserialize)]
-                struct Helper {
-                    block_id: BlockId,
+                struct Helper<F> {
+                    block_id: BlockId<F>,
                 }
 
                 let helper =
@@ -1229,18 +1231,20 @@ impl<'de> Deserialize<'de> for GetBlockWithTxHashesParams {
             }
         }
 
-        deserializer.deserialize_any(Visitor)
+        deserializer.deserialize_any(Visitor::<F> {
+            marker: PhantomData,
+        })
     }
 }
 
 /// Parameters of the `starknet_getBlockWithTxs` method.
 #[derive(Debug, Clone)]
-pub struct GetBlockWithTxsParams {
+pub struct GetBlockWithTxsParams<F> {
     /// The hash of the requested block, or number (height) of the requested block, or a block tag
-    pub block_id: BlockId,
+    pub block_id: BlockId<F>,
 }
 
-impl Serialize for GetBlockWithTxsParams {
+impl<F: Copy + Serialize> Serialize for GetBlockWithTxsParams<F> {
     #[allow(unused_mut)]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -1252,15 +1256,17 @@ impl Serialize for GetBlockWithTxsParams {
     }
 }
 
-impl<'de> Deserialize<'de> for GetBlockWithTxsParams {
+impl<'de, F: Copy + Serialize + Deserialize<'de>> Deserialize<'de> for GetBlockWithTxsParams<F> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
-        struct Visitor;
+        struct Visitor<F> {
+            marker: PhantomData<F>,
+        }
 
-        impl<'de> serde::de::Visitor<'de> for Visitor {
-            type Value = GetBlockWithTxsParams;
+        impl<'de, F: Copy + Serialize + Deserialize<'de>> serde::de::Visitor<'de> for Visitor<F> {
+            type Value = GetBlockWithTxsParams<F>;
 
             fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_getBlockWithTxs`")
@@ -1271,7 +1277,7 @@ impl<'de> Deserialize<'de> for GetBlockWithTxsParams {
             where
                 A: serde::de::SeqAccess<'de>,
             {
-                let block_id: BlockId = seq
+                let block_id: BlockId<F> = seq
                     .next_element()?
                     .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 1 parameters"))?;
 
@@ -1291,8 +1297,8 @@ impl<'de> Deserialize<'de> for GetBlockWithTxsParams {
                 A: serde::de::MapAccess<'de>,
             {
                 #[derive(Deserialize)]
-                struct Helper {
-                    block_id: BlockId,
+                struct Helper<F> {
+                    block_id: BlockId<F>,
                 }
 
                 let helper =
@@ -1304,18 +1310,20 @@ impl<'de> Deserialize<'de> for GetBlockWithTxsParams {
             }
         }
 
-        deserializer.deserialize_any(Visitor)
+        deserializer.deserialize_any(Visitor::<F> {
+            marker: PhantomData,
+        })
     }
 }
 
 /// Parameters of the `starknet_getBlockWithReceipts` method.
 #[derive(Debug, Clone)]
-pub struct GetBlockWithReceiptsParams {
+pub struct GetBlockWithReceiptsParams<F> {
     /// The hash of the requested block, or number (height) of the requested block, or a block tag
-    pub block_id: BlockId,
+    pub block_id: BlockId<F>,
 }
 
-impl Serialize for GetBlockWithReceiptsParams {
+impl<F: Copy + Serialize> Serialize for GetBlockWithReceiptsParams<F> {
     #[allow(unused_mut)]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -1327,15 +1335,17 @@ impl Serialize for GetBlockWithReceiptsParams {
     }
 }
 
-impl<'de> Deserialize<'de> for GetBlockWithReceiptsParams {
+impl<'de, F: Copy + Deserialize<'de>> Deserialize<'de> for GetBlockWithReceiptsParams<F> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
-        struct Visitor;
+        struct Visitor<F> {
+            marker: PhantomData<F>,
+        }
 
-        impl<'de> serde::de::Visitor<'de> for Visitor {
-            type Value = GetBlockWithReceiptsParams;
+        impl<'de, F: Copy + Deserialize<'de>> serde::de::Visitor<'de> for Visitor<F> {
+            type Value = GetBlockWithReceiptsParams<F>;
 
             fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_getBlockWithReceipts`")
@@ -1346,7 +1356,7 @@ impl<'de> Deserialize<'de> for GetBlockWithReceiptsParams {
             where
                 A: serde::de::SeqAccess<'de>,
             {
-                let block_id: BlockId = seq
+                let block_id: BlockId<F> = seq
                     .next_element()?
                     .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 1 parameters"))?;
 
@@ -1366,8 +1376,8 @@ impl<'de> Deserialize<'de> for GetBlockWithReceiptsParams {
                 A: serde::de::MapAccess<'de>,
             {
                 #[derive(Deserialize)]
-                struct Helper {
-                    block_id: BlockId,
+                struct Helper<F> {
+                    block_id: BlockId<F>,
                 }
 
                 let helper =
@@ -1379,18 +1389,20 @@ impl<'de> Deserialize<'de> for GetBlockWithReceiptsParams {
             }
         }
 
-        deserializer.deserialize_any(Visitor)
+        deserializer.deserialize_any(Visitor::<F> {
+            marker: PhantomData,
+        })
     }
 }
 
 /// Parameters of the `starknet_getStateUpdate` method.
 #[derive(Debug, Clone)]
-pub struct GetStateUpdateParams {
+pub struct GetStateUpdateParams<F> {
     /// The hash of the requested block, or number (height) of the requested block, or a block tag
-    pub block_id: BlockId,
+    pub block_id: BlockId<F>,
 }
 
-impl Serialize for GetStateUpdateParams {
+impl<F: Copy + Serialize> Serialize for GetStateUpdateParams<F> {
     #[allow(unused_mut)]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -1402,15 +1414,17 @@ impl Serialize for GetStateUpdateParams {
     }
 }
 
-impl<'de> Deserialize<'de> for GetStateUpdateParams {
+impl<'de, F: Copy + Serialize + Deserialize<'de>> Deserialize<'de> for GetStateUpdateParams<F> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
-        struct Visitor;
+        struct Visitor<F> {
+            marker: PhantomData<F>,
+        }
 
-        impl<'de> serde::de::Visitor<'de> for Visitor {
-            type Value = GetStateUpdateParams;
+        impl<'de, F: Copy + Serialize + Deserialize<'de>> serde::de::Visitor<'de> for Visitor<F> {
+            type Value = GetStateUpdateParams<F>;
 
             fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_getStateUpdate`")
@@ -1421,7 +1435,7 @@ impl<'de> Deserialize<'de> for GetStateUpdateParams {
             where
                 A: serde::de::SeqAccess<'de>,
             {
-                let block_id: BlockId = seq
+                let block_id: BlockId<F> = seq
                     .next_element()?
                     .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 1 parameters"))?;
 
@@ -1441,8 +1455,8 @@ impl<'de> Deserialize<'de> for GetStateUpdateParams {
                 A: serde::de::MapAccess<'de>,
             {
                 #[derive(Deserialize)]
-                struct Helper {
-                    block_id: BlockId,
+                struct Helper<F> {
+                    block_id: BlockId<F>,
                 }
 
                 let helper =
@@ -1454,22 +1468,24 @@ impl<'de> Deserialize<'de> for GetStateUpdateParams {
             }
         }
 
-        deserializer.deserialize_any(Visitor)
+        deserializer.deserialize_any(Visitor::<F> {
+            marker: PhantomData,
+        })
     }
 }
 
 /// Parameters of the `starknet_getStorageAt` method.
 #[derive(Debug, Clone)]
-pub struct GetStorageAtParams {
+pub struct GetStorageAtParams<F> {
     /// The address of the contract to read from
-    pub contract_address: Address,
+    pub contract_address: Address<F>,
     /// The key to the storage value for the given contract
     pub key: StorageKey,
     /// The hash of the requested block, or number (height) of the requested block, or a block tag
-    pub block_id: BlockId,
+    pub block_id: BlockId<F>,
 }
 
-impl Serialize for GetStorageAtParams {
+impl<F: Copy + Serialize> Serialize for GetStorageAtParams<F> {
     #[allow(unused_mut)]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -1483,15 +1499,17 @@ impl Serialize for GetStorageAtParams {
     }
 }
 
-impl<'de> Deserialize<'de> for GetStorageAtParams {
+impl<'de, F: Copy + Serialize + Deserialize<'de>> Deserialize<'de> for GetStorageAtParams<F> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
-        struct Visitor;
+        struct Visitor<F> {
+            marker: PhantomData<F>,
+        }
 
-        impl<'de> serde::de::Visitor<'de> for Visitor {
-            type Value = GetStorageAtParams;
+        impl<'de, F: Copy + Serialize + Deserialize<'de>> serde::de::Visitor<'de> for Visitor<F> {
+            type Value = GetStorageAtParams<F>;
 
             fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_getStorageAt`")
@@ -1502,13 +1520,13 @@ impl<'de> Deserialize<'de> for GetStorageAtParams {
             where
                 A: serde::de::SeqAccess<'de>,
             {
-                let contract_address: Address = seq
+                let contract_address: Address<F> = seq
                     .next_element()?
                     .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 3 parameters"))?;
                 let key: StorageKey = seq
                     .next_element()?
                     .ok_or_else(|| serde::de::Error::invalid_length(2, &"expected 3 parameters"))?;
-                let block_id: BlockId = seq
+                let block_id: BlockId<F> = seq
                     .next_element()?
                     .ok_or_else(|| serde::de::Error::invalid_length(3, &"expected 3 parameters"))?;
 
@@ -1532,10 +1550,10 @@ impl<'de> Deserialize<'de> for GetStorageAtParams {
                 A: serde::de::MapAccess<'de>,
             {
                 #[derive(Deserialize)]
-                struct Helper {
-                    contract_address: Address,
+                struct Helper<F> {
+                    contract_address: Address<F>,
                     key: StorageKey,
-                    block_id: BlockId,
+                    block_id: BlockId<F>,
                 }
 
                 let helper =
@@ -1549,18 +1567,20 @@ impl<'de> Deserialize<'de> for GetStorageAtParams {
             }
         }
 
-        deserializer.deserialize_any(Visitor)
+        deserializer.deserialize_any(Visitor::<F> {
+            marker: PhantomData,
+        })
     }
 }
 
 /// Parameters of the `starknet_getTransactionStatus` method.
 #[derive(Debug, Clone)]
-pub struct GetTransactionStatusParams {
+pub struct GetTransactionStatusParams<F> {
     /// The hash of the requested transaction
-    pub transaction_hash: TxnHash,
+    pub transaction_hash: TxnHash<F>,
 }
 
-impl Serialize for GetTransactionStatusParams {
+impl<F: Serialize> Serialize for GetTransactionStatusParams<F> {
     #[allow(unused_mut)]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -1572,15 +1592,17 @@ impl Serialize for GetTransactionStatusParams {
     }
 }
 
-impl<'de> Deserialize<'de> for GetTransactionStatusParams {
+impl<'de, F: Deserialize<'de>> Deserialize<'de> for GetTransactionStatusParams<F> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
-        struct Visitor;
+        struct Visitor<F> {
+            marker: PhantomData<F>,
+        }
 
-        impl<'de> serde::de::Visitor<'de> for Visitor {
-            type Value = GetTransactionStatusParams;
+        impl<'de, F: Deserialize<'de>> serde::de::Visitor<'de> for Visitor<F> {
+            type Value = GetTransactionStatusParams<F>;
 
             fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_getTransactionStatus`")
@@ -1592,8 +1614,8 @@ impl<'de> Deserialize<'de> for GetTransactionStatusParams {
                 A: serde::de::MapAccess<'de>,
             {
                 #[derive(Deserialize)]
-                struct Helper {
-                    transaction_hash: TxnHash,
+                struct Helper<F> {
+                    transaction_hash: TxnHash<F>,
                 }
 
                 let helper =
@@ -1605,18 +1627,20 @@ impl<'de> Deserialize<'de> for GetTransactionStatusParams {
             }
         }
 
-        deserializer.deserialize_map(Visitor)
+        deserializer.deserialize_map(Visitor::<F> {
+            marker: PhantomData,
+        })
     }
 }
 
 /// Parameters of the `starknet_getTransactionByHash` method.
 #[derive(Debug, Clone)]
-pub struct GetTransactionByHashParams {
+pub struct GetTransactionByHashParams<F> {
     /// The hash of the requested transaction
-    pub transaction_hash: TxnHash,
+    pub transaction_hash: TxnHash<F>,
 }
 
-impl Serialize for GetTransactionByHashParams {
+impl<F: Serialize> Serialize for GetTransactionByHashParams<F> {
     #[allow(unused_mut)]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -1628,15 +1652,17 @@ impl Serialize for GetTransactionByHashParams {
     }
 }
 
-impl<'de> Deserialize<'de> for GetTransactionByHashParams {
+impl<'de, F: Deserialize<'de>> Deserialize<'de> for GetTransactionByHashParams<F> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
-        struct Visitor;
+        struct Visitor<F> {
+            marker: PhantomData<F>,
+        }
 
-        impl<'de> serde::de::Visitor<'de> for Visitor {
-            type Value = GetTransactionByHashParams;
+        impl<'de, F: Deserialize<'de>> serde::de::Visitor<'de> for Visitor<F> {
+            type Value = GetTransactionByHashParams<F>;
 
             fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_getTransactionByHash`")
@@ -1648,8 +1674,8 @@ impl<'de> Deserialize<'de> for GetTransactionByHashParams {
                 A: serde::de::MapAccess<'de>,
             {
                 #[derive(Deserialize)]
-                struct Helper {
-                    transaction_hash: TxnHash,
+                struct Helper<F> {
+                    transaction_hash: TxnHash<F>,
                 }
 
                 let helper =
@@ -1661,20 +1687,22 @@ impl<'de> Deserialize<'de> for GetTransactionByHashParams {
             }
         }
 
-        deserializer.deserialize_map(Visitor)
+        deserializer.deserialize_map(Visitor::<F> {
+            marker: PhantomData,
+        })
     }
 }
 
 /// Parameters of the `starknet_getTransactionByBlockIdAndIndex` method.
 #[derive(Debug, Clone)]
-pub struct GetTransactionByBlockIdAndIndexParams {
+pub struct GetTransactionByBlockIdAndIndexParams<F> {
     /// The hash of the requested block, or number (height) of the requested block, or a block tag
-    pub block_id: BlockId,
+    pub block_id: BlockId<F>,
     /// The index in the block to search for the transaction
     pub index: u64,
 }
 
-impl Serialize for GetTransactionByBlockIdAndIndexParams {
+impl<F: Copy + Serialize> Serialize for GetTransactionByBlockIdAndIndexParams<F> {
     #[allow(unused_mut)]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -1687,15 +1715,19 @@ impl Serialize for GetTransactionByBlockIdAndIndexParams {
     }
 }
 
-impl<'de> Deserialize<'de> for GetTransactionByBlockIdAndIndexParams {
+impl<'de, F: Copy + Serialize + Deserialize<'de>> Deserialize<'de>
+    for GetTransactionByBlockIdAndIndexParams<F>
+{
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
-        struct Visitor;
+        struct Visitor<F> {
+            marker: PhantomData<F>,
+        }
 
-        impl<'de> serde::de::Visitor<'de> for Visitor {
-            type Value = GetTransactionByBlockIdAndIndexParams;
+        impl<'de, F: Copy + Serialize + Deserialize<'de>> serde::de::Visitor<'de> for Visitor<F> {
+            type Value = GetTransactionByBlockIdAndIndexParams<F>;
 
             fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(
@@ -1709,7 +1741,7 @@ impl<'de> Deserialize<'de> for GetTransactionByBlockIdAndIndexParams {
             where
                 A: serde::de::SeqAccess<'de>,
             {
-                let block_id: BlockId = seq
+                let block_id: BlockId<F> = seq
                     .next_element()?
                     .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 2 parameters"))?;
                 let index: u64 = seq
@@ -1732,8 +1764,8 @@ impl<'de> Deserialize<'de> for GetTransactionByBlockIdAndIndexParams {
                 A: serde::de::MapAccess<'de>,
             {
                 #[derive(Deserialize)]
-                struct Helper {
-                    block_id: BlockId,
+                struct Helper<F> {
+                    block_id: BlockId<F>,
                     index: u64,
                 }
 
@@ -1747,18 +1779,20 @@ impl<'de> Deserialize<'de> for GetTransactionByBlockIdAndIndexParams {
             }
         }
 
-        deserializer.deserialize_any(Visitor)
+        deserializer.deserialize_any(Visitor::<F> {
+            marker: PhantomData,
+        })
     }
 }
 
 /// Parameters of the `starknet_getTransactionReceipt` method.
 #[derive(Debug, Clone)]
-pub struct GetTransactionReceiptParams {
+pub struct GetTransactionReceiptParams<F> {
     /// The hash of the requested transaction
-    pub transaction_hash: TxnHash,
+    pub transaction_hash: TxnHash<F>,
 }
 
-impl Serialize for GetTransactionReceiptParams {
+impl<F: Serialize> Serialize for GetTransactionReceiptParams<F> {
     #[allow(unused_mut)]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -1770,15 +1804,17 @@ impl Serialize for GetTransactionReceiptParams {
     }
 }
 
-impl<'de> Deserialize<'de> for GetTransactionReceiptParams {
+impl<'de, F: Deserialize<'de>> Deserialize<'de> for GetTransactionReceiptParams<F> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
-        struct Visitor;
+        struct Visitor<F> {
+            marker: PhantomData<F>,
+        }
 
-        impl<'de> serde::de::Visitor<'de> for Visitor {
-            type Value = GetTransactionReceiptParams;
+        impl<'de, F: Deserialize<'de>> serde::de::Visitor<'de> for Visitor<F> {
+            type Value = GetTransactionReceiptParams<F>;
 
             fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_getTransactionReceipt`")
@@ -1790,8 +1826,8 @@ impl<'de> Deserialize<'de> for GetTransactionReceiptParams {
                 A: serde::de::MapAccess<'de>,
             {
                 #[derive(Deserialize)]
-                struct Helper {
-                    transaction_hash: TxnHash,
+                struct Helper<F> {
+                    transaction_hash: TxnHash<F>,
                 }
 
                 let helper =
@@ -1803,20 +1839,22 @@ impl<'de> Deserialize<'de> for GetTransactionReceiptParams {
             }
         }
 
-        deserializer.deserialize_map(Visitor)
+        deserializer.deserialize_map(Visitor::<F> {
+            marker: PhantomData,
+        })
     }
 }
 
 /// Parameters of the `starknet_getClass` method.
 #[derive(Debug, Clone)]
-pub struct GetClassParams {
+pub struct GetClassParams<F> {
     /// The hash of the requested block, or number (height) of the requested block, or a block tag
-    pub block_id: BlockId,
+    pub block_id: BlockId<F>,
     /// The hash of the requested contract class
-    pub class_hash: Felt,
+    pub class_hash: F,
 }
 
-impl Serialize for GetClassParams {
+impl<F: Copy + Serialize> Serialize for GetClassParams<F> {
     #[allow(unused_mut)]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -1829,15 +1867,17 @@ impl Serialize for GetClassParams {
     }
 }
 
-impl<'de> Deserialize<'de> for GetClassParams {
+impl<'de, F: Copy + Serialize + Deserialize<'de>> Deserialize<'de> for GetClassParams<F> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
-        struct Visitor;
+        struct Visitor<F> {
+            marker: PhantomData<F>,
+        }
 
-        impl<'de> serde::de::Visitor<'de> for Visitor {
-            type Value = GetClassParams;
+        impl<'de, F: Copy + Serialize + Deserialize<'de>> serde::de::Visitor<'de> for Visitor<F> {
+            type Value = GetClassParams<F>;
 
             fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_getClass`")
@@ -1848,10 +1888,10 @@ impl<'de> Deserialize<'de> for GetClassParams {
             where
                 A: serde::de::SeqAccess<'de>,
             {
-                let block_id: BlockId = seq
+                let block_id: BlockId<F> = seq
                     .next_element()?
                     .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 2 parameters"))?;
-                let class_hash: Felt = seq
+                let class_hash: F = seq
                     .next_element()?
                     .ok_or_else(|| serde::de::Error::invalid_length(2, &"expected 2 parameters"))?;
 
@@ -1874,9 +1914,9 @@ impl<'de> Deserialize<'de> for GetClassParams {
                 A: serde::de::MapAccess<'de>,
             {
                 #[derive(Deserialize)]
-                struct Helper {
-                    block_id: BlockId,
-                    class_hash: Felt,
+                struct Helper<F> {
+                    block_id: BlockId<F>,
+                    class_hash: F,
                 }
 
                 let helper =
@@ -1889,20 +1929,22 @@ impl<'de> Deserialize<'de> for GetClassParams {
             }
         }
 
-        deserializer.deserialize_any(Visitor)
+        deserializer.deserialize_any(Visitor::<F> {
+            marker: PhantomData,
+        })
     }
 }
 
 /// Parameters of the `starknet_getClassHashAt` method.
 #[derive(Debug, Clone)]
-pub struct GetClassHashAtParams {
+pub struct GetClassHashAtParams<F> {
     /// The hash of the requested block, or number (height) of the requested block, or a block tag
-    pub block_id: BlockId,
+    pub block_id: BlockId<F>,
     /// The address of the contract whose class hash will be returned
-    pub contract_address: Address,
+    pub contract_address: Address<F>,
 }
 
-impl Serialize for GetClassHashAtParams {
+impl<F: Copy + Serialize> Serialize for GetClassHashAtParams<F> {
     #[allow(unused_mut)]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -1915,15 +1957,17 @@ impl Serialize for GetClassHashAtParams {
     }
 }
 
-impl<'de> Deserialize<'de> for GetClassHashAtParams {
+impl<'de, F: Copy + Serialize + Deserialize<'de>> Deserialize<'de> for GetClassHashAtParams<F> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
-        struct Visitor;
+        struct Visitor<F> {
+            marker: PhantomData<F>,
+        }
 
-        impl<'de> serde::de::Visitor<'de> for Visitor {
-            type Value = GetClassHashAtParams;
+        impl<'de, F: Copy + Serialize + Deserialize<'de>> serde::de::Visitor<'de> for Visitor<F> {
+            type Value = GetClassHashAtParams<F>;
 
             fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_getClassHashAt`")
@@ -1934,10 +1978,10 @@ impl<'de> Deserialize<'de> for GetClassHashAtParams {
             where
                 A: serde::de::SeqAccess<'de>,
             {
-                let block_id: BlockId = seq
+                let block_id: BlockId<F> = seq
                     .next_element()?
                     .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 2 parameters"))?;
-                let contract_address: Address = seq
+                let contract_address: Address<F> = seq
                     .next_element()?
                     .ok_or_else(|| serde::de::Error::invalid_length(2, &"expected 2 parameters"))?;
 
@@ -1960,9 +2004,9 @@ impl<'de> Deserialize<'de> for GetClassHashAtParams {
                 A: serde::de::MapAccess<'de>,
             {
                 #[derive(Deserialize)]
-                struct Helper {
-                    block_id: BlockId,
-                    contract_address: Address,
+                struct Helper<F> {
+                    block_id: BlockId<F>,
+                    contract_address: Address<F>,
                 }
 
                 let helper =
@@ -1975,20 +2019,22 @@ impl<'de> Deserialize<'de> for GetClassHashAtParams {
             }
         }
 
-        deserializer.deserialize_any(Visitor)
+        deserializer.deserialize_any(Visitor::<F> {
+            marker: PhantomData,
+        })
     }
 }
 
 /// Parameters of the `starknet_getClassAt` method.
 #[derive(Debug, Clone)]
-pub struct GetClassAtParams {
+pub struct GetClassAtParams<F> {
     /// The hash of the requested block, or number (height) of the requested block, or a block tag
-    pub block_id: BlockId,
+    pub block_id: BlockId<F>,
     /// The address of the contract whose class definition will be returned
-    pub contract_address: Address,
+    pub contract_address: Address<F>,
 }
 
-impl Serialize for GetClassAtParams {
+impl<F: Copy + Serialize> Serialize for GetClassAtParams<F> {
     #[allow(unused_mut)]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -2001,15 +2047,17 @@ impl Serialize for GetClassAtParams {
     }
 }
 
-impl<'de> Deserialize<'de> for GetClassAtParams {
+impl<'de, F: Copy + Serialize + Deserialize<'de>> Deserialize<'de> for GetClassAtParams<F> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
-        struct Visitor;
+        struct Visitor<F> {
+            marker: PhantomData<F>,
+        }
 
-        impl<'de> serde::de::Visitor<'de> for Visitor {
-            type Value = GetClassAtParams;
+        impl<'de, F: Copy + Serialize + Deserialize<'de>> serde::de::Visitor<'de> for Visitor<F> {
+            type Value = GetClassAtParams<F>;
 
             fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_getClassAt`")
@@ -2020,10 +2068,10 @@ impl<'de> Deserialize<'de> for GetClassAtParams {
             where
                 A: serde::de::SeqAccess<'de>,
             {
-                let block_id: BlockId = seq
+                let block_id: BlockId<F> = seq
                     .next_element()?
                     .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 2 parameters"))?;
-                let contract_address: Address = seq
+                let contract_address: Address<F> = seq
                     .next_element()?
                     .ok_or_else(|| serde::de::Error::invalid_length(2, &"expected 2 parameters"))?;
 
@@ -2046,9 +2094,9 @@ impl<'de> Deserialize<'de> for GetClassAtParams {
                 A: serde::de::MapAccess<'de>,
             {
                 #[derive(Deserialize)]
-                struct Helper {
-                    block_id: BlockId,
-                    contract_address: Address,
+                struct Helper<F> {
+                    block_id: BlockId<F>,
+                    contract_address: Address<F>,
                 }
 
                 let helper =
@@ -2061,18 +2109,20 @@ impl<'de> Deserialize<'de> for GetClassAtParams {
             }
         }
 
-        deserializer.deserialize_any(Visitor)
+        deserializer.deserialize_any(Visitor::<F> {
+            marker: PhantomData,
+        })
     }
 }
 
 /// Parameters of the `starknet_getBlockTransactionCount` method.
 #[derive(Debug, Clone)]
-pub struct GetBlockTransactionCountParams {
+pub struct GetBlockTransactionCountParams<F> {
     /// The hash of the requested block, or number (height) of the requested block, or a block tag
-    pub block_id: BlockId,
+    pub block_id: BlockId<F>,
 }
 
-impl Serialize for GetBlockTransactionCountParams {
+impl<F: Copy + Serialize> Serialize for GetBlockTransactionCountParams<F> {
     #[allow(unused_mut)]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -2084,15 +2134,19 @@ impl Serialize for GetBlockTransactionCountParams {
     }
 }
 
-impl<'de> Deserialize<'de> for GetBlockTransactionCountParams {
+impl<'de, F: Copy + Serialize + Deserialize<'de>> Deserialize<'de>
+    for GetBlockTransactionCountParams<F>
+{
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
-        struct Visitor;
+        struct Visitor<F> {
+            marker: PhantomData<F>,
+        }
 
-        impl<'de> serde::de::Visitor<'de> for Visitor {
-            type Value = GetBlockTransactionCountParams;
+        impl<'de, F: Copy + Serialize + Deserialize<'de>> serde::de::Visitor<'de> for Visitor<F> {
+            type Value = GetBlockTransactionCountParams<F>;
 
             fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_getBlockTransactionCount`")
@@ -2103,7 +2157,7 @@ impl<'de> Deserialize<'de> for GetBlockTransactionCountParams {
             where
                 A: serde::de::SeqAccess<'de>,
             {
-                let block_id: BlockId = seq
+                let block_id: BlockId<F> = seq
                     .next_element()?
                     .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 1 parameters"))?;
 
@@ -2123,8 +2177,8 @@ impl<'de> Deserialize<'de> for GetBlockTransactionCountParams {
                 A: serde::de::MapAccess<'de>,
             {
                 #[derive(Deserialize)]
-                struct Helper {
-                    block_id: BlockId,
+                struct Helper<F> {
+                    block_id: BlockId<F>,
                 }
 
                 let helper =
@@ -2136,20 +2190,22 @@ impl<'de> Deserialize<'de> for GetBlockTransactionCountParams {
             }
         }
 
-        deserializer.deserialize_any(Visitor)
+        deserializer.deserialize_any(Visitor::<F> {
+            marker: PhantomData,
+        })
     }
 }
 
 /// Parameters of the `starknet_call` method.
 #[derive(Debug, Clone)]
-pub struct CallParams {
+pub struct CallParams<F> {
     /// The details of the function call
-    pub request: FunctionCall,
+    pub request: FunctionCall<F>,
     /// The hash of the requested block, or number (height) of the requested block, or a block tag, for the block referencing the state or call the transaction on.
-    pub block_id: BlockId,
+    pub block_id: BlockId<F>,
 }
 
-impl Serialize for CallParams {
+impl<F: Copy + Serialize> Serialize for CallParams<F> {
     #[allow(unused_mut)]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -2162,15 +2218,17 @@ impl Serialize for CallParams {
     }
 }
 
-impl<'de> Deserialize<'de> for CallParams {
+impl<'de, F: Copy + Serialize + Deserialize<'de>> Deserialize<'de> for CallParams<F> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
-        struct Visitor;
+        struct Visitor<F> {
+            marker: PhantomData<F>,
+        }
 
-        impl<'de> serde::de::Visitor<'de> for Visitor {
-            type Value = CallParams;
+        impl<'de, F: Copy + Serialize + Deserialize<'de>> serde::de::Visitor<'de> for Visitor<F> {
+            type Value = CallParams<F>;
 
             fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_call`")
@@ -2181,10 +2239,10 @@ impl<'de> Deserialize<'de> for CallParams {
             where
                 A: serde::de::SeqAccess<'de>,
             {
-                let request: FunctionCall = seq
+                let request: FunctionCall<F> = seq
                     .next_element()?
                     .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 2 parameters"))?;
-                let block_id: BlockId = seq
+                let block_id: BlockId<F> = seq
                     .next_element()?
                     .ok_or_else(|| serde::de::Error::invalid_length(2, &"expected 2 parameters"))?;
 
@@ -2204,9 +2262,9 @@ impl<'de> Deserialize<'de> for CallParams {
                 A: serde::de::MapAccess<'de>,
             {
                 #[derive(Deserialize)]
-                struct Helper {
-                    request: FunctionCall,
-                    block_id: BlockId,
+                struct Helper<F> {
+                    request: FunctionCall<F>,
+                    block_id: BlockId<F>,
                 }
 
                 let helper =
@@ -2219,22 +2277,24 @@ impl<'de> Deserialize<'de> for CallParams {
             }
         }
 
-        deserializer.deserialize_any(Visitor)
+        deserializer.deserialize_any(Visitor::<F> {
+            marker: PhantomData,
+        })
     }
 }
 
 /// Parameters of the `starknet_estimateFee` method.
 #[derive(Debug, Clone)]
-pub struct EstimateFeeParams {
+pub struct EstimateFeeParams<F: Default> {
     /// The transaction to estimate
-    pub request: Vec<BroadcastedTxn>,
+    pub request: Vec<BroadcastedTxn<F>>,
     /// describes what parts of the transaction should be executed
     pub simulation_flags: Vec<SimulationFlagForEstimateFee>,
     /// The hash of the requested block, or number (height) of the requested block, or a block tag, for the block referencing the state or call the transaction on.
-    pub block_id: BlockId,
+    pub block_id: BlockId<F>,
 }
 
-impl Serialize for EstimateFeeParams {
+impl<F: Copy + Default + Serialize> Serialize for EstimateFeeParams<F> {
     #[allow(unused_mut)]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -2248,15 +2308,19 @@ impl Serialize for EstimateFeeParams {
     }
 }
 
-impl<'de> Deserialize<'de> for EstimateFeeParams {
+impl<'de, F: Copy + Default + Serialize + Deserialize<'de>> Deserialize<'de>
+    for EstimateFeeParams<F>
+{
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
-        struct Visitor;
+        struct Visitor<F> {
+            marker: PhantomData<F>,
+        }
 
-        impl<'de> serde::de::Visitor<'de> for Visitor {
-            type Value = EstimateFeeParams;
+        impl<'de, F: Default + Serialize + Deserialize<'de>> serde::de::Visitor<'de> for Visitor<F> {
+            type Value = EstimateFeeParams<F>;
 
             fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_estimateFee`")
@@ -2267,13 +2331,13 @@ impl<'de> Deserialize<'de> for EstimateFeeParams {
             where
                 A: serde::de::SeqAccess<'de>,
             {
-                let request: Vec<BroadcastedTxn> = seq
+                let request: Vec<BroadcastedTxn<F>> = seq
                     .next_element()?
                     .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 3 parameters"))?;
                 let simulation_flags: Vec<SimulationFlagForEstimateFee> = seq
                     .next_element()?
                     .ok_or_else(|| serde::de::Error::invalid_length(2, &"expected 3 parameters"))?;
-                let block_id: BlockId = seq
+                let block_id: BlockId<F> = seq
                     .next_element()?
                     .ok_or_else(|| serde::de::Error::invalid_length(3, &"expected 3 parameters"))?;
 
@@ -2297,10 +2361,10 @@ impl<'de> Deserialize<'de> for EstimateFeeParams {
                 A: serde::de::MapAccess<'de>,
             {
                 #[derive(Deserialize)]
-                struct Helper {
-                    request: Vec<BroadcastedTxn>,
+                struct Helper<F: Default> {
+                    request: Vec<BroadcastedTxn<F>>,
                     simulation_flags: Vec<SimulationFlagForEstimateFee>,
-                    block_id: BlockId,
+                    block_id: BlockId<F>,
                 }
 
                 let helper =
@@ -2314,20 +2378,22 @@ impl<'de> Deserialize<'de> for EstimateFeeParams {
             }
         }
 
-        deserializer.deserialize_any(Visitor)
+        deserializer.deserialize_any(Visitor::<F> {
+            marker: PhantomData,
+        })
     }
 }
 
 /// Parameters of the `starknet_estimateMessageFee` method.
 #[derive(Debug, Clone)]
-pub struct EstimateMessageFeeParams {
+pub struct EstimateMessageFeeParams<F> {
     /// the message's parameters
-    pub message: MsgFromL1,
+    pub message: MsgFromL1<F>,
     /// The hash of the requested block, or number (height) of the requested block, or a block tag, for the block referencing the state or call the transaction on.
-    pub block_id: BlockId,
+    pub block_id: BlockId<F>,
 }
 
-impl Serialize for EstimateMessageFeeParams {
+impl<F: Copy + Serialize> Serialize for EstimateMessageFeeParams<F> {
     #[allow(unused_mut)]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -2340,15 +2406,17 @@ impl Serialize for EstimateMessageFeeParams {
     }
 }
 
-impl<'de> Deserialize<'de> for EstimateMessageFeeParams {
+impl<'de, F: Copy + Serialize + Deserialize<'de>> Deserialize<'de> for EstimateMessageFeeParams<F> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
-        struct Visitor;
+        struct Visitor<F> {
+            marker: PhantomData<F>,
+        }
 
-        impl<'de> serde::de::Visitor<'de> for Visitor {
-            type Value = EstimateMessageFeeParams;
+        impl<'de, F: Serialize + Deserialize<'de>> serde::de::Visitor<'de> for Visitor<F> {
+            type Value = EstimateMessageFeeParams<F>;
 
             fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_estimateMessageFee`")
@@ -2359,10 +2427,10 @@ impl<'de> Deserialize<'de> for EstimateMessageFeeParams {
             where
                 A: serde::de::SeqAccess<'de>,
             {
-                let message: MsgFromL1 = seq
+                let message: MsgFromL1<F> = seq
                     .next_element()?
                     .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 2 parameters"))?;
-                let block_id: BlockId = seq
+                let block_id: BlockId<F> = seq
                     .next_element()?
                     .ok_or_else(|| serde::de::Error::invalid_length(2, &"expected 2 parameters"))?;
 
@@ -2382,9 +2450,9 @@ impl<'de> Deserialize<'de> for EstimateMessageFeeParams {
                 A: serde::de::MapAccess<'de>,
             {
                 #[derive(Deserialize)]
-                struct Helper {
-                    message: MsgFromL1,
-                    block_id: BlockId,
+                struct Helper<F> {
+                    message: MsgFromL1<F>,
+                    block_id: BlockId<F>,
                 }
 
                 let helper =
@@ -2397,7 +2465,9 @@ impl<'de> Deserialize<'de> for EstimateMessageFeeParams {
             }
         }
 
-        deserializer.deserialize_any(Visitor)
+        deserializer.deserialize_any(Visitor::<F> {
+            marker: PhantomData,
+        })
     }
 }
 
@@ -2655,12 +2725,12 @@ impl<'de> Deserialize<'de> for SyncingParams {
 
 /// Parameters of the `starknet_getEvents` method.
 #[derive(Debug, Clone)]
-pub struct GetEventsParams {
+pub struct GetEventsParams<F: Copy> {
     /// The conditions used to filter the returned events
-    pub filter: EventFilterWithPageRequest,
+    pub filter: EventFilterWithPageRequest<F>,
 }
 
-impl Serialize for GetEventsParams {
+impl<F: Copy + Serialize> Serialize for GetEventsParams<F> {
     #[allow(unused_mut)]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -2672,15 +2742,17 @@ impl Serialize for GetEventsParams {
     }
 }
 
-impl<'de> Deserialize<'de> for GetEventsParams {
+impl<'de, F: Copy + Default + Deserialize<'de>> Deserialize<'de> for GetEventsParams<F> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
-        struct Visitor;
+        struct Visitor<F> {
+            marker: PhantomData<F>,
+        }
 
-        impl<'de> serde::de::Visitor<'de> for Visitor {
-            type Value = GetEventsParams;
+        impl<'de, F: Copy + Default + Deserialize<'de>> serde::de::Visitor<'de> for Visitor<F> {
+            type Value = GetEventsParams<F>;
 
             fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_getEvents`")
@@ -2691,7 +2763,7 @@ impl<'de> Deserialize<'de> for GetEventsParams {
             where
                 A: serde::de::SeqAccess<'de>,
             {
-                let filter: EventFilterWithPageRequest = seq
+                let filter: EventFilterWithPageRequest<F> = seq
                     .next_element()?
                     .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 1 parameters"))?;
 
@@ -2711,8 +2783,8 @@ impl<'de> Deserialize<'de> for GetEventsParams {
                 A: serde::de::MapAccess<'de>,
             {
                 #[derive(Deserialize)]
-                struct Helper {
-                    filter: EventFilterWithPageRequest,
+                struct Helper<F: Copy + Default> {
+                    filter: EventFilterWithPageRequest<F>,
                 }
 
                 let helper =
@@ -2724,20 +2796,22 @@ impl<'de> Deserialize<'de> for GetEventsParams {
             }
         }
 
-        deserializer.deserialize_any(Visitor)
+        deserializer.deserialize_any(Visitor::<F> {
+            marker: PhantomData,
+        })
     }
 }
 
 /// Parameters of the `starknet_getNonce` method.
 #[derive(Debug, Clone)]
-pub struct GetNonceParams {
+pub struct GetNonceParams<F> {
     /// The hash of the requested block, or number (height) of the requested block, or a block tag
-    pub block_id: BlockId,
+    pub block_id: BlockId<F>,
     /// The address of the contract whose nonce we're seeking
-    pub contract_address: Address,
+    pub contract_address: Address<F>,
 }
 
-impl Serialize for GetNonceParams {
+impl<F: Copy + Serialize> Serialize for GetNonceParams<F> {
     #[allow(unused_mut)]
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -2750,15 +2824,17 @@ impl Serialize for GetNonceParams {
     }
 }
 
-impl<'de> Deserialize<'de> for GetNonceParams {
+impl<'de, F: Copy + Serialize + Deserialize<'de>> Deserialize<'de> for GetNonceParams<F> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
-        struct Visitor;
+        struct Visitor<F> {
+            marker: PhantomData<F>,
+        }
 
-        impl<'de> serde::de::Visitor<'de> for Visitor {
-            type Value = GetNonceParams;
+        impl<'de, F: Copy + Serialize + Deserialize<'de>> serde::de::Visitor<'de> for Visitor<F> {
+            type Value = GetNonceParams<F>;
 
             fn expecting(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
                 write!(f, "the parameters for `starknet_getNonce`")
@@ -2769,10 +2845,10 @@ impl<'de> Deserialize<'de> for GetNonceParams {
             where
                 A: serde::de::SeqAccess<'de>,
             {
-                let block_id: BlockId = seq
+                let block_id: BlockId<F> = seq
                     .next_element()?
                     .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 2 parameters"))?;
-                let contract_address: Address = seq
+                let contract_address: Address<F> = seq
                     .next_element()?
                     .ok_or_else(|| serde::de::Error::invalid_length(2, &"expected 2 parameters"))?;
 
@@ -2795,9 +2871,9 @@ impl<'de> Deserialize<'de> for GetNonceParams {
                 A: serde::de::MapAccess<'de>,
             {
                 #[derive(Deserialize)]
-                struct Helper {
-                    block_id: BlockId,
-                    contract_address: Address,
+                struct Helper<F> {
+                    block_id: BlockId<F>,
+                    contract_address: Address<F>,
                 }
 
                 let helper =
@@ -2810,6 +2886,8 @@ impl<'de> Deserialize<'de> for GetNonceParams {
             }
         }
 
-        deserializer.deserialize_any(Visitor)
+        deserializer.deserialize_any(Visitor::<F> {
+            marker: PhantomData,
+        })
     }
 }

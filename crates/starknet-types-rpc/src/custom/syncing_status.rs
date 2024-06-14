@@ -1,3 +1,4 @@
+use core::marker::PhantomData;
 use serde::de::Visitor;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
@@ -5,14 +6,14 @@ use crate::SyncStatus;
 
 /// The syncing status of a node.
 #[derive(Clone, Debug)]
-pub enum SyncingStatus {
+pub enum SyncingStatus<F> {
     /// The node is not syncing.
     NotSyncing,
     /// The node is syncing.
-    Syncing(SyncStatus),
+    Syncing(SyncStatus<F>),
 }
 
-impl Serialize for SyncingStatus {
+impl<F: Serialize> Serialize for SyncingStatus<F> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -24,15 +25,17 @@ impl Serialize for SyncingStatus {
     }
 }
 
-impl<'de> Deserialize<'de> for SyncingStatus {
+impl<'de, F: Deserialize<'de>> Deserialize<'de> for SyncingStatus<F> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
     {
-        struct SyncingStatusVisitor;
+        struct SyncingStatusVisitor<F> {
+            marker: PhantomData<F>,
+        }
 
-        impl<'de> Visitor<'de> for SyncingStatusVisitor {
-            type Value = SyncingStatus;
+        impl<'de, F: Deserialize<'de>> Visitor<'de> for SyncingStatusVisitor<F> {
+            type Value = SyncingStatus<F>;
 
             fn expecting(&self, formatter: &mut core::fmt::Formatter) -> core::fmt::Result {
                 writeln!(formatter, "a syncing status")
@@ -60,22 +63,28 @@ impl<'de> Deserialize<'de> for SyncingStatus {
             }
         }
 
-        deserializer.deserialize_any(SyncingStatusVisitor)
+        deserializer.deserialize_any(SyncingStatusVisitor::<F> {
+            marker: PhantomData,
+        })
     }
 }
 
 #[cfg(test)]
 #[test]
 fn syncing_status_from_false() {
+    use crate::Felt;
+
     let s = "false";
-    let syncing_status: SyncingStatus = serde_json::from_str(s).unwrap();
+    let syncing_status: SyncingStatus<Felt> = serde_json::from_str(s).unwrap();
     assert!(matches!(syncing_status, SyncingStatus::NotSyncing));
 }
 
 #[cfg(test)]
 #[test]
 fn syncing_status_to_false() {
-    let syncing_status = SyncingStatus::NotSyncing;
+    use crate::Felt;
+
+    let syncing_status = SyncingStatus::<Felt>::NotSyncing;
     let s = serde_json::to_string(&syncing_status).unwrap();
     assert_eq!(s, "false");
 }
@@ -83,6 +92,7 @@ fn syncing_status_to_false() {
 #[cfg(test)]
 #[test]
 fn syncing_status_from_true() {
+    use crate::Felt;
     let s = "true";
-    assert!(serde_json::from_str::<SyncingStatus>(s).is_err());
+    assert!(serde_json::from_str::<SyncingStatus<Felt>>(s).is_err());
 }
