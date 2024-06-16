@@ -39,7 +39,7 @@ use arbitrary::{self, Arbitrary, Unstructured};
 
 #[repr(transparent)]
 /// Definition of the Field Element type.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Felt(pub(crate) FieldElement<Stark252PrimeField>);
 
 /// A non-zero [Felt].
@@ -998,6 +998,12 @@ mod formatting {
         }
     }
 
+    impl fmt::Debug for Felt {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            write!(f, "{}", self.to_fixed_hex_string())
+        }
+    }
+
     /// Represents [Felt] in lowercase hexadecimal format.
     #[cfg(feature = "alloc")]
     impl fmt::LowerHex for Felt {
@@ -1083,6 +1089,22 @@ mod test {
     use regex::Regex;
     #[cfg(feature = "serde")]
     use serde_test::{assert_de_tokens, assert_ser_tokens, Configure, Token};
+
+    #[test]
+    fn test_debug_format() {
+        assert_eq!(
+            format!("{:?}", Felt::ONE),
+            "0x0000000000000000000000000000000000000000000000000000000000000001"
+        );
+        assert_eq!(
+            format!("{:?}", Felt::from(2)),
+            "0x0000000000000000000000000000000000000000000000000000000000000002"
+        );
+        assert_eq!(
+            format!("{:?}", Felt::from(12345)),
+            "0x0000000000000000000000000000000000000000000000000000000000003039"
+        );
+    }
 
     // Helper function to generate a vector of bits for testing purposes
     fn generate_be_bits(x: &Felt) -> Vec<bool> {
