@@ -18,13 +18,13 @@ use serde::{Deserialize, Serialize};
 
 pub type Address<F> = F;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct TransactionAndReceipt<F> {
     pub receipt: TxnReceipt<F>,
     pub transaction: Txn<F>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct TxnWithHash<F> {
     #[serde(flatten)]
     pub transaction: Txn<F>,
@@ -33,7 +33,7 @@ pub struct TxnWithHash<F> {
 
 pub type BlockHash<F> = F;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct BlockHeader<F> {
     pub block_hash: BlockHash<F>,
     /// The block number (its height)
@@ -82,7 +82,7 @@ pub enum BlockTag {
 }
 
 /// The block object
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct BlockWithReceipts<F> {
     /// The transactions in this block
     pub transactions: Vec<TransactionAndReceipt<F>>,
@@ -92,7 +92,7 @@ pub struct BlockWithReceipts<F> {
 }
 
 /// The block object
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct BlockWithTxs<F> {
     /// The transactions in this block
     pub transactions: Vec<TxnWithHash<F>>,
@@ -102,7 +102,7 @@ pub struct BlockWithTxs<F> {
 }
 
 /// The block object
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct BlockWithTxHashes<F> {
     /// The hashes of the transactions included in this block
     pub transactions: Vec<TxnHash<F>>,
@@ -111,7 +111,7 @@ pub struct BlockWithTxHashes<F> {
     pub block_header: BlockHeader<F>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct BroadcastedDeclareTxnV1<F: Default> {
     /// The class to be declared
     pub contract_class: DeprecatedContractClass<F>,
@@ -123,7 +123,7 @@ pub struct BroadcastedDeclareTxnV1<F: Default> {
     pub signature: Signature<F>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct BroadcastedDeclareTxnV2<F> {
     /// The hash of the Cairo assembly resulting from the Sierra compilation
     pub compiled_class_hash: F,
@@ -137,7 +137,7 @@ pub struct BroadcastedDeclareTxnV2<F> {
     pub signature: Signature<F>,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum BroadcastedTxn<F: Default> {
     #[serde(rename = "INVOKE")]
@@ -151,7 +151,7 @@ pub enum BroadcastedTxn<F: Default> {
 /// StarkNet chain id, given in hex representation.
 pub type ChainId = u64;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct CommonReceiptProperties<F> {
     /// The fee that was charged by the sequencer
     pub actual_fee: FeePayment<F>,
@@ -168,7 +168,7 @@ pub struct CommonReceiptProperties<F> {
     pub anon: Anonymous,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum Anonymous {
     /// Common properties for a transaction receipt that was executed successfully
@@ -178,14 +178,14 @@ pub enum Anonymous {
 }
 
 /// Common properties for a transaction receipt that was executed successfully
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct SuccessfulCommonReceiptProperties {
     /// The execution status of the transaction
     pub execution_status: String, /* SUCCEEDED */
 }
 
 /// Common properties for a transaction receipt that was reverted
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct RevertedCommonReceiptProperties {
     /// The execution status of the transaction
     pub execution_status: String, /* REVERTED */
@@ -194,7 +194,7 @@ pub struct RevertedCommonReceiptProperties {
 }
 
 /// The resources consumed by the VM
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct ComputationResources {
     /// the number of BITWISE builtin instances
     #[serde(default)]
@@ -229,7 +229,7 @@ pub struct ComputationResources {
 
 pub type ContractAbi = Vec<ContractAbiEntry>;
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum ContractAbiEntry {
     Function(FunctionAbiEntry),
@@ -237,7 +237,7 @@ pub enum ContractAbiEntry {
     Struct(StructAbiEntry),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct ContractClass<F> {
     /// The class ABI, as supplied by the user declaring the class
     #[serde(default)]
@@ -249,7 +249,7 @@ pub struct ContractClass<F> {
     pub sierra_program: Vec<F>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct EntryPointsByType<F> {
     #[serde(rename = "CONSTRUCTOR")]
     pub constructor: Vec<SierraEntryPoint<F>>,
@@ -259,7 +259,7 @@ pub struct EntryPointsByType<F> {
     pub l1_handler: Vec<SierraEntryPoint<F>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct ContractStorageDiffItem<F: Default> {
     /// The contract address for which the storage changed
     pub address: F,
@@ -267,7 +267,7 @@ pub struct ContractStorageDiffItem<F: Default> {
     pub storage_entries: Vec<KeyValuePair<F>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct KeyValuePair<F> {
     /// The key of the changed value
     #[serde(default)]
@@ -284,7 +284,7 @@ pub enum DaMode {
     L2,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "version")]
 pub enum DeclareTxn<F> {
     #[serde(rename = "0x0")]
@@ -297,13 +297,13 @@ pub enum DeclareTxn<F> {
     V3(DeclareTxnV3<F>),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct DeclareTxnReceipt<F> {
     #[serde(flatten)]
     pub common_receipt_properties: CommonReceiptProperties<F>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct DeclareTxnV0<F> {
     /// The hash of the declared class
     pub class_hash: F,
@@ -314,7 +314,7 @@ pub struct DeclareTxnV0<F> {
     pub signature: Signature<F>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct DeclareTxnV1<F> {
     /// The hash of the declared class
     pub class_hash: F,
@@ -326,7 +326,7 @@ pub struct DeclareTxnV1<F> {
     pub signature: Signature<F>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct DeclareTxnV2<F> {
     /// The hash of the declared class
     pub class_hash: F,
@@ -340,7 +340,7 @@ pub struct DeclareTxnV2<F> {
     pub signature: Signature<F>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct DeclareTxnV3<F> {
     /// data needed to deploy the account contract from which this tx will be initiated
     pub account_deployment_data: Vec<F>,
@@ -364,7 +364,7 @@ pub struct DeclareTxnV3<F> {
     pub tip: U64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct DeployedContractItem<F> {
     /// The address of the contract
     pub address: F,
@@ -373,7 +373,7 @@ pub struct DeployedContractItem<F> {
 }
 
 /// deploys a new account contract
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "version")]
 pub enum DeployAccountTxn<F> {
     #[serde(rename = "0x1")]
@@ -382,7 +382,7 @@ pub enum DeployAccountTxn<F> {
     V3(DeployAccountTxnV3<F>),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct DeployAccountTxnReceipt<F> {
     #[serde(flatten)]
     pub common_receipt_properties: CommonReceiptProperties<F>,
@@ -391,7 +391,7 @@ pub struct DeployAccountTxnReceipt<F> {
 }
 
 /// Deploys an account contract, charges fee from the pre-funded account addresses
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct DeployAccountTxnV1<F> {
     /// The hash of the deployed contract's class
     pub class_hash: F,
@@ -406,7 +406,7 @@ pub struct DeployAccountTxnV1<F> {
 }
 
 /// Deploys an account contract, charges fee from the pre-funded account addresses
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct DeployAccountTxnV3<F> {
     /// The hash of the deployed contract's class
     pub class_hash: F,
@@ -428,7 +428,7 @@ pub struct DeployAccountTxnV3<F> {
     pub tip: U64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct DeployTxn<F> {
     /// The hash of the deployed contract's class
     pub class_hash: F,
@@ -440,7 +440,7 @@ pub struct DeployTxn<F> {
     pub version: F,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct DeployTxnReceipt<F> {
     #[serde(flatten)]
     pub common_receipt_properties: CommonReceiptProperties<F>,
@@ -448,7 +448,7 @@ pub struct DeployTxnReceipt<F> {
     pub contract_address: F,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct DeprecatedCairoEntryPoint<F> {
     /// The offset of the entry point in the program
     #[serde(with = "NumAsHex")]
@@ -458,7 +458,7 @@ pub struct DeprecatedCairoEntryPoint<F> {
 }
 
 /// The definition of a StarkNet contract class
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct DeprecatedContractClass<F: Default> {
     #[serde(default)]
     pub abi: Option<ContractAbi>,
@@ -467,7 +467,7 @@ pub struct DeprecatedContractClass<F: Default> {
     pub program: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct DeprecatedEntryPointsByType<F> {
     #[serde(default)]
     #[serde(rename = "CONSTRUCTOR")]
@@ -481,7 +481,7 @@ pub struct DeprecatedEntryPointsByType<F> {
 }
 
 /// Event information decorated with metadata on where it was emitted / An event emitted as a result of transaction execution
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct EmittedEvent<F> {
     /// The event information
     #[serde(flatten)]
@@ -500,14 +500,14 @@ pub struct EmittedEvent<F> {
 pub type EthAddress = String;
 
 /// A StarkNet event
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Event<F> {
     pub from_address: Address<F>,
     pub data: Vec<F>,
     pub keys: Vec<F>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct EventsChunk<F: Default> {
     /// Use this token in a subsequent query to obtain the next page. Should not appear if there are no more pages.
     #[serde(default)]
@@ -515,7 +515,7 @@ pub struct EventsChunk<F: Default> {
     pub events: Vec<EmittedEvent<F>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct EventAbiEntry {
     pub data: Vec<TypedParameter>,
     pub keys: Vec<TypedParameter>,
@@ -528,7 +528,7 @@ pub struct EventAbiEntry {
 pub type EventAbiType = String;
 
 /// the resources consumed by the transaction, includes both computation and data
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct ExecutionResources {
     /// the number of BITWISE builtin instances
     #[serde(default)]
@@ -562,7 +562,7 @@ pub struct ExecutionResources {
     pub data_availability: DataAvailability,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct DataAvailability {
     /// the data gas consumed by this transaction's data, 0 if it uses gas for DA
     pub l1_data_gas: u64,
@@ -570,7 +570,7 @@ pub struct DataAvailability {
     pub l1_gas: u64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct FeeEstimate<F> {
     /// The Ethereum data gas consumption of the transaction
     pub data_gas_consumed: F,
@@ -587,7 +587,7 @@ pub struct FeeEstimate<F> {
 }
 
 /// fee payment info as it appears in receipts
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct FeePayment<F> {
     /// amount paid
     pub amount: F,
@@ -595,7 +595,7 @@ pub struct FeePayment<F> {
     pub unit: PriceUnit,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct FunctionAbiEntry {
     pub inputs: Vec<TypedParameter>,
     /// The function name
@@ -619,7 +619,7 @@ pub enum FunctionAbiType {
 }
 
 /// Function call information
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct FunctionCall<F> {
     /// The parameters passed to the function
     pub calldata: Vec<F>,
@@ -630,7 +630,7 @@ pub struct FunctionCall<F> {
 pub type FunctionStateMutability = String;
 
 /// Initiate a transaction from an account
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "version")]
 pub enum InvokeTxn<F> {
     #[serde(rename = "0x0")]
@@ -641,14 +641,14 @@ pub enum InvokeTxn<F> {
     V3(InvokeTxnV3<F>),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct InvokeTxnReceipt<F> {
     #[serde(flatten)]
     pub common_receipt_properties: CommonReceiptProperties<F>,
 }
 
 /// invokes a specific function in the desired contract (not necessarily an account)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct InvokeTxnV0<F> {
     /// The parameters passed to the function
     pub calldata: Vec<F>,
@@ -659,7 +659,7 @@ pub struct InvokeTxnV0<F> {
     pub signature: Signature<F>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct InvokeTxnV1<F> {
     /// The data expected by the account's `execute` function (in most usecases, this includes the called contract address and a function selector)
     pub calldata: Vec<F>,
@@ -670,7 +670,7 @@ pub struct InvokeTxnV1<F> {
     pub signature: Signature<F>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct InvokeTxnV3<F> {
     /// data needed to deploy the account contract from which this tx will be initiated
     pub account_deployment_data: Vec<F>,
@@ -691,7 +691,7 @@ pub struct InvokeTxnV3<F> {
     pub tip: U64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct L1HandlerTxn<F> {
     /// The L1->L2 message nonce field of the SN Core L1 contract at the time the transaction was sent
     #[serde(with = "NumAsHex")]
@@ -703,7 +703,7 @@ pub struct L1HandlerTxn<F> {
 }
 
 /// receipt for l1 handler transaction
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct L1HandlerTxnReceipt<F> {
     /// The message hash as it appears on the L1 core contract
     #[serde(with = "NumAsHex")]
@@ -712,7 +712,7 @@ pub struct L1HandlerTxnReceipt<F> {
     pub common_receipt_properties: CommonReceiptProperties<F>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct MsgFromL1<F> {
     /// The selector of the l1_handler in invoke in the target contract
     pub entry_point_selector: F,
@@ -724,7 +724,7 @@ pub struct MsgFromL1<F> {
     pub to_address: Address<F>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct MsgToL1<F> {
     /// The address of the L2 contract sending the message
     pub from_address: F,
@@ -734,7 +734,7 @@ pub struct MsgToL1<F> {
     pub to_address: F,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct PendingBlockHeader<F> {
     /// specifies whether the data of this block is published via blob data or calldata
     pub l1_da_mode: L1DaMode,
@@ -762,7 +762,7 @@ pub enum L1DaMode {
 }
 
 /// The dynamic block being constructed by the sequencer. Note that this object will be deprecated upon decentralization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct PendingBlockWithReceipts<F> {
     /// The transactions in this block
     pub transactions: Vec<TransactionAndReceipt<F>>,
@@ -771,7 +771,7 @@ pub struct PendingBlockWithReceipts<F> {
 }
 
 /// The dynamic block being constructed by the sequencer. Note that this object will be deprecated upon decentralization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct PendingBlockWithTxs<F> {
     /// The transactions in this block
     pub transactions: Vec<TxnWithHash<F>>,
@@ -780,7 +780,7 @@ pub struct PendingBlockWithTxs<F> {
 }
 
 /// The dynamic block being constructed by the sequencer. Note that this object will be deprecated upon decentralization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct PendingBlockWithTxHashes<F> {
     /// The hashes of the transactions included in this block
     pub transactions: Vec<TxnHash<F>>,
@@ -789,7 +789,7 @@ pub struct PendingBlockWithTxHashes<F> {
 }
 
 /// Pending state update
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct PendingStateUpdate<F: Default> {
     /// The previous global state root
     pub old_root: F,
@@ -804,7 +804,7 @@ pub enum PriceUnit {
     Wei,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct ResourceBounds {
     /// the max amount of the resource that can be used in the tx
     pub max_amount: U64,
@@ -812,7 +812,7 @@ pub struct ResourceBounds {
     pub max_price_per_unit: U128,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct ResourceBoundsMapping {
     /// The max amount and max price per unit of L1 gas used in this tx
     pub l1_gas: ResourceBounds,
@@ -820,7 +820,7 @@ pub struct ResourceBoundsMapping {
     pub l2_gas: ResourceBounds,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct ResourcePrice<F> {
     /// the price of one unit of the given resource, denominated in fri (10^-18 strk)
     pub price_in_fri: F,
@@ -828,7 +828,7 @@ pub struct ResourcePrice<F> {
     pub price_in_wei: F,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct SierraEntryPoint<F> {
     /// The index of the function in the program
     pub function_idx: u64,
@@ -843,7 +843,7 @@ pub type Signature<F> = Vec<F>;
 pub type SimulationFlagForEstimateFee = String;
 
 /// The change in state applied in this block, given as a mapping of addresses to the new values and/or new contracts
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct StateDiff<F: Default> {
     pub declared_classes: Vec<NewClasses<F>>,
     pub deployed_contracts: Vec<DeployedContractItem<F>>,
@@ -854,7 +854,7 @@ pub struct StateDiff<F: Default> {
 }
 
 /// The declared class hash and compiled class hash
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct NewClasses<F> {
     /// The hash of the declared class
     #[serde(default)]
@@ -865,7 +865,7 @@ pub struct NewClasses<F> {
 }
 
 /// The updated nonce per contract address
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct NonceUpdate<F> {
     /// The address of the contract
     #[serde(default)]
@@ -876,7 +876,7 @@ pub struct NonceUpdate<F> {
 }
 
 /// The list of contracts whose class was replaced
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct ReplacedClass<F> {
     /// The new class hash
     #[serde(default)]
@@ -886,7 +886,7 @@ pub struct ReplacedClass<F> {
     pub contract_address: Option<Address<F>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct StateUpdate<F: Default> {
     pub block_hash: BlockHash<F>,
     /// The new global state root
@@ -899,7 +899,7 @@ pub struct StateUpdate<F: Default> {
 /// A storage key. Represented as up to 62 hex digits, 3 bits, and 5 leading zeroes.
 pub type StorageKey = String;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct StructAbiEntry {
     pub members: Vec<StructMember>,
     /// The struct name
@@ -911,7 +911,7 @@ pub struct StructAbiEntry {
 
 pub type StructAbiType = String;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct StructMember {
     #[serde(flatten)]
     pub typed_parameter: TypedParameter,
@@ -921,7 +921,7 @@ pub struct StructMember {
 }
 
 /// An object describing the node synchronization status
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct SyncStatus<F> {
     /// The hash of the current block being synchronized
     pub current_block_hash: BlockHash<F>,
@@ -938,7 +938,7 @@ pub struct SyncStatus<F> {
 }
 
 /// The transaction schema, as it appears inside a block
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum Txn<F> {
     #[serde(rename = "INVOKE")]
@@ -975,7 +975,7 @@ pub enum TxnFinalityStatus {
 // pub type TxnHash<F: Serialize + for<'de> Deserialize<'de>> = F;
 pub type TxnHash<F> = F;
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum TxnReceipt<F> {
     #[serde(rename = "INVOKE")]
@@ -990,7 +990,7 @@ pub enum TxnReceipt<F> {
     DeployAccount(DeployAccountTxnReceipt<F>),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct TxnReceiptWithBlockInfo<F> {
     #[serde(flatten)]
     pub transaction_receipt: TxnReceipt<F>,
@@ -1015,7 +1015,7 @@ pub enum TxnStatus {
     Rejected,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct TypedParameter {
     /// The parameter's name
     pub name: String,
@@ -1030,41 +1030,41 @@ pub type U128 = String;
 /// 64 bit integers, represented by hex string of length at most 16
 pub type U64 = String;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct BlockHashAndNumber<F> {
     pub block_hash: BlockHash<F>,
     pub block_number: BlockNumber,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum StarknetGetBlockWithTxsAndReceiptsResult<F> {
     Block(BlockWithReceipts<F>),
     Pending(PendingBlockWithReceipts<F>),
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum MaybePendingBlockWithTxHashes<F> {
     Block(BlockWithTxHashes<F>),
     Pending(PendingBlockWithTxHashes<F>),
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum MaybePendingBlockWithTxs<F> {
     Block(BlockWithTxs<F>),
     Pending(PendingBlockWithTxs<F>),
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum MaybeDeprecatedContractClass<F: Default> {
     Deprecated(DeprecatedContractClass<F>),
     ContractClass(ContractClass<F>),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct EventFilterWithPageRequest<F: Copy> {
     #[serde(default)]
     pub address: Option<Address<F>>,
@@ -1081,14 +1081,14 @@ pub struct EventFilterWithPageRequest<F: Copy> {
     pub continuation_token: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum MaybePendingStateUpdate<F: Default> {
     Block(StateUpdate<F>),
     Pending(PendingStateUpdate<F>),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct TxnFinalityAndExecutionStatus {
     #[serde(default)]
     pub execution_status: Option<TxnExecutionStatus>,

@@ -7,7 +7,7 @@ use crate::{
     BroadcastedDeclareTxnV1, BroadcastedDeclareTxnV2, DeployAccountTxnV1, InvokeTxnV0, InvokeTxnV1,
 };
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "version")]
 pub enum BroadcastedDeclareTxn<F: Default> {
     #[serde(rename = "0x1")]
@@ -22,7 +22,7 @@ pub enum BroadcastedDeclareTxn<F: Default> {
     QueryV2(BroadcastedDeclareTxnV2<F>),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "version")]
 pub enum BroadcastedDeployAccountTxn<F> {
     #[serde(rename = "0x1")]
@@ -32,7 +32,7 @@ pub enum BroadcastedDeployAccountTxn<F> {
     QueryV1(DeployAccountTxnV1<F>),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "version")]
 pub enum BroadcastedInvokeTxn<F> {
     #[serde(rename = "0x0")]

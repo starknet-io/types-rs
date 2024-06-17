@@ -37,7 +37,7 @@ pub enum EntryPointType {
     L1Handler,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct FunctionInvocation<F> {
     #[serde(flatten)]
     pub function_call: FunctionCall<F>,
@@ -62,7 +62,7 @@ pub struct FunctionInvocation<F> {
 pub type NestedCall<F> = FunctionInvocation<F>;
 
 /// an event alongside its order within the transaction
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct OrderedEvent<F> {
     /// the order of the event within the transaction
     #[serde(default)]
@@ -72,7 +72,7 @@ pub struct OrderedEvent<F> {
 }
 
 /// a message alongside its order within the transaction
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct OrderedMessage<F> {
     /// the order of the message within the transaction
     #[serde(default)]
@@ -90,7 +90,7 @@ pub enum SimulationFlag {
     Validate,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum TransactionTrace<F: Default> {
     /// the execution trace of an invoke transaction
@@ -108,7 +108,7 @@ pub enum TransactionTrace<F: Default> {
 }
 
 /// the execution trace of an invoke transaction
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct InvokeTransactionTrace<F: Default> {
     /// the trace of the __execute__ call or constructor call, depending on the transaction type (none for declare transactions)
     pub execute_invocation: ExecuteInvocation<F>,
@@ -124,21 +124,21 @@ pub struct InvokeTransactionTrace<F: Default> {
 }
 
 /// the trace of the __execute__ call or constructor call, depending on the transaction type (none for declare transactions)
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum ExecuteInvocation<F> {
     FunctionInvocation(FunctionInvocation<F>),
     Anon(RevertedInvocation),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct RevertedInvocation {
     /// the revert reason for the failed execution
     pub revert_reason: String,
 }
 
 /// the execution trace of a declare transaction
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct DeclareTransactionTrace<F: Default> {
     /// the resources consumed by the transaction, includes both computation and data
     pub execution_resources: ExecutionResources,
@@ -152,7 +152,7 @@ pub struct DeclareTransactionTrace<F: Default> {
 }
 
 /// the execution trace of a deploy account transaction
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct DeployAccountTransactionTrace<F: Default> {
     /// the trace of the __execute__ call or constructor call, depending on the transaction type (none for declare transactions)
     pub constructor_invocation: FunctionInvocation<F>,
@@ -168,7 +168,7 @@ pub struct DeployAccountTransactionTrace<F: Default> {
 }
 
 /// the execution trace of an L1 handler transaction
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct L1HandlerTransactionTrace<F: Default> {
     /// the resources consumed by the transaction, includes both computation and data
     pub execution_resources: ExecutionResources,
@@ -179,7 +179,7 @@ pub struct L1HandlerTransactionTrace<F: Default> {
     pub state_diff: Option<StateDiff<F>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct SimulateTransactionsResult<F: Default> {
     #[serde(default)]
     pub fee_estimation: Option<FeeEstimate<F>>,
@@ -188,7 +188,7 @@ pub struct SimulateTransactionsResult<F: Default> {
 }
 
 /// A single pair of transaction hash and corresponding trace
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct TraceBlockTransactionsResult<F: Default> {
     #[serde(default)]
     pub trace_root: Option<TransactionTrace<F>>,

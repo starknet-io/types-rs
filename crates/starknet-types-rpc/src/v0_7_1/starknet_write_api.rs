@@ -15,19 +15,19 @@ use core::marker::PhantomData;
 use serde::ser::SerializeMap;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct ClassAndTxnHash<F> {
     pub class_hash: F,
     pub transaction_hash: TxnHash<F>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct ContractAndTxnHash<F> {
     pub contract_address: Felt,
     pub transaction_hash: TxnHash<F>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct AddInvokeTransactionResult<F> {
     pub transaction_hash: TxnHash<F>,
 }
