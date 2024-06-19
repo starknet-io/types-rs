@@ -1,4 +1,4 @@
-//! v0.6.0 of the API.
+//! v0.7.1 of the API.
 
 pub use starknet_types_core::felt::Felt;
 
