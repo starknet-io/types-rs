@@ -44,7 +44,7 @@ impl ToPrimitive for Felt {
 
 impl Zero for Felt {
     fn is_zero(&self) -> bool {
-        *self == Felt::ZERO
+        *self == Self::ZERO
     }
 
     fn zero() -> Felt {
