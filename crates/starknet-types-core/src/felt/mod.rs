@@ -619,6 +619,8 @@ impl_from!(isize, i128);
 impl FromStr for Felt {
     type Err = FromStrError;
 
+    /// Converts a hex (0x-prefixed) or decimal string to a [Felt].
+    /// e.g., '0x123abc' or '1337'.
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.starts_with("0x") {
             Felt::from_hex(s)
