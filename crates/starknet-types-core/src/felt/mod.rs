@@ -973,9 +973,16 @@ mod serde_impl {
             for (i, byte) in bytes.iter_mut().enumerate() {
                 *byte = seq
                     .next_element()?
-                    .ok_or_else(|| de::Error::invalid_length(i, &"expected 32 bytes"))?;
+                    .ok_or_else(|| de::Error::invalid_length(i, &"32 bytes"))?;
             }
-            Ok(Felt::from_bytes_be_slice(&bytes))
+            if seq.next_element::<u8>()?.is_some() {
+                let mut count = 33;
+                while seq.next_element::<u8>()?.is_some() {
+                    count += 1;
+                }
+                return Err(de::Error::invalid_length(count, &"32 bytes"));
+            }
+            Ok(Felt::from_bytes_be(&bytes))
         }
     }
 }
@@ -1105,7 +1112,9 @@ mod test {
     use proptest::prelude::*;
     use regex::Regex;
     #[cfg(feature = "serde")]
-    use serde_test::{assert_de_tokens, assert_ser_tokens, Configure, Token};
+    use serde_test::{
+        assert_de_tokens, assert_de_tokens_error, assert_ser_tokens, Compact, Configure, Token,
+    };
 
     #[test]
     fn test_debug_format() {
@@ -1804,6 +1813,84 @@ mod test {
                 Token::U8(0),
                 Token::SeqEnd,
             ],
+        );
+        assert_de_tokens_error::<Compact<Felt>>(
+            &[
+                Token::Seq { len: Some(31) },
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::SeqEnd,
+            ],
+            "invalid length 31, expected 32 bytes",
+        );
+        assert_de_tokens_error::<Compact<Felt>>(
+            &[
+                Token::Seq { len: Some(33) },
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::SeqEnd,
+            ],
+            "invalid length 33, expected 32 bytes",
         );
     }
 
