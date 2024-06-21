@@ -13,12 +13,6 @@ impl From<bool> for Felt {
     }
 }
 
-impl From<Felt> for bool {
-    fn from(value: Felt) -> Self {
-        value != Felt::ZERO
-    }
-}
-
 // From<primitive> for Felt
 
 macro_rules! impl_from {
@@ -122,28 +116,28 @@ macro_rules! impl_try_felt_into_signed {
             //  Bytes are those of Felt::MAX
             fn try_from(value: Felt) -> Result<Self, Self::Error> {
                 let size_of_type = core::mem::size_of::<$into>();
-                let bytes_be = value.to_bytes_le();
+                let bytes_le = value.to_bytes_le();
 
                 // Positive numbers
-                if bytes_be[size_of_type..].iter().all(|&v| v == 0)
-                    && bytes_be[size_of_type - 1] <= 0x7f
+                if bytes_le[size_of_type..].iter().all(|&v| v == 0)
+                    && bytes_le[size_of_type - 1] <= 0x7f
                 {
                     Ok(<$into>::from_le_bytes(
-                        bytes_be[..size_of_type].try_into().unwrap(),
+                        bytes_le[..size_of_type].try_into().unwrap(),
                     ))
                 }
                 // Negative numbers
-                else if bytes_be[size_of_type..] == MINUS_TWO_BYTES_REPR[size_of_type..]
-                    && bytes_be[size_of_type - 1] >= 80
+                else if bytes_le[size_of_type..] == MINUS_TWO_BYTES_REPR[size_of_type..]
+                    && bytes_le[size_of_type - 1] >= 0x80
                 {
                     let offsetted_value =
-                        <$into>::from_le_bytes(bytes_be[..size_of_type].try_into().unwrap());
+                        <$into>::from_le_bytes(bytes_le[..size_of_type].try_into().unwrap());
 
                     // Quite conveniently the byte representation of the `s` least significant bytes
                     // is the one of the negative value we are looking for +1.
                     offsetted_value.checked_sub(1).ok_or(PrimitiveFromFeltError)
                 // -1
-                } else if bytes_be[24..] == [17, 0, 0, 0, 0, 0, 0, 8] {
+                } else if bytes_le[24..] == [17, 0, 0, 0, 0, 0, 0, 8] {
                     // The only valid Felt with those most significant bytes is Felt::MAX.
                     // All other arrays with those most significant bytes are invalid Felts.
                     return Ok(-1);
@@ -165,7 +159,6 @@ impl_try_felt_into_signed!(i128);
 #[cfg(test)]
 mod tests {
     use crate::felt::Felt;
-
     #[test]
     fn from_and_try_from_works_both_way_for_valid_unsigned_values() {
         // u8
@@ -237,25 +230,21 @@ mod tests {
     }
 
     #[test]
-    fn from_and_try_from_works_both_way_for_valid_signed_values() {
+    fn from_and_try_from_works_both_way_for_all_valid_i8_and_i16_values() {
         // i8
-        let i8_max = i8::MAX;
-        assert_eq!(i8_max, Felt::from(i8_max).try_into().unwrap());
-        let i8_min = i8::MIN;
-        assert_eq!(i8_min, Felt::from(i8_min).try_into().unwrap());
-        let i8_zero = 0i8;
-        assert_eq!(i8_zero, Felt::from(i8_zero).try_into().unwrap());
-        let i8_minus_one = -1i8;
-        assert_eq!(i8_minus_one, Felt::from(i8_minus_one).try_into().unwrap());
+        for i in i8::MIN..i8::MAX {
+            assert_eq!(i, Felt::from(i).try_into().unwrap());
+        }
         // i16
-        let i16_max = i16::MAX;
-        assert_eq!(i16_max, Felt::from(i16_max).try_into().unwrap());
-        let i16_min = i16::MIN;
-        assert_eq!(i16_min, Felt::from(i16_min).try_into().unwrap());
-        let i16_zero = 0i16;
-        assert_eq!(i16_zero, Felt::from(i16_zero).try_into().unwrap());
-        let i16_minus_one = -1i16;
-        assert_eq!(i16_minus_one, Felt::from(i16_minus_one).try_into().unwrap());
+        for i in i16::MIN..i16::MAX {
+            assert_eq!(i, Felt::from(i).try_into().unwrap());
+        }
+        // For the others types it would be too long to test every value exhaustively,
+        // so we only check keys values in `from_and_try_from_works_both_way_for_valid_signed_values`
+    }
+
+    #[test]
+    fn from_and_try_from_works_both_way_for_valid_signed_values() {
         // i32
         let i32_max = i32::MAX;
         assert_eq!(i32_max, Felt::from(i32_max).try_into().unwrap());
@@ -302,6 +291,17 @@ mod tests {
 
     #[test]
     fn try_from_fail_for_out_of_boud_values() {
+        for i in (i8::MAX as i16 + 1)..i16::MAX {
+            let f = Felt::from(i);
+            assert!(i8::try_from(f).is_err());
+        }
+        for i in i16::MIN..(i8::MIN as i16 - 1) {
+            let f = Felt::from(i);
+            assert!(i8::try_from(f).is_err());
+        }
+        // It would be too expansive to check all values of larger types,
+        // so we just check some key ones
+
         let over_i128_max = Felt::from(i128::MAX) + 1;
         assert!(i8::try_from(over_i128_max).is_err());
         assert!(i16::try_from(over_i128_max).is_err());
@@ -317,14 +317,18 @@ mod tests {
         assert!(i64::try_from(under_i128_min).is_err());
         assert!(isize::try_from(under_i128_min).is_err());
         assert!(i128::try_from(under_i128_min).is_err());
+        let under_i128_min = Felt::from(i128::MIN) - 2;
+        assert!(i8::try_from(under_i128_min).is_err());
+        assert!(i16::try_from(under_i128_min).is_err());
+        assert!(i32::try_from(under_i128_min).is_err());
+        assert!(i64::try_from(under_i128_min).is_err());
+        assert!(isize::try_from(under_i128_min).is_err());
+        assert!(i128::try_from(under_i128_min).is_err());
     }
 
     #[test]
     fn felt_from_into_bool() {
-        assert!(bool::from(Felt::from(true)));
-        assert!(!bool::from(Felt::from(false)));
-
-        assert!(bool::from(Felt::MAX));
-        assert!(!bool::from(Felt::ZERO));
+        assert!(Felt::from(true) == Felt::ONE);
+        assert!(Felt::from(false) == Felt::ZERO);
     }
 }
