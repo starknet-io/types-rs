@@ -75,4 +75,68 @@ fuzz_target!(|felt: Felt| {
         UnsignedInteger::<4>::from_hex(&felt.to_hex_string()).unwrap(),
         UnsignedInteger::<4>::from_limbs(le_digits_reversed)
     );
+
+    // TryForm unsigned primitives
+    if felt <= Felt::from(u8::MAX) {
+        assert_eq!(felt, Felt::from(u8::try_from(felt).unwrap()));
+    } else {
+        assert!(u8::try_from(felt).is_err());
+    }
+    if felt <= Felt::from(u16::MAX) {
+        assert_eq!(felt, Felt::from(u16::try_from(felt).unwrap()));
+    } else {
+        assert!(u16::try_from(felt).is_err());
+    }
+    if felt <= Felt::from(u32::MAX) {
+        assert_eq!(felt, Felt::from(u32::try_from(felt).unwrap()));
+    } else {
+        assert!(u32::try_from(felt).is_err());
+    }
+    if felt <= Felt::from(u64::MAX) {
+        assert_eq!(felt, Felt::from(u64::try_from(felt).unwrap()));
+    } else {
+        assert!(u64::try_from(felt).is_err());
+    }
+    if felt <= Felt::from(usize::MAX) {
+        assert_eq!(felt, Felt::from(usize::try_from(felt).unwrap()));
+    } else {
+        assert!(usize::try_from(felt).is_err());
+    }
+    if felt <= Felt::from(u128::MAX) {
+        assert_eq!(felt, Felt::from(u128::try_from(felt).unwrap()));
+    } else {
+        assert!(u128::try_from(felt).is_err());
+    }
+
+    // TryFrom signed primitives
+    if felt <= Felt::from(i8::MAX) || felt >= Felt::from(i8::MIN) {
+        assert_eq!(felt, Felt::from(i8::try_from(felt).unwrap()));
+    } else {
+        assert!(i8::try_from(felt).is_err());
+    }
+    if felt <= Felt::from(i16::MAX) || felt >= Felt::from(i16::MIN) {
+        assert_eq!(felt, Felt::from(i16::try_from(felt).unwrap()));
+    } else {
+        assert!(i16::try_from(felt).is_err());
+    }
+    if felt <= Felt::from(i32::MAX) || felt >= Felt::from(i32::MIN) {
+        assert_eq!(felt, Felt::from(i32::try_from(felt).unwrap()));
+    } else {
+        assert!(i32::try_from(felt).is_err());
+    }
+    if felt <= Felt::from(i64::MAX) || felt >= Felt::from(i64::MIN) {
+        assert_eq!(felt, Felt::from(i64::try_from(felt).unwrap()));
+    } else {
+        assert!(i64::try_from(felt).is_err());
+    }
+    if felt <= Felt::from(isize::MAX) || felt >= Felt::from(isize::MIN) {
+        assert_eq!(felt, Felt::from(isize::try_from(felt).unwrap()));
+    } else {
+        assert!(isize::try_from(felt).is_err());
+    }
+    if felt <= Felt::from(i128::MAX) || felt >= Felt::from(i128::MIN) {
+        assert_eq!(felt, Felt::from(i128::try_from(felt).unwrap()));
+    } else {
+        assert!(i128::try_from(felt).is_err());
+    }
 });
