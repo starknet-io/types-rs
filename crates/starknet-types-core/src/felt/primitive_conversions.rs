@@ -115,31 +115,55 @@ macro_rules! impl_try_felt_into_signed {
             // 3. -1:
             //  Bytes are those of Felt::MAX
             fn try_from(value: Felt) -> Result<Self, Self::Error> {
+                // We'll split the conversion in 3 case:
+                // Felt >= 0
+                // Felt < -1
+                // Felt == -1
+
+                // Get the size of the type we'll convert the felt into
                 let size_of_type = core::mem::size_of::<$into>();
+                // Convert the felt as little endian bytes
                 let bytes_le = value.to_bytes_le();
 
-                // Positive numbers
+                // Case 1: Felt >= 0
+                // Our felt type can hold values up to roughly 2**252 bits which is encoded in 32 bytes.
+                // The type we'll convert the value into can hold `size_of_type` (= { 1, 2, 4, 8, 16 }) bytes.
+                // If all the bytes after the last byte that our target type can fit are 0 it means that the
+                // number is positive.
+                // The target type is a signed type which means that the leftmost bit of the last byte
+                // (remember we're in little endian) is used for the sign (0 for positive numbers)
+                // so the last byte can hold a value up to 0b01111111
                 if bytes_le[size_of_type..].iter().all(|&v| v == 0)
-                    && bytes_le[size_of_type - 1] <= 0x7f
+                    && bytes_le[size_of_type - 1] <= 0b01111111
                 {
                     Ok(<$into>::from_le_bytes(
                         bytes_le[..size_of_type].try_into().unwrap(),
                     ))
                 }
-                // Negative numbers
+                // Case 2: Felt < -1
+                // Similarly to how we checked that the number was positive by checking the bytes after the
+                // `size_of_type` byte we check that all the bytes after correspond to the bytes of a negative felt
+                // The leftmost bit is use for the sign, as it's a negative number it has to be 1.
                 else if bytes_le[size_of_type..] == MINUS_TWO_BYTES_REPR[size_of_type..]
-                    && bytes_le[size_of_type - 1] >= 0x80
+                    && bytes_le[size_of_type - 1] >= 0b10000000
                 {
+                    // We take the `size_of_type` first bytes because they contain the useful value.
                     let offsetted_value =
                         <$into>::from_le_bytes(bytes_le[..size_of_type].try_into().unwrap());
 
-                    // Quite conveniently the byte representation of the `s` least significant bytes
+                    // Quite conveniently the byte representation of the `size_of` least significant bytes
                     // is the one of the negative value we are looking for +1.
+                    // So we just have to remove 1 to get the actual value.
                     offsetted_value.checked_sub(1).ok_or(PrimitiveFromFeltError)
-                // -1
+                // Case 3: Felt == -1
+                // This is the little endian representation of Felt::MAX. And Felt::MAX is exactly -1
+                // [
+                //    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                //    0, 0, 0, 0, 0, 17, 0, 0, 0, 0, 0, 0, 8,
+                // ]
+                // The only valid Felt with those most significant bytes is Felt::MAX.
+                // All other arrays with those most significant bytes are invalid Felts because they would be >= Prime.
                 } else if bytes_le[24..] == [17, 0, 0, 0, 0, 0, 0, 8] {
-                    // The only valid Felt with those most significant bytes is Felt::MAX.
-                    // All other arrays with those most significant bytes are invalid Felts.
                     return Ok(-1);
                 } else {
                     Err(PrimitiveFromFeltError)
