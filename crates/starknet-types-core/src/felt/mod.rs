@@ -2,6 +2,7 @@
 mod felt_arbitrary;
 
 use core::ops::{Add, Mul, Neg};
+use core::str::FromStr;
 
 use num_bigint::{BigInt, BigUint, Sign};
 use num_integer::Integer;
@@ -614,6 +615,20 @@ impl_from!(i16, i128);
 impl_from!(i32, i128);
 impl_from!(i64, i128);
 impl_from!(isize, i128);
+
+impl FromStr for Felt {
+    type Err = FromStrError;
+
+    /// Converts a hex (0x-prefixed) or decimal string to a [Felt].
+    /// e.g., '0x123abc' or '1337'.
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.starts_with("0x") {
+            Felt::from_hex(s)
+        } else {
+            Felt::from_dec_str(s)
+        }
+    }
+}
 
 impl Add<&Felt> for u64 {
     type Output = Option<u64>;

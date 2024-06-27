@@ -1,5 +1,24 @@
 use super::Felt;
+use num_bigint::{ToBigInt, ToBigUint};
 use num_traits::{FromPrimitive, Inv, One, Pow, ToPrimitive, Zero};
+
+impl ToBigInt for Felt {
+    /// Converts the value of `self` to a [`BigInt`].
+    ///
+    /// Safe to unwrap, will always return `Some`.
+    fn to_bigint(&self) -> Option<num_bigint::BigInt> {
+        Some(self.to_bigint())
+    }
+}
+
+impl ToBigUint for Felt {
+    /// Converts the value of `self` to a [`BigUint`].
+    ///
+    /// Safe to unwrap, will always return `Some`.
+    fn to_biguint(&self) -> Option<num_bigint::BigUint> {
+        Some(self.to_biguint())
+    }
+}
 
 impl FromPrimitive for Felt {
     fn from_i64(value: i64) -> Option<Self> {
