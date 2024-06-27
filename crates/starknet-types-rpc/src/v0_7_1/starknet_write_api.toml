@@ -1,0 +1,35 @@
+debug-path = false
+run-rustfmt = true
+
+[generation]
+additional-imports = [
+    "super::{BroadcastedDeclareTxn, BroadcastedDeployAccountTxn, BroadcastedInvokeTxn, Felt, TxnHash}",
+]
+method-name-prefix = "starknet_"
+param-types = true
+use-core = true
+result-types = false
+
+[formatters]
+num-as-hex = "NumAsHex"
+
+[fixes]
+strip-enum-variants = true
+
+[fixes.replace]
+"#/components/schemas/BROADCASTED_DECLARE_TXN" = "BroadcastedDeclareTxn"
+"#/components/schemas/BROADCASTED_DEPLOY_ACCOUNT_TXN" = "BroadcastedDeployAccountTxn"
+"#/components/schemas/BROADCASTED_INVOKE_TXN" = "BroadcastedInvokeTxn"
+"#/components/schemas/DECLARE_TXN" = "DeclareTxn"
+"#/components/schemas/FELT" = "Felt"
+"#/components/schemas/FUNCTION_CALL" = "FunctionCall"
+"#/components/schemas/SIGNATURE" = "Signature"
+"#/components/schemas/TXN_HASH" = "TxnHash"
+
+[fixes.rename]
+"#/methods/starknet_addDeclareTransaction/result/_anon" = "ClassAndTxnHash"
+"#/methods/starknet_addDeployAccountTransaction/result/_anon" = "ContractAndTxnHash"
+"#/methods/starknet_addInvokeTransaction/result/_anon" = "AddInvokeTransactionResult"
+
+[primitives]
+integer = "u64"

@@ -4,18 +4,18 @@ use crate::{BlockHash, BlockNumber, BlockTag};
 
 /// A hexadecimal number.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum BlockId {
+pub enum BlockId<F> {
     /// The tag of the block.
     Tag(BlockTag),
     /// The hash of the block.
-    Hash(BlockHash),
+    Hash(BlockHash<F>),
     /// The height of the block.
     Number(BlockNumber),
 }
 
 #[derive(Serialize, Deserialize)]
-struct BlockHashHelper {
-    block_hash: BlockHash,
+struct BlockHashHelper<F> {
+    block_hash: BlockHash<F>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -25,13 +25,13 @@ struct BlockNumberHelper {
 
 #[derive(Deserialize)]
 #[serde(untagged)]
-enum BlockIdHelper {
+enum BlockIdHelper<F> {
     Tag(BlockTag),
-    Hash(BlockHashHelper),
+    Hash(BlockHashHelper<F>),
     Number(BlockNumberHelper),
 }
 
-impl serde::Serialize for BlockId {
+impl<F: Copy + Serialize> serde::Serialize for BlockId<F> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -50,7 +50,7 @@ impl serde::Serialize for BlockId {
     }
 }
 
-impl<'de> serde::Deserialize<'de> for BlockId {
+impl<'de, F: Deserialize<'de>> serde::Deserialize<'de> for BlockId<F> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
@@ -69,28 +69,34 @@ fn block_id_from_hash() {
     use crate::Felt;
 
     let s = "{\"block_hash\":\"0x123\"}";
-    let block_id: BlockId = serde_json::from_str(s).unwrap();
+    let block_id: BlockId<Felt> = serde_json::from_str(s).unwrap();
     assert_eq!(block_id, BlockId::Hash(Felt::from_hex("0x123").unwrap()));
 }
 
 #[test]
 fn block_id_from_number() {
+    use crate::Felt;
+
     let s = "{\"block_number\":123}";
-    let block_id: BlockId = serde_json::from_str(s).unwrap();
+    let block_id: BlockId<Felt> = serde_json::from_str(s).unwrap();
     assert_eq!(block_id, BlockId::Number(123));
 }
 
 #[test]
 fn block_id_from_latest() {
+    use crate::Felt;
+
     let s = "\"latest\"";
-    let block_id: BlockId = serde_json::from_str(s).unwrap();
+    let block_id: BlockId<Felt> = serde_json::from_str(s).unwrap();
     assert_eq!(block_id, BlockId::Tag(BlockTag::Latest));
 }
 
 #[test]
 fn block_id_from_pending() {
+    use crate::Felt;
+
     let s = "\"pending\"";
-    let block_id: BlockId = serde_json::from_str(s).unwrap();
+    let block_id: BlockId<Felt> = serde_json::from_str(s).unwrap();
     assert_eq!(block_id, BlockId::Tag(BlockTag::Pending));
 }
 
@@ -107,7 +113,9 @@ fn block_id_to_hash() {
 #[cfg(test)]
 #[test]
 fn block_id_to_number() {
-    let block_id = BlockId::Number(123);
+    use crate::Felt;
+
+    let block_id = BlockId::<Felt>::Number(123);
     let s = serde_json::to_string(&block_id).unwrap();
     assert_eq!(s, "{\"block_number\":123}");
 }
@@ -115,7 +123,9 @@ fn block_id_to_number() {
 #[cfg(test)]
 #[test]
 fn block_id_to_latest() {
-    let block_id = BlockId::Tag(BlockTag::Latest);
+    use crate::Felt;
+
+    let block_id = BlockId::<Felt>::Tag(BlockTag::Latest);
     let s = serde_json::to_string(&block_id).unwrap();
     assert_eq!(s, "\"latest\"");
 }
@@ -123,7 +133,9 @@ fn block_id_to_latest() {
 #[cfg(test)]
 #[test]
 fn block_id_to_pending() {
-    let block_id = BlockId::Tag(BlockTag::Pending);
+    use crate::Felt;
+
+    let block_id = BlockId::<Felt>::Tag(BlockTag::Pending);
     let s = serde_json::to_string(&block_id).unwrap();
     assert_eq!(s, "\"pending\"");
 }

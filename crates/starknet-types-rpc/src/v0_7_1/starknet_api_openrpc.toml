@@ -1,0 +1,91 @@
+debug-path = false
+run-rustfmt = true
+
+[generation]
+additional-imports = [
+    "crate::custom_serde::NumAsHex",
+    "super::{BlockId, Felt, BroadcastedDeclareTxn, BroadcastedDeployAccountTxn, BroadcastedInvokeTxn}",
+    "alloc::vec::Vec",
+    "alloc::string::String",
+]
+method-name-prefix = "starknet_"
+param-types = true
+use-core = true
+
+[formatters]
+num-as-hex = "NumAsHex"
+
+[fixes]
+strip-enum-variants = true
+flatten = ["#/components/schemas/NUM_AS_HEX"]
+preserve = [
+    "#/components/schemas/BLOCK_TAG",
+    "#/components/schemas/SYNC_STATUS",
+    "#/components/schemas/BROADCASTED_DECLARE_TXN_V1",
+    "#/components/schemas/BROADCASTED_DECLARE_TXN_V2",
+    "#/components/schemas/COMPUTATION_RESOURCES",
+]
+
+[fixes.replace]
+# Too tricky to automatically fix cleanly
+"#/components/schemas/BLOCK_ID" = "BlockId"
+"#/methods/starknet_syncing/result/_anon" = "SyncingStatus"
+"#/components/schemas/FELT" = "Felt"
+
+# Query-only types
+"#/components/schemas/BROADCASTED_DECLARE_TXN" = "BroadcastedDeclareTxn"
+"#/components/schemas/BROADCASTED_DEPLOY_ACCOUNT_TXN" = "BroadcastedDeployAccountTxn"
+"#/components/schemas/BROADCASTED_INVOKE_TXN" = "BroadcastedInvokeTxn"
+
+# Duplicates
+"#/methods/starknet_getClassAt/result/_anon" = "MaybeDeprecatedContractClass"
+"#/methods/starknet_getTransactionByBlockIdAndIndex/result/_anon" = "TxnWithHash"
+"#/methods/starknet_getTransactionByHash/result/_anon" = "TxnWithHash"
+"#/components/schemas/BLOCK_HEADER/l1_da_mode/_anon" = "L1DaMode"
+
+[fixes.rename]
+# Broken Enum Variants
+"#/methods/starknet_getBlockWithTxHashes/result/_anon/variant0" = "Block"
+"#/methods/starknet_getBlockWithTxs/result/_anon/variant0" = "Block"
+"#/methods/starknet_getStateUpdate/result/_anon/variant0" = "Block"
+"#/methods/starknet_getBlockWithReceipts/result/_anon/variant0" = "Block"
+"#/methods/starknet_getClass/result/_anon/variant1" = "ContractClass"
+
+# Anonymous Types
+"#/components/schemas/BLOCK_BODY_WITH_TXS/transactions/_anon/_anon" = "TxnWithHash"
+"#/components/schemas/EXECUTION_RESOURCES/field1/_anon/data_availability/_anon" = "DataAvailability"
+"#/components/schemas/CONTRACT_STORAGE_DIFF_ITEM/storage_entries/_anon/_anon" = "KeyValuePair"
+"#/methods/starknet_blockHashAndNumber/result/_anon" = "BlockHashAndNumber"
+"#/methods/starknet_getBlockWithTxHashes/result/_anon" = "MaybePendingBlockWithTxHashes"
+"#/methods/starknet_getBlockWithTxs/result/_anon" = "MaybePendingBlockWithTxs"
+"#/methods/starknet_getClass/result/_anon" = "MaybeDeprecatedContractClass"
+"#/methods/starknet_getEvents/params/filter/_anon" = "EventFilterWithPageRequest"
+"#/methods/starknet_getStateUpdate/result/_anon" = "MaybePendingStateUpdate"
+"#/methods/starknet_getTransactionStatus/result/_anon" = "TxnFinalityAndExecutionStatus"
+
+# Broken convert_case
+"#/components/schemas/FUNCTION_ABI_ENTRY/stateMutability" = "state_mutability"
+
+[fixes.tagged-enums]
+"#/components/schemas/DECLARE_TXN" = "version"
+"#/components/schemas/INVOKE_TXN" = "version"
+"#/components/schemas/TXN" = "type"
+"#/components/schemas/TXN_RECEIPT" = "type"
+"#/components/schemas/DEPLOY_ACCOUNT_TXN" = "version"
+"#/components/schemas/BROADCASTED_TXN" = "type"
+
+[fixes.set-tags]
+"#/components/schemas/BROADCASTED_DECLARE_TXN_V1/_anon/version" = "0x1"
+"#/components/schemas/BROADCASTED_DECLARE_TXN_V2/_anon/version" = "0x2"
+"#/components/schemas/INVOKE_TXN_V0/version" = "0x0"
+"#/components/schemas/INVOKE_TXN_V1/_anon/version" = "0x1"
+"#/components/schemas/INVOKE_TXN_V3/_anon/version" = "0x3"
+"#/components/schemas/DECLARE_TXN_V0/_anon/version" = "0x0"
+"#/components/schemas/DECLARE_TXN_V1/_anon/version" = "0x1"
+"#/components/schemas/DECLARE_TXN_V2/_anon/version" = "0x2"
+"#/components/schemas/DECLARE_TXN_V3/_anon/version" = "0x3"
+"#/components/schemas/DEPLOY_ACCOUNT_TXN_V1/version" = "0x1"
+"#/components/schemas/DEPLOY_ACCOUNT_TXN_V3/version" = "0x3"
+
+[primitives]
+integer = "u64"
