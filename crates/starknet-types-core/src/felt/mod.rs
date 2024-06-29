@@ -1015,7 +1015,7 @@ mod formatting {
 
     impl fmt::Debug for Felt {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            write!(f, "{}", self.to_fixed_hex_string())
+            write!(f, "{}", self.0)
         }
     }
 
@@ -1107,18 +1107,9 @@ mod test {
 
     #[test]
     fn test_debug_format() {
-        assert_eq!(
-            format!("{:?}", Felt::ONE),
-            String::from("0x") + &"0".repeat(63) + "1"
-        );
-        assert_eq!(
-            format!("{:?}", Felt::from(2)),
-            String::from("0x") + &"0".repeat(63) + "2"
-        );
-        assert_eq!(
-            format!("{:?}", Felt::from(12345)),
-            String::from("0x") + &"0".repeat(60) + "3039"
-        );
+        assert_eq!(format!("{:?}", Felt::ONE), "0x1");
+        assert_eq!(format!("{:?}", Felt::from(2)), "0x2");
+        assert_eq!(format!("{:?}", Felt::from(12345)), "0x3039");
     }
 
     // Helper function to generate a vector of bits for testing purposes
