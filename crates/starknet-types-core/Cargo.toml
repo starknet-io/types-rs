@@ -43,7 +43,7 @@ parity-scale-codec = ["dep:parity-scale-codec"]
 serde = ["alloc", "dep:serde"]
 prime-bigint = ["dep:lazy_static"]
 num-traits = []
-papyrus-serialization = []
+papyrus-serialization = ["std"]
 
 [dev-dependencies]
 proptest = "1.4.0"
