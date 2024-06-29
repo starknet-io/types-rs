@@ -1,11 +1,11 @@
 [package]
 name = "starknet-types-core"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2021"
 license = "MIT"
 homepage = "https://github.com/starknet-io/types-rs"
 repository = "https://github.com/starknet-io/types-rs"
-categories = ["types", "math", "crypto"]
+categories = ["mathematics", "cryptography"]
 keywords = ["stark", "zkp", "cairo"]
 description = "Core types representation for Starknet"
 readme = "README.md"
