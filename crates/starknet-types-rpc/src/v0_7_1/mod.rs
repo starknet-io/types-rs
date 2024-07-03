@@ -1,7 +1,4 @@
 //! v0.7.1 of the API.
-
-pub use starknet_types_core::felt::Felt;
-
 pub use crate::custom::{
     BlockId, BroadcastedDeclareTxn, BroadcastedDeployAccountTxn, BroadcastedInvokeTxn,
     SyncingStatus,

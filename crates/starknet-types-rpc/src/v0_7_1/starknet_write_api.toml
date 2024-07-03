@@ -3,7 +3,8 @@ run-rustfmt = true
 
 [generation]
 additional-imports = [
-    "super::{BroadcastedDeclareTxn, BroadcastedDeployAccountTxn, BroadcastedInvokeTxn, Felt, TxnHash}",
+    "super::{BroadcastedDeclareTxn, BroadcastedDeployAccountTxn, BroadcastedInvokeTxn, TxnHash}",
+    "std::marker::PhantomData"
 ]
 method-name-prefix = "starknet_"
 param-types = true
@@ -21,7 +22,7 @@ strip-enum-variants = true
 "#/components/schemas/BROADCASTED_DEPLOY_ACCOUNT_TXN" = "BroadcastedDeployAccountTxn"
 "#/components/schemas/BROADCASTED_INVOKE_TXN" = "BroadcastedInvokeTxn"
 "#/components/schemas/DECLARE_TXN" = "DeclareTxn"
-"#/components/schemas/FELT" = "Felt"
+"#/components/schemas/FELT" = "F"
 "#/components/schemas/FUNCTION_CALL" = "FunctionCall"
 "#/components/schemas/SIGNATURE" = "Signature"
 "#/components/schemas/TXN_HASH" = "TxnHash"

@@ -3,9 +3,10 @@ run-rustfmt = true
 
 [generation]
 additional-imports = [
-    "super::{Felt, FunctionCall, Event, MsgToL1, BlockId, FeeEstimate, BroadcastedTxn, StateDiff, TxnHash, ExecutionResources, ComputationResources}",
+    "super::{FunctionCall, Event, MsgToL1, BlockId, FeeEstimate, BroadcastedTxn, StateDiff, TxnHash, ExecutionResources, ComputationResources}",
     "alloc::vec::Vec",
     "alloc::string::String",
+    "std::marker::PhantomData"
 ]
 method-name-prefix = "starknet_"
 param-types = true
@@ -22,7 +23,7 @@ flatten = [
 ]
 
 [fixes.replace]
-"#/components/schemas/FELT" = "Felt"
+"#/components/schemas/FELT" = "F"
 "#/components/schemas/FUNCTION_CALL" = "FunctionCall"
 "#/components/schemas/EVENT" = "Event"
 "#/components/schemas/MSG_TO_L1" = "MsgToL1"

@@ -3,7 +3,7 @@ use serde::{Deserialize, Deserializer, Serialize};
 use crate::{BlockHash, BlockNumber, BlockTag};
 
 /// A hexadecimal number.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Eq, Hash, PartialEq)]
 pub enum BlockId<F> {
     /// The tag of the block.
     Tag(BlockTag),
@@ -31,19 +31,19 @@ enum BlockIdHelper<F> {
     Number(BlockNumberHelper),
 }
 
-impl<F: Copy + Serialize> serde::Serialize for BlockId<F> {
+impl<F: Serialize> serde::Serialize for BlockId<F> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
     {
-        match *self {
+        match self {
             BlockId::Tag(tag) => tag.serialize(serializer),
             BlockId::Hash(block_hash) => {
                 let helper = BlockHashHelper { block_hash };
                 helper.serialize(serializer)
             }
             BlockId::Number(block_number) => {
-                let helper = BlockNumberHelper { block_number };
+                let helper = BlockNumberHelper { block_number: *block_number };
                 helper.serialize(serializer)
             }
         }
@@ -66,7 +66,7 @@ impl<'de, F: Deserialize<'de>> serde::Deserialize<'de> for BlockId<F> {
 
 #[test]
 fn block_id_from_hash() {
-    use crate::Felt;
+    pub use starknet_types_core::felt::Felt;
 
     let s = "{\"block_hash\":\"0x123\"}";
     let block_id: BlockId<Felt> = serde_json::from_str(s).unwrap();
@@ -75,7 +75,7 @@ fn block_id_from_hash() {
 
 #[test]
 fn block_id_from_number() {
-    use crate::Felt;
+    pub use starknet_types_core::felt::Felt;
 
     let s = "{\"block_number\":123}";
     let block_id: BlockId<Felt> = serde_json::from_str(s).unwrap();
@@ -84,7 +84,7 @@ fn block_id_from_number() {
 
 #[test]
 fn block_id_from_latest() {
-    use crate::Felt;
+    pub use starknet_types_core::felt::Felt;
 
     let s = "\"latest\"";
     let block_id: BlockId<Felt> = serde_json::from_str(s).unwrap();
@@ -93,7 +93,7 @@ fn block_id_from_latest() {
 
 #[test]
 fn block_id_from_pending() {
-    use crate::Felt;
+    pub use starknet_types_core::felt::Felt;
 
     let s = "\"pending\"";
     let block_id: BlockId<Felt> = serde_json::from_str(s).unwrap();
@@ -103,7 +103,7 @@ fn block_id_from_pending() {
 #[cfg(test)]
 #[test]
 fn block_id_to_hash() {
-    use crate::Felt;
+    pub use starknet_types_core::felt::Felt;
 
     let block_id = BlockId::Hash(Felt::from_hex("0x123").unwrap());
     let s = serde_json::to_string(&block_id).unwrap();
@@ -113,7 +113,7 @@ fn block_id_to_hash() {
 #[cfg(test)]
 #[test]
 fn block_id_to_number() {
-    use crate::Felt;
+    pub use starknet_types_core::felt::Felt;
 
     let block_id = BlockId::<Felt>::Number(123);
     let s = serde_json::to_string(&block_id).unwrap();
@@ -123,7 +123,7 @@ fn block_id_to_number() {
 #[cfg(test)]
 #[test]
 fn block_id_to_latest() {
-    use crate::Felt;
+    pub use starknet_types_core::felt::Felt;
 
     let block_id = BlockId::<Felt>::Tag(BlockTag::Latest);
     let s = serde_json::to_string(&block_id).unwrap();
@@ -133,7 +133,7 @@ fn block_id_to_latest() {
 #[cfg(test)]
 #[test]
 fn block_id_to_pending() {
-    use crate::Felt;
+    pub use starknet_types_core::felt::Felt;
 
     let block_id = BlockId::<Felt>::Tag(BlockTag::Pending);
     let s = serde_json::to_string(&block_id).unwrap();

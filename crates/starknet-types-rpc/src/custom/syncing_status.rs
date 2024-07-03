@@ -72,7 +72,7 @@ impl<'de, F: Deserialize<'de>> Deserialize<'de> for SyncingStatus<F> {
 #[cfg(test)]
 #[test]
 fn syncing_status_from_false() {
-    use crate::Felt;
+    pub use starknet_types_core::felt::Felt;
 
     let s = "false";
     let syncing_status: SyncingStatus<Felt> = serde_json::from_str(s).unwrap();
@@ -82,7 +82,7 @@ fn syncing_status_from_false() {
 #[cfg(test)]
 #[test]
 fn syncing_status_to_false() {
-    use crate::Felt;
+        pub use starknet_types_core::felt::Felt;
 
     let syncing_status = SyncingStatus::<Felt>::NotSyncing;
     let s = serde_json::to_string(&syncing_status).unwrap();
@@ -92,7 +92,7 @@ fn syncing_status_to_false() {
 #[cfg(test)]
 #[test]
 fn syncing_status_from_true() {
-    use crate::Felt;
+    pub use starknet_types_core::felt::Felt;
     let s = "true";
     assert!(serde_json::from_str::<SyncingStatus<Felt>>(s).is_err());
 }

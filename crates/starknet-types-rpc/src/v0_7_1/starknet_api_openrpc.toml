@@ -4,9 +4,10 @@ run-rustfmt = true
 [generation]
 additional-imports = [
     "crate::custom_serde::NumAsHex",
-    "super::{BlockId, Felt, BroadcastedDeclareTxn, BroadcastedDeployAccountTxn, BroadcastedInvokeTxn}",
+    "super::{BlockId, BroadcastedDeclareTxn, BroadcastedDeployAccountTxn, BroadcastedInvokeTxn}",
     "alloc::vec::Vec",
     "alloc::string::String",
+    "std::marker::PhantomData"
 ]
 method-name-prefix = "starknet_"
 param-types = true
@@ -23,6 +24,7 @@ preserve = [
     "#/components/schemas/SYNC_STATUS",
     "#/components/schemas/BROADCASTED_DECLARE_TXN_V1",
     "#/components/schemas/BROADCASTED_DECLARE_TXN_V2",
+    "#/components/schemas/BROADCASTED_DECLARE_TXN_V3",
     "#/components/schemas/COMPUTATION_RESOURCES",
 ]
 
@@ -30,7 +32,7 @@ preserve = [
 # Too tricky to automatically fix cleanly
 "#/components/schemas/BLOCK_ID" = "BlockId"
 "#/methods/starknet_syncing/result/_anon" = "SyncingStatus"
-"#/components/schemas/FELT" = "Felt"
+"#/components/schemas/FELT" = "F"
 
 # Query-only types
 "#/components/schemas/BROADCASTED_DECLARE_TXN" = "BroadcastedDeclareTxn"
