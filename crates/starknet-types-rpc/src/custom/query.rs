@@ -3,8 +3,10 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::{BroadcastedDeclareTxnV1, BroadcastedDeclareTxnV2, BroadcastedDeclareTxnV3,
-            DeployAccountTxnV1, DeployAccountTxnV3, InvokeTxnV0, InvokeTxnV1, InvokeTxnV3};
+use crate::{
+    BroadcastedDeclareTxnV1, BroadcastedDeclareTxnV2, BroadcastedDeclareTxnV3, DeployAccountTxnV1,
+    DeployAccountTxnV3, InvokeTxnV0, InvokeTxnV1, InvokeTxnV3,
+};
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "version")]

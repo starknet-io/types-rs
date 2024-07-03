@@ -82,7 +82,7 @@ fn syncing_status_from_false() {
 #[cfg(test)]
 #[test]
 fn syncing_status_to_false() {
-        pub use starknet_types_core::felt::Felt;
+    pub use starknet_types_core::felt::Felt;
 
     let syncing_status = SyncingStatus::<Felt>::NotSyncing;
     let s = serde_json::to_string(&syncing_status).unwrap();

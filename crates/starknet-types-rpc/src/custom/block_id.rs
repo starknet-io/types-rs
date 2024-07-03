@@ -43,7 +43,9 @@ impl<F: Serialize> serde::Serialize for BlockId<F> {
                 helper.serialize(serializer)
             }
             BlockId::Number(block_number) => {
-                let helper = BlockNumberHelper { block_number: *block_number };
+                let helper = BlockNumberHelper {
+                    block_number: *block_number,
+                };
                 helper.serialize(serializer)
             }
         }
