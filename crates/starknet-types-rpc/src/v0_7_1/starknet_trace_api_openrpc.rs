@@ -14,9 +14,9 @@ use super::{
 };
 use alloc::string::String;
 use alloc::vec::Vec;
+use core::marker::PhantomData;
 use serde::ser::SerializeMap;
 use serde::{Deserialize, Serialize};
-use std::marker::PhantomData;
 
 #[derive(Eq, Hash, PartialEq, Serialize, Deserialize, Clone, Debug)]
 pub enum CallType {

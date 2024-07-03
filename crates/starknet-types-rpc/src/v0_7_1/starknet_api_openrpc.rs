@@ -12,9 +12,9 @@ use super::{BlockId, BroadcastedDeclareTxn, BroadcastedDeployAccountTxn, Broadca
 use crate::custom_serde::NumAsHex;
 use alloc::string::String;
 use alloc::vec::Vec;
+use core::marker::PhantomData;
 use serde::ser::SerializeMap;
 use serde::{Deserialize, Serialize};
-use std::marker::PhantomData;
 
 pub type Address<F> = F;
 

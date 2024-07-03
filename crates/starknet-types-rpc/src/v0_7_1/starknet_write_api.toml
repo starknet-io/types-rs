@@ -4,7 +4,7 @@ run-rustfmt = true
 [generation]
 additional-imports = [
     "super::{BroadcastedDeclareTxn, BroadcastedDeployAccountTxn, BroadcastedInvokeTxn, TxnHash}",
-    "std::marker::PhantomData"
+    "core::marker::PhantomData"
 ]
 method-name-prefix = "starknet_"
 param-types = true

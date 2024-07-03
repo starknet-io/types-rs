@@ -7,7 +7,7 @@ additional-imports = [
     "super::{BlockId, BroadcastedDeclareTxn, BroadcastedDeployAccountTxn, BroadcastedInvokeTxn}",
     "alloc::vec::Vec",
     "alloc::string::String",
-    "std::marker::PhantomData"
+    "core::marker::PhantomData"
 ]
 method-name-prefix = "starknet_"
 param-types = true

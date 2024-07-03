@@ -6,7 +6,7 @@ additional-imports = [
     "super::{FunctionCall, Event, MsgToL1, BlockId, FeeEstimate, BroadcastedTxn, StateDiff, TxnHash, ExecutionResources, ComputationResources}",
     "alloc::vec::Vec",
     "alloc::string::String",
-    "std::marker::PhantomData"
+    "core::marker::PhantomData"
 ]
 method-name-prefix = "starknet_"
 param-types = true
