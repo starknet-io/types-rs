@@ -115,6 +115,18 @@ pub enum SignError {
     InvalidK,
 }
 
+/// Computes the public key given a Stark private key.
+///
+/// ### Arguments
+///
+/// * `private_key`: The private key
+pub fn get_public_key(private_key: &Felt) -> Felt {
+    mul_by_bits(&GENERATOR, private_key)
+        .to_affine()
+        .unwrap()
+        .x()
+}
+
 /// Computes ECDSA signature given a Stark private key and message hash.
 ///
 /// ### Arguments
