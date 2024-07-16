@@ -1,5 +1,6 @@
 use super::{AffinePoint, ProjectivePoint};
 use crate::felt::Felt;
+use core::fmt::{Display, Formatter, Result as CoreResult};
 use core::ops::{Add, Mul};
 use crypto_bigint::{ArrayEncoding, ByteArray, Integer as CryptoInteger, U256};
 use hmac::digest::Digest;
@@ -9,6 +10,7 @@ use num_integer::Integer;
 use num_traits::{One, Zero};
 use sha2::digest::{crypto_common::BlockSizeUser, FixedOutputReset, HashMarker};
 use zeroize::{Zeroize, Zeroizing};
+
 const EC_ORDER: Felt = Felt::from_raw([
     369010039416812937,
     9,
@@ -79,6 +81,17 @@ impl Signer for StarkCurve {
 #[derive(Debug)]
 pub enum EcdsaSignError {
     MessageHashOutOfRange,
+}
+
+#[cfg(feature = "std")]
+impl std::error::Error for EcdsaSignError {}
+
+impl Display for EcdsaSignError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> CoreResult {
+        match self {
+            Self::MessageHashOutOfRange => write!(f, "message hash out of range"),
+        }
+    }
 }
 
 /// Stark ECDSA signature
