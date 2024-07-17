@@ -1,5 +1,6 @@
 use super::{AffinePoint, ProjectivePoint};
 use crate::felt::Felt;
+use crate::hash::{Pedersen, StarkHash};
 use core::fmt::{Display, Formatter, Result as CoreResult};
 use core::ops::{Add, Mul};
 use crypto_bigint::{ArrayEncoding, ByteArray, Integer as CryptoInteger, U256};
@@ -126,6 +127,22 @@ impl From<ExtendedSignature> for Signature {
 pub enum SignError {
     InvalidMessageHash,
     InvalidK,
+}
+
+pub fn compute_hash_on_elements<'a, ESI, II>(data: II) -> Felt
+where
+    ESI: ExactSizeIterator<Item = &'a Felt>,
+    II: IntoIterator<IntoIter = ESI>,
+{
+    let mut current_hash = Felt::ZERO;
+    let data_iter = data.into_iter();
+    let data_len = Felt::from(data_iter.len());
+
+    for elem in data_iter {
+        current_hash = Pedersen::hash(&current_hash, elem);
+    }
+
+    Pedersen::hash(&current_hash, &data_len)
 }
 
 /// Computes the public key given a Stark private key.
