@@ -22,11 +22,18 @@ const EC_ORDER: Felt = Felt::from_raw([
 const EC_ORDER_2: U256 =
     U256::from_be_hex("0800000000000010ffffffffffffffffb781126dcae7b2321e66a241adc64d2f");
 
+// const ELEMENT_UPPER_BOUND: Felt = Felt::from_raw([
+//     18446743986131435553,
+//     160989183,
+//     18446744073709255680,
+//     576459263475450960,
+// ]);
+
 const ELEMENT_UPPER_BOUND: Felt = Felt::from_raw([
-    18446743986131435553,
-    160989183,
-    18446744073709255680,
     576459263475450960,
+    18446744073709255680,
+    160989183,
+    18446743986131435553,
 ]);
 
 const GENERATOR: AffinePoint = AffinePoint::new_unchecked(
