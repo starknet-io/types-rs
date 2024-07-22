@@ -314,6 +314,8 @@ pub struct DeployAccountTxnV1 {
     pub max_fee: Felt,
     pub nonce: Felt,
     pub signature: Signature,
+    #[serde(rename = "type")]
+    pub type_: String,
 }
 
 /// Deploys an account contract, charges fee from the pre-funded account addresses
