@@ -118,6 +118,8 @@ pub struct BroadcastedDeclareTxnV2 {
     /// The address of the account contract sending the declaration transaction
     pub sender_address: Address,
     pub signature: Signature,
+    #[serde(rename = "type")]
+    pub type_: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
