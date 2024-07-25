@@ -259,10 +259,16 @@ pub fn mod_inverse(operand: &Felt, modulus: &Felt) -> Felt {
 /// Deterministically generate ephemeral scalar `k` based on RFC 6979.
 fn generate_k(private_key: &Felt, message_hash: &Felt, seed: Option<&Felt>) -> Felt {
     println!("----> inside generate_k ");
-    let message_hash = U256::from_be_slice(&message_hash.to_bytes_be()).to_be_byte_array();
-    let private_key = U256::from_be_slice(&private_key.to_bytes_be());
     println!("message_hash {:?}", message_hash);
     println!("private_key {:?}", private_key);
+    println!("message_hash.to_bytes_be {:?}", message_hash.to_bytes_be());
+    println!("private_key.to_bytes_be {:?}", private_key.to_bytes_be());
+    println!("message_hash.to_bytes_be {:?}", message_hash.to_bytes_be());
+    println!("private_key.to_bytes_be {:?}", private_key.to_bytes_be());
+    let message_hash = U256::from_be_slice(&message_hash.to_bytes_be()).to_be_byte_array();
+    let private_key = U256::from_be_slice(&private_key.to_bytes_be());
+    println!("message_hash as U256 {:?}", message_hash);
+    println!("private_key as U256 {:?}", private_key);
     let seed_bytes = match seed {
         Some(seed) => seed.to_bytes_be(),
         None => [0u8; 32],
