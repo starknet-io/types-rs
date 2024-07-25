@@ -258,13 +258,16 @@ pub fn mod_inverse(operand: &Felt, modulus: &Felt) -> Felt {
 
 /// Deterministically generate ephemeral scalar `k` based on RFC 6979.
 fn generate_k(private_key: &Felt, message_hash: &Felt, seed: Option<&Felt>) -> Felt {
+    println!("----> inside generate_k ");
     let message_hash = U256::from_be_slice(&message_hash.to_bytes_be()).to_be_byte_array();
     let private_key = U256::from_be_slice(&private_key.to_bytes_be());
-
+    println!("message_hash {:?}", message_hash);
+    println!("private_key {:?}", private_key);
     let seed_bytes = match seed {
         Some(seed) => seed.to_bytes_be(),
         None => [0u8; 32],
     };
+    println!("seed_bytes {:?}", seed_bytes);
 
     let mut first_non_zero_index = 32;
     for (ind, element) in seed_bytes.iter().enumerate() {
@@ -273,6 +276,7 @@ fn generate_k(private_key: &Felt, message_hash: &Felt, seed: Option<&Felt>) -> F
             break;
         }
     }
+    println!("first_non_zero_index {:?}", first_non_zero_index);
 
     let k = generate_k_shifted::<sha2::Sha256, _>(
         &private_key,
@@ -280,11 +284,14 @@ fn generate_k(private_key: &Felt, message_hash: &Felt, seed: Option<&Felt>) -> F
         &message_hash,
         &seed_bytes[first_non_zero_index..],
     );
+    println!("k {:?}", k);
 
     let mut buffer = [0u8; 32];
     buffer[..].copy_from_slice(&k.to_be_byte_array()[..]);
 
-    Felt::from_bytes_be(&buffer)
+    let result = Felt::from_bytes_be(&buffer);
+    println!("result {:?}", result);
+    result
 }
 
 // Modified from upstream `rfc6979::generate_k` with a hard-coded right bit shift. The more
