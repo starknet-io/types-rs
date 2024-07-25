@@ -175,7 +175,7 @@ pub struct ContractClass {
     pub contract_class_version: String,
     pub entry_points_by_type: EntryPointsByType,
     /// The class ABI, as supplied by the user declaring the class
-    pub abi: Option<String>,
+    pub abi: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -741,10 +741,10 @@ pub struct ResourcePrice {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SierraEntryPoint {
-    /// The index of the function in the program
-    pub function_idx: u64,
     /// A unique identifier of the entry point (function) in the program
     pub selector: Felt,
+    /// The index of the function in the program
+    pub function_idx: u64,
 }
 
 /// A transaction signature
