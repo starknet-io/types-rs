@@ -169,14 +169,13 @@ pub enum ContractAbiEntry {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ContractClass {
-    /// The class ABI, as supplied by the user declaring the class
-    #[serde(default)]
-    pub abi: Option<String>,
+    /// The list of Sierra instructions of which the program consists
+    pub sierra_program: Vec<Felt>,
     /// The version of the contract class object. Currently, the Starknet OS supports version 0.1.0
     pub contract_class_version: String,
     pub entry_points_by_type: EntryPointsByType,
-    /// The list of Sierra instructions of which the program consists
-    pub sierra_program: Vec<Felt>,
+    /// The class ABI, as supplied by the user declaring the class
+    pub abi: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
