@@ -65,7 +65,7 @@ impl Signer for StarkCurve {
     ) -> Result<ExtendedSignature, EcdsaSignError> {
         let mut seed = None;
         loop {
-            let k = generate_k(message_hash, private_key, seed.as_ref());
+            let k = generate_k(private_key, message_hash, seed.as_ref());
             println!(
                 "sign args: private_key: {}, message_hash: {}, k: {}",
                 private_key, message_hash, k
