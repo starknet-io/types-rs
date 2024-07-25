@@ -560,6 +560,8 @@ pub struct InvokeTxnV1 {
     pub nonce: Felt,
     pub sender_address: Address,
     pub signature: Signature,
+    #[serde(rename = "type")]
+    pub type_: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
