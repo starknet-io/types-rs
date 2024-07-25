@@ -18,7 +18,7 @@ pub enum BroadcastedDeclareTxn {
     #[serde(rename = "0x0000000000000000000000000000000100000000000000000000000000000001")]
     QueryV1(BroadcastedDeclareTxnV1),
     /// Query-only broadcasted declare transaction.
-    #[serde(rename = "0x0000000000000000000000000000000100000000000000000000000000000002")]
+    #[serde(rename = "0x100000000000000000000000000000002")]
     QueryV2(BroadcastedDeclareTxnV2),
 }
 
