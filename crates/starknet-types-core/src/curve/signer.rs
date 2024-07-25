@@ -66,7 +66,10 @@ impl Signer for StarkCurve {
         let mut seed = None;
         loop {
             let k = generate_k(message_hash, private_key, seed.as_ref());
-
+            println!(
+                "sign args: private_key: {}, message_hash: {}, k: {}",
+                private_key, message_hash, k
+            );
             match sign(private_key, message_hash, &k) {
                 Ok(sig) => {
                     return Ok(sig);
