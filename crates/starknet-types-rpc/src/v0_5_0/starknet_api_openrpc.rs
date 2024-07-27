@@ -356,8 +356,6 @@ pub struct DeployTxnReceipt {
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NewDeployTxnReceipt {
-    #[serde(rename = "type")]
-    pub response_type: String,
     pub transaction_hash: TxnHash,
     pub actual_fee: FeePayment,
     pub messages_sent: Vec<MsgToL1>,
@@ -371,7 +369,7 @@ pub struct NewDeployTxnReceipt {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct ExecutionResources2 {
+pub struct ExecutionResources2 {
     pub steps: u64,
     pub memory_holes: u64,
     pub range_check_builtin_applications: u64,
@@ -381,7 +379,7 @@ struct ExecutionResources2 {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct DataAvailability {
+pub struct DataAvailability {
     pub l1_gas: u64,
     pub l1_data_gas: u64,
 }
