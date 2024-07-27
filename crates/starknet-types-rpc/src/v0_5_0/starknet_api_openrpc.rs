@@ -357,33 +357,33 @@ pub struct DeployTxnReceipt {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NewDeployTxnReceipt {
     #[serde(rename = "type")]
-    response_type: String,
-    transaction_hash: TxnHash,
-    actual_fee: FeePayment,
-    messages_sent: Vec<MsgToL1>,
-    events: Vec<Event>,
-    execution_status: TxnExecutionStatus,
-    finality_status: TxnFinalityStatus,
-    block_hash: BlockHash,
-    block_number: BlockNumber,
-    execution_resources: ExecutionResources2,
-    contract_address: Felt,
+    pub response_type: String,
+    pub transaction_hash: TxnHash,
+    pub actual_fee: FeePayment,
+    pub messages_sent: Vec<MsgToL1>,
+    pub events: Vec<Event>,
+    pub execution_status: TxnExecutionStatus,
+    pub finality_status: TxnFinalityStatus,
+    pub block_hash: BlockHash,
+    pub block_number: BlockNumber,
+    pub execution_resources: ExecutionResources2,
+    pub contract_address: Felt,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct ExecutionResources2 {
-    steps: u64,
-    memory_holes: u64,
-    range_check_builtin_applications: u64,
-    pedersen_builtin_applications: u64,
-    ec_op_builtin_applications: u64,
-    data_availability: DataAvailability,
+    pub steps: u64,
+    pub memory_holes: u64,
+    pub range_check_builtin_applications: u64,
+    pub pedersen_builtin_applications: u64,
+    pub ec_op_builtin_applications: u64,
+    pub data_availability: DataAvailability,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct DataAvailability {
-    l1_gas: u64,
-    l1_data_gas: u64,
+    pub l1_gas: u64,
+    pub l1_data_gas: u64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
