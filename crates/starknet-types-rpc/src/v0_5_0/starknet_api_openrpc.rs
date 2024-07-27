@@ -354,6 +354,37 @@ pub struct DeployTxnReceipt {
     /// The address of the deployed contract
     pub contract_address: Felt,
 }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NewDeployTxnReceipt {
+    #[serde(rename = "type")]
+    response_type: String,
+    transaction_hash: TxnHash,
+    actual_fee: FeePayment,
+    messages_sent: Vec<MsgToL1>,
+    events: Vec<Event>,
+    execution_status: TxnExecutionStatus,
+    finality_status: TxnFinalityStatus,
+    block_hash: BlockHash,
+    block_number: BlockNumber,
+    execution_resources: ExecutionResources2,
+    contract_address: Felt,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct ExecutionResources2 {
+    steps: u64,
+    memory_holes: u64,
+    range_check_builtin_applications: u64,
+    pedersen_builtin_applications: u64,
+    ec_op_builtin_applications: u64,
+    data_availability: DataAvailability,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct DataAvailability {
+    l1_gas: u64,
+    l1_data_gas: u64,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DeprecatedCairoEntryPoint {
@@ -894,7 +925,7 @@ pub enum TxnReceipt {
     #[serde(rename = "DECLARE")]
     Declare(DeclareTxnReceipt),
     #[serde(rename = "DEPLOY")]
-    Deploy(DeployTxnReceipt),
+    Deploy(NewDeployTxnReceipt),
     #[serde(rename = "DEPLOY_ACCOUNT")]
     DeployAccount(DeployAccountTxnReceipt),
 }
