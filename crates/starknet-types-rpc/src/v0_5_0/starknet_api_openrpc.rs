@@ -37,6 +37,9 @@ pub struct BlockHeader {
     /// The block number (its height)
     pub block_number: BlockNumber,
     pub l1_gas_price: ResourcePrice,
+    pub l1_data_gas_price: ResourcePrice,
+    pub l1_da_mode: DaMode,
+
     /// The new global state root
     pub new_root: Felt,
     /// The hash of this block's parent
@@ -47,6 +50,12 @@ pub struct BlockHeader {
     pub starknet_version: String,
     /// The time in which the block was created, encoded in Unix time
     pub timestamp: u64,
+}
+
+#[derive(Serialize, Deserialize, Copy, PartialEq, Eq, Hash, Clone, Debug)]
+pub enum DaMode {
+    #[serde(rename = "BLOB")]
+    Blob,
 }
 
 /// The block's number (its height)
