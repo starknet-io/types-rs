@@ -1,8 +1,4 @@
 //! v0.7.1 of the API.
-// pub use crate::custom::{
-//     BlockId, BroadcastedDeclareTxn, BroadcastedDeployAccountTxn, BroadcastedInvokeTxn,
-//     SyncingStatus,
-// };
 
 mod block_id;
 mod query;
