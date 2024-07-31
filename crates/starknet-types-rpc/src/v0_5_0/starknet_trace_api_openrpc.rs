@@ -9,12 +9,13 @@
 //
 
 use super::{
-    BlockId, BroadcastedTxn, Event, FeeEstimate, Felt, FunctionCall, MsgToL1, StateDiff, TxnHash,
+    BlockId, BroadcastedTxn, Event, FeeEstimate, FunctionCall, MsgToL1, StateDiff, TxnHash,
 };
 use alloc::string::String;
 use alloc::vec::Vec;
 use serde::ser::SerializeMap;
 use serde::{Deserialize, Serialize};
+use starknet_types_core::felt::Felt;
 
 #[derive(Serialize, Deserialize, Copy, PartialEq, Eq, Hash, Clone, Debug)]
 pub enum CallType {

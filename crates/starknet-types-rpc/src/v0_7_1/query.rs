@@ -3,7 +3,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::{
+use super::{
     BroadcastedDeclareTxnV1, BroadcastedDeclareTxnV2, BroadcastedDeclareTxnV3, DeployAccountTxnV1,
     DeployAccountTxnV3, InvokeTxnV0, InvokeTxnV1, InvokeTxnV3,
 };

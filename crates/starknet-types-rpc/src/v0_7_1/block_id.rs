@@ -1,6 +1,6 @@
 use serde::{Deserialize, Deserializer, Serialize};
 
-use crate::{BlockHash, BlockNumber, BlockTag};
+use super::{BlockHash, BlockNumber, BlockTag};
 
 /// A hexadecimal number.
 #[derive(Debug, Clone, Eq, Hash, PartialEq)]
