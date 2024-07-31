@@ -1,7 +1,10 @@
 on:
   push:
+    branches:
+      - master
     tags:        
-      - '*'           
+      - '*'
+  # just for manual testing
   workflow_dispatch:
 
 name: Publish
