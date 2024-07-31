@@ -248,7 +248,6 @@ pub fn mod_inverse(operand: &Felt, modulus: &Felt) -> Felt {
 
 /// Deterministically generate ephemeral scalar `k` based on RFC 6979.
 fn generate_k(private_key: &Felt, message_hash: &Felt, seed: Option<&Felt>) -> Felt {
-    println!("--> inside generate k");
     let message_hash = U256::from_be_slice(&message_hash.to_bytes_be()).to_be_byte_array();
     let private_key = U256::from_be_slice(&private_key.to_bytes_be());
 
@@ -275,8 +274,7 @@ fn generate_k(private_key: &Felt, message_hash: &Felt, seed: Option<&Felt>) -> F
     let mut buffer = [0u8; 32];
     buffer[..].copy_from_slice(&k.to_be_byte_array()[..]);
 
-    let result = Felt::from_bytes_be(&buffer);
-    result
+    Felt::from_bytes_be(&buffer)
 }
 
 // Modified from upstream `rfc6979::generate_k` with a hard-coded right bit shift. The more

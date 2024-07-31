@@ -18,6 +18,9 @@ use starknet_types_core::felt::Felt;
 
 pub type Address = Felt;
 
+/// Flags that indicate how to simulate a given transaction. By default, the sequencer behavior is replicated locally
+pub type SimulationFlagForEstimateFee = String;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TxnWithHash {
     #[serde(flatten)]
@@ -33,6 +36,9 @@ pub struct BlockHeader {
     /// The block number (its height)
     pub block_number: BlockNumber,
     pub l1_gas_price: ResourcePrice,
+    pub l1_data_gas_price: ResourcePrice,
+    pub l1_da_mode: L1DataAvailabilityMode,
+
     /// The new global state root
     pub new_root: Felt,
     /// The hash of this block's parent
@@ -90,6 +96,14 @@ pub struct BlockWithTxHashes {
     pub block_header: BlockHeader,
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub enum L1DataAvailabilityMode {
+    #[serde(rename = "BLOB")]
+    Blob,
+    #[serde(rename = "CALLDATA")]
+    Calldata,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BroadcastedDeclareTxnV1 {
     /// The class to be declared
@@ -114,6 +128,8 @@ pub struct BroadcastedDeclareTxnV2 {
     /// The address of the account contract sending the declaration transaction
     pub sender_address: Address,
     pub signature: Signature,
+    #[serde(rename = "type")]
+    pub type_: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -140,7 +156,7 @@ pub struct CommonReceiptProperties {
     /// The events emitted as part of this transaction
     pub events: Vec<Event>,
     /// The resources consumed by the transaction
-    pub execution_resources: ExecutionResources,
+    pub execution_resources: ExecutionResources2,
     pub execution_status: TxnExecutionStatus,
     pub finality_status: TxnFinalityStatus,
     pub messages_sent: Vec<MsgToL1>,
@@ -163,14 +179,13 @@ pub enum ContractAbiEntry {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ContractClass {
-    /// The class ABI, as supplied by the user declaring the class
-    #[serde(default)]
-    pub abi: Option<String>,
+    /// The list of Sierra instructions of which the program consists
+    pub sierra_program: Vec<Felt>,
     /// The version of the contract class object. Currently, the Starknet OS supports version 0.1.0
     pub contract_class_version: String,
     pub entry_points_by_type: EntryPointsByType,
-    /// The list of Sierra instructions of which the program consists
-    pub sierra_program: Vec<Felt>,
+    /// The class ABI, as supplied by the user declaring the class
+    pub abi: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -310,6 +325,8 @@ pub struct DeployAccountTxnV1 {
     pub max_fee: Felt,
     pub nonce: Felt,
     pub signature: Signature,
+    #[serde(rename = "type")]
+    pub type_: Option<String>,
 }
 
 /// Deploys an account contract, charges fee from the pre-funded account addresses
@@ -346,6 +363,35 @@ pub struct DeployTxnReceipt {
     pub common_receipt_properties: CommonReceiptProperties,
     /// The address of the deployed contract
     pub contract_address: Felt,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NewDeployTxnReceipt {
+    pub transaction_hash: TxnHash,
+    pub actual_fee: FeePayment,
+    pub messages_sent: Vec<MsgToL1>,
+    pub events: Vec<Event>,
+    pub execution_status: TxnExecutionStatus,
+    pub finality_status: TxnFinalityStatus,
+    pub block_hash: BlockHash,
+    pub block_number: BlockNumber,
+    pub execution_resources: ExecutionResources2,
+    pub contract_address: Felt,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExecutionResources2 {
+    pub steps: u64,
+    pub memory_holes: u64,
+    pub range_check_builtin_applications: u64,
+    pub pedersen_builtin_applications: u64,
+    pub ec_op_builtin_applications: u64,
+    pub data_availability: DataAvailability,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DataAvailability {
+    pub l1_gas: u64,
+    pub l1_data_gas: u64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -553,6 +599,8 @@ pub struct InvokeTxnV1 {
     pub nonce: Felt,
     pub sender_address: Address,
     pub signature: Signature,
+    #[serde(rename = "type")]
+    pub _type: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -725,19 +773,17 @@ pub struct ResourceLimits {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ResourcePrice {
     /// the price of one unit of the given resource, denominated in strk
-    #[serde(with = "NumAsHex")]
-    pub price_in_strk: u64,
+    pub price_in_fri: Felt,
     /// the price of one unit of the given resource, denominated in wei
-    #[serde(with = "NumAsHex")]
-    pub price_in_wei: u64,
+    pub price_in_wei: Felt,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SierraEntryPoint {
-    /// The index of the function in the program
-    pub function_idx: u64,
     /// A unique identifier of the entry point (function) in the program
     pub selector: Felt,
+    /// The index of the function in the program
+    pub function_idx: u64,
 }
 
 /// A transaction signature
@@ -798,7 +844,7 @@ pub struct StateUpdate {
 }
 
 /// A storage key. Represented as up to 62 hex digits, 3 bits, and 5 leading zeroes.
-pub type StorageKey = String;
+pub type StorageKey = Felt;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StructAbiEntry {
@@ -2035,6 +2081,8 @@ impl<'de> Deserialize<'de> for CallParams {
 pub struct EstimateFeeParams {
     /// The transaction to estimate
     pub request: Vec<BroadcastedTxn>,
+    /// describes what parts of the transaction should be executed
+    pub simulation_flags: Vec<SimulationFlagForEstimateFee>,
     /// The hash of the requested block, or number (height) of the requested block, or a block tag, for the block referencing the state or call the transaction on.
     pub block_id: BlockId,
 }
@@ -2047,6 +2095,7 @@ impl Serialize for EstimateFeeParams {
     {
         let mut map = serializer.serialize_map(None)?;
         map.serialize_entry("request", &self.request)?;
+        map.serialize_entry("simulation_flags", &self.simulation_flags)?;
         map.serialize_entry("block_id", &self.block_id)?;
         map.end()
     }
@@ -2073,19 +2122,26 @@ impl<'de> Deserialize<'de> for EstimateFeeParams {
             {
                 let request: Vec<BroadcastedTxn> = seq
                     .next_element()?
-                    .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 2 parameters"))?;
+                    .ok_or_else(|| serde::de::Error::invalid_length(1, &"expected 3 parameters"))?;
+                let simulation_flags: Vec<SimulationFlagForEstimateFee> = seq
+                    .next_element()?
+                    .ok_or_else(|| serde::de::Error::invalid_length(2, &"expected 3 parameters"))?;
                 let block_id: BlockId = seq
                     .next_element()?
-                    .ok_or_else(|| serde::de::Error::invalid_length(2, &"expected 2 parameters"))?;
+                    .ok_or_else(|| serde::de::Error::invalid_length(3, &"expected 3 parameters"))?;
 
                 if seq.next_element::<serde::de::IgnoredAny>()?.is_some() {
                     return Err(serde::de::Error::invalid_length(
-                        3,
-                        &"expected 2 parameters",
+                        4,
+                        &"expected 3 parameters",
                     ));
                 }
 
-                Ok(EstimateFeeParams { request, block_id })
+                Ok(EstimateFeeParams {
+                    request,
+                    simulation_flags,
+                    block_id,
+                })
             }
 
             #[allow(unused_variables)]
@@ -2096,6 +2152,7 @@ impl<'de> Deserialize<'de> for EstimateFeeParams {
                 #[derive(Deserialize)]
                 struct Helper {
                     request: Vec<BroadcastedTxn>,
+                    simulation_flags: Vec<SimulationFlagForEstimateFee>,
                     block_id: BlockId,
                 }
 
@@ -2104,6 +2161,7 @@ impl<'de> Deserialize<'de> for EstimateFeeParams {
 
                 Ok(EstimateFeeParams {
                     request: helper.request,
+                    simulation_flags: helper.simulation_flags,
                     block_id: helper.block_id,
                 })
             }
@@ -2112,7 +2170,6 @@ impl<'de> Deserialize<'de> for EstimateFeeParams {
         deserializer.deserialize_any(Visitor)
     }
 }
-
 /// Parameters of the `starknet_estimateMessageFee` method.
 #[derive(Debug, Clone)]
 pub struct EstimateMessageFeeParams {
