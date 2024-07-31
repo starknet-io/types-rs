@@ -38,7 +38,7 @@ pub struct BlockHeader {
     pub block_number: BlockNumber,
     pub l1_gas_price: ResourcePrice,
     pub l1_data_gas_price: ResourcePrice,
-    pub l1_da_mode: DaMode,
+    pub l1_da_mode: L1DataAvailabilityMode,
 
     /// The new global state root
     pub new_root: Felt,
@@ -50,12 +50,6 @@ pub struct BlockHeader {
     pub starknet_version: String,
     /// The time in which the block was created, encoded in Unix time
     pub timestamp: u64,
-}
-
-#[derive(Serialize, Deserialize, Copy, PartialEq, Eq, Hash, Clone, Debug)]
-pub enum DaMode {
-    #[serde(rename = "BLOB")]
-    Blob,
 }
 
 /// The block's number (its height)
@@ -92,6 +86,25 @@ pub struct BlockWithTxs {
     #[serde(flatten)]
     pub block_header: BlockHeader,
 }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BlockWithTxs2 {
+    pub status: BlockStatus,
+    #[serde(flatten)]
+    pub block_header: BlockHeader,
+    pub transactions: Vec<TxnWithHash2>,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TxnWithHash2 {
+    transaction_hash: TxnHash,
+    #[serde(rename = "type")]
+    type_: String,
+    max_fee: Felt,
+    version: String,
+    signature: Signature,
+    nonce: Felt,
+    sender_address: Address,
+    calldata: Vec<Felt>,
+}
 
 /// The block object
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -101,6 +114,42 @@ pub struct BlockWithTxHashes {
     pub status: BlockStatus,
     #[serde(flatten)]
     pub block_header: BlockHeader,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BlockWithTxHashes2 {
+    /// Status
+    pub status: BlockStatus,
+    /// Block hash
+    pub block_hash: BlockHash,
+    /// The hash of this block's parent
+    pub parent_hash: BlockHash,
+    /// The block number (its height)
+    pub block_number: BlockNumber,
+    /// The new global state root
+    pub new_root: Felt,
+    /// The time in which the block was created, encoded in Unix time
+    pub timestamp: u64,
+    /// The Starknet identity of the sequencer submitting this block
+    pub sequencer_address: Felt,
+    /// The price of L1 gas in the block
+    pub l1_gas_price: ResourcePrice,
+    /// The price of L1 data gas in the block
+    pub l1_data_gas_price: ResourcePrice,
+    /// Specifies whether the data of this block is published via blob data or calldata
+    pub l1_da_mode: L1DataAvailabilityMode,
+    /// Semver of the current Starknet protocol
+    pub starknet_version: String,
+    /// The hashes of the transactions included in this block
+    pub transactions: Vec<TxnHash>,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub enum L1DataAvailabilityMode {
+    #[serde(rename = "BLOB")]
+    Blob,
+    #[serde(rename = "CALLDATA")]
+    Calldata,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -325,7 +374,7 @@ pub struct DeployAccountTxnV1 {
     pub nonce: Felt,
     pub signature: Signature,
     #[serde(rename = "type")]
-    pub type_: String,
+    pub type_: Option<String>,
 }
 
 /// Deploys an account contract, charges fee from the pre-funded account addresses
@@ -599,7 +648,7 @@ pub struct InvokeTxnV1 {
     pub sender_address: Address,
     pub signature: Signature,
     #[serde(rename = "type")]
-    pub type_: String,
+    pub _type: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -772,11 +821,9 @@ pub struct ResourceLimits {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ResourcePrice {
     /// the price of one unit of the given resource, denominated in strk
-    #[serde(with = "NumAsHex")]
-    pub price_in_strk: u64,
+    pub price_in_fri: Felt,
     /// the price of one unit of the given resource, denominated in wei
-    #[serde(with = "NumAsHex")]
-    pub price_in_wei: u64,
+    pub price_in_wei: Felt,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -845,7 +892,7 @@ pub struct StateUpdate {
 }
 
 /// A storage key. Represented as up to 62 hex digits, 3 bits, and 5 leading zeroes.
-pub type StorageKey = String;
+pub type StorageKey = Felt;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StructAbiEntry {
