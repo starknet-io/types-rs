@@ -17,6 +17,7 @@ authors = [
     "Dan Brownstein <@dan-starkware>",
     "Federico Carrone <@unbalancedparentheses>",
     "Jonathan Lei <@xJonathanLEI>",
+    "Maciej Kamiński <@maciejka>",
 ]
 edition = "2021"
 repository = "https://github.com/starknet-io/types-rs"
