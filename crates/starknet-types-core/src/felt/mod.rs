@@ -513,7 +513,7 @@ impl TryFrom<Felt> for NonZeroFelt {
     type Error = FeltIsZeroError;
 
     fn try_from(value: Felt) -> Result<Self, Self::Error> {
-        if value == Felt::ZERO {
+        if value.is_zero() {
             Err(FeltIsZeroError)
         } else {
             Ok(Self(value.0))
@@ -525,7 +525,7 @@ impl TryFrom<&Felt> for NonZeroFelt {
     type Error = FeltIsZeroError;
 
     fn try_from(value: &Felt) -> Result<Self, Self::Error> {
-        if *value == Felt::ZERO {
+        if (*value).is_zero() {
             Err(FeltIsZeroError)
         } else {
             Ok(Self(value.0))
@@ -987,7 +987,7 @@ mod formatting {
     /// Represents [Felt] in decimal by default.
     impl fmt::Display for Felt {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            if *self == Felt::ZERO {
+            if (*self).is_zero() {
                 return write!(f, "0");
             }
 
