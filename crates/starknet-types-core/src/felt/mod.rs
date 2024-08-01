@@ -960,7 +960,7 @@ mod serde_impl {
         type Value = Felt;
 
         fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-            formatter.write_str("Failed to deserialize hexadecimal string")
+            formatter.write_str("a felt hexadecimal string")
         }
 
         fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
