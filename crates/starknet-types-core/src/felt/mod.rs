@@ -924,9 +924,14 @@ mod arithmetic {
 mod serde_impl {
     use alloc::{format, string::String};
     use core::fmt;
-    use serde::{de, ser::SerializeSeq, Deserialize, Serialize};
+    use serde::{
+        de, de::DeserializeSeed, ser::SerializeTuple, Deserialize, Deserializer, Serialize,
+        Serializer,
+    };
 
     use super::*;
+
+    const COMPRESSED: u8 = 0b1000_0000;
 
     impl Serialize for Felt {
         fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -936,11 +941,33 @@ mod serde_impl {
             if serializer.is_human_readable() {
                 serializer.serialize_str(&format!("{:#x}", self))
             } else {
-                let mut seq = serializer.serialize_seq(Some(32))?;
-                for b in self.to_bytes_be() {
-                    seq.serialize_element(&b)?;
+                let bytes = self.to_bytes_be();
+                let first_significant_byte = bytes.iter().position(|&b| b != 0).unwrap_or(31);
+
+                struct RestSerialize<'a>(&'a [u8]);
+                impl<'a> Serialize for RestSerialize<'a> {
+                    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+                        let mut tup = serializer.serialize_tuple(self.0.len())?;
+                        for el in self.0 {
+                            tup.serialize_element(el)?;
+                        }
+                        tup.end()
+                    }
                 }
-                seq.end()
+
+                if first_significant_byte > 1 {
+                    let len = 32 - first_significant_byte;
+
+                    let mut tup = serializer.serialize_tuple(2)?;
+                    tup.serialize_element(&(len as u8 | COMPRESSED))?;
+                    tup.serialize_element(&RestSerialize(&bytes[first_significant_byte..]))?;
+                    tup.end()
+                } else {
+                    let mut tup = serializer.serialize_tuple(2)?;
+                    tup.serialize_element(&bytes[0])?;
+                    tup.serialize_element(&RestSerialize(&bytes[1..]))?;
+                    tup.end()
+                }
             }
         }
     }
@@ -950,7 +977,11 @@ mod serde_impl {
         where
             D: ::serde::Deserializer<'de>,
         {
-            deserializer.deserialize_str(FeltVisitor)
+            if deserializer.is_human_readable() {
+                deserializer.deserialize_str(FeltVisitor)
+            } else {
+                deserializer.deserialize_tuple(2, FeltVisitor)
+            }
         }
     }
 
@@ -974,6 +1005,51 @@ mod serde_impl {
                 .map(Felt)
                 .ok_or(String::from("Expected hex string to be prefixed by '0x'"))
                 .map_err(de::Error::custom)
+        }
+
+        fn visit_seq<A: de::SeqAccess<'de>>(self, mut seq: A) -> Result<Self::Value, A::Error> {
+            struct RestDeserialize<'a>(&'a mut [u8]);
+            impl<'a, 'de> DeserializeSeed<'de> for RestDeserialize<'a> {
+                type Value = ();
+                fn deserialize<D: Deserializer<'de>>(
+                    self,
+                    deserializer: D,
+                ) -> Result<Self::Value, D::Error> {
+                    struct RestDeserializeVisitor<'a>(&'a mut [u8]);
+                    impl<'a, 'de> de::Visitor<'de> for RestDeserializeVisitor<'a> {
+                        type Value = ();
+                        fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+                            formatter.write_str("Failed to deserialize felt")
+                        }
+                        fn visit_seq<A: de::SeqAccess<'de>>(
+                            self,
+                            mut seq: A,
+                        ) -> Result<Self::Value, A::Error> {
+                            for (i, el) in self.0.iter_mut().enumerate() {
+                                *el = seq
+                                    .next_element::<u8>()?
+                                    .ok_or(de::Error::invalid_length(i + 1, &"more bytes"))?;
+                            }
+                            Ok(())
+                        }
+                    }
+                    deserializer.deserialize_tuple(self.0.len(), RestDeserializeVisitor(self.0))
+                }
+            }
+
+            let mut bytes = [0u8; 32];
+            let first = seq
+                .next_element::<u8>()?
+                .ok_or(de::Error::invalid_length(1, &"tagging byte"))?;
+
+            if first & COMPRESSED != 0 {
+                let len = first & !COMPRESSED;
+                seq.next_element_seed(RestDeserialize(&mut bytes[32 - len as usize..]))?;
+            } else {
+                bytes[0] = first;
+                seq.next_element_seed(RestDeserialize(&mut bytes[1..]))?;
+            }
+            Ok(Felt::from_bytes_be(&bytes))
         }
     }
 }
@@ -1628,152 +1704,55 @@ mod test {
     #[test]
     #[cfg(feature = "serde")]
     fn deserialize() {
-        assert_de_tokens(&Felt::ZERO, &[Token::String("0x0")]);
-        assert_de_tokens(&Felt::TWO, &[Token::String("0x2")]);
-        assert_de_tokens(&Felt::THREE, &[Token::String("0x3")]);
+        assert_de_tokens(&Felt::ZERO.readable(), &[Token::String("0x0")]);
+        assert_de_tokens(&Felt::TWO.readable(), &[Token::String("0x2")]);
+        assert_de_tokens(&Felt::THREE.readable(), &[Token::String("0x3")]);
         assert_de_tokens(
-            &Felt::MAX,
-            &[Token::String(
-                "0x800000000000011000000000000000000000000000000000000000000000000",
-            )],
-        );
-    }
-
-    #[test]
-    #[cfg(feature = "serde")]
-    fn serialize() {
-        assert_ser_tokens(&Felt::ZERO.readable(), &[Token::String("0x0")]);
-        assert_ser_tokens(&Felt::TWO.readable(), &[Token::String("0x2")]);
-        assert_ser_tokens(&Felt::THREE.readable(), &[Token::String("0x3")]);
-        assert_ser_tokens(
             &Felt::MAX.readable(),
             &[Token::String(
                 "0x800000000000011000000000000000000000000000000000000000000000000",
             )],
         );
 
-        assert_ser_tokens(
+        assert_de_tokens(
             &Felt::ZERO.compact(),
             &[
-                Token::Seq { len: Some(32) },
+                Token::Tuple { len: 2 },
+                Token::U8(1 | 0x80),
+                Token::Tuple { len: 1 },
                 Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::SeqEnd,
+                Token::TupleEnd,
+                Token::TupleEnd,
             ],
         );
-        assert_ser_tokens(
+        assert_de_tokens(
             &Felt::TWO.compact(),
             &[
-                Token::Seq { len: Some(32) },
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
+                Token::Tuple { len: 2 },
+                Token::U8(1 | 0x80),
+                Token::Tuple { len: 1 },
                 Token::U8(2),
-                Token::SeqEnd,
+                Token::TupleEnd,
+                Token::TupleEnd,
             ],
         );
-        assert_ser_tokens(
+        assert_de_tokens(
             &Felt::THREE.compact(),
             &[
-                Token::Seq { len: Some(32) },
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
+                Token::Tuple { len: 2 },
+                Token::U8(1 | 0x80),
+                Token::Tuple { len: 1 },
                 Token::U8(3),
-                Token::SeqEnd,
+                Token::TupleEnd,
+                Token::TupleEnd,
             ],
         );
-        assert_ser_tokens(
+        assert_de_tokens(
             &Felt::MAX.compact(),
             &[
-                Token::Seq { len: Some(32) },
+                Token::Tuple { len: 2 },
                 Token::U8(8),
+                Token::Tuple { len: 31 },
                 Token::U8(0),
                 Token::U8(0),
                 Token::U8(0),
@@ -1805,7 +1784,97 @@ mod test {
                 Token::U8(0),
                 Token::U8(0),
                 Token::U8(0),
-                Token::SeqEnd,
+                Token::TupleEnd,
+                Token::TupleEnd,
+            ],
+        );
+    }
+
+    #[test]
+    #[cfg(feature = "serde")]
+    fn serialize() {
+        assert_ser_tokens(&Felt::ZERO.readable(), &[Token::String("0x0")]);
+        assert_ser_tokens(&Felt::TWO.readable(), &[Token::String("0x2")]);
+        assert_ser_tokens(&Felt::THREE.readable(), &[Token::String("0x3")]);
+        assert_ser_tokens(
+            &Felt::MAX.readable(),
+            &[Token::String(
+                "0x800000000000011000000000000000000000000000000000000000000000000",
+            )],
+        );
+
+        assert_ser_tokens(
+            &Felt::ZERO.compact(),
+            &[
+                Token::Tuple { len: 2 },
+                Token::U8(1 | 0x80),
+                Token::Tuple { len: 1 },
+                Token::U8(0),
+                Token::TupleEnd,
+                Token::TupleEnd,
+            ],
+        );
+        assert_ser_tokens(
+            &Felt::TWO.compact(),
+            &[
+                Token::Tuple { len: 2 },
+                Token::U8(1 | 0x80),
+                Token::Tuple { len: 1 },
+                Token::U8(2),
+                Token::TupleEnd,
+                Token::TupleEnd,
+            ],
+        );
+        assert_ser_tokens(
+            &Felt::THREE.compact(),
+            &[
+                Token::Tuple { len: 2 },
+                Token::U8(1 | 0x80),
+                Token::Tuple { len: 1 },
+                Token::U8(3),
+                Token::TupleEnd,
+                Token::TupleEnd,
+            ],
+        );
+        assert_ser_tokens(
+            &Felt::MAX.compact(),
+            &[
+                Token::Tuple { len: 2 },
+                Token::U8(8),
+                Token::Tuple { len: 31 },
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(17),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::U8(0),
+                Token::TupleEnd,
+                Token::TupleEnd,
             ],
         );
     }
