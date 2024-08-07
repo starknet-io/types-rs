@@ -26,7 +26,7 @@ parity-scale-codec = { version = "3.6.9", default-features = false, optional = t
 lazy_static = { version = "1.4.0", default-features = false, optional = true }
 
 [features]
-default = ["std", "serde", "curve", "num-traits"]
+default = ["std", "serde", "curve", "num-traits", "hash"]
 std = [
   "lambdaworks-math/std",
   "num-traits/std",
@@ -57,4 +57,3 @@ lazy_static = { version = "1.4.0", default-features = false }
 [[bench]]
 name = "criterion_hashes"
 harness = false
-
