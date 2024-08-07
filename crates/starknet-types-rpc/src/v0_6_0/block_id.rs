@@ -66,7 +66,7 @@ impl<'de> serde::Deserialize<'de> for BlockId {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::{BlockId, BlockTag};
     use starknet_types_core::felt::Felt;
 
     #[test]

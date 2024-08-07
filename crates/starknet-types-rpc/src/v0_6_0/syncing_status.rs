@@ -66,7 +66,7 @@ impl<'de> Deserialize<'de> for SyncingStatus {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::SyncingStatus;
 
     #[test]
     fn syncing_status_from_false() {

@@ -71,7 +71,7 @@ impl<'de, F: Deserialize<'de>> Deserialize<'de> for SyncingStatus<F> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::SyncingStatus;
     pub use starknet_types_core::felt::Felt;
 
     #[test]
