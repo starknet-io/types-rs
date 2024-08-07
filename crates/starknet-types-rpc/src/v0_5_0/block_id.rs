@@ -64,66 +64,64 @@ impl<'de> serde::Deserialize<'de> for BlockId {
     }
 }
 
-#[test]
-fn block_id_from_hash() {
+#[cfg(test)]
+mod tests {
+    use super::*;
     use starknet_types_core::felt::Felt;
 
-    let s = "{\"block_hash\":\"0x123\"}";
-    let block_id: BlockId = serde_json::from_str(s).unwrap();
-    assert_eq!(block_id, BlockId::Hash(Felt::from_hex("0x123").unwrap()));
-}
+    #[test]
+    fn block_id_from_hash() {
+        let s = "{\"block_hash\":\"0x123\"}";
+        let block_id: BlockId = serde_json::from_str(s).unwrap();
+        assert_eq!(block_id, BlockId::Hash(Felt::from_hex("0x123").unwrap()));
+    }
 
-#[test]
-fn block_id_from_number() {
-    let s = "{\"block_number\":123}";
-    let block_id: BlockId = serde_json::from_str(s).unwrap();
-    assert_eq!(block_id, BlockId::Number(123));
-}
+    #[test]
+    fn block_id_from_number() {
+        let s = "{\"block_number\":123}";
+        let block_id: BlockId = serde_json::from_str(s).unwrap();
+        assert_eq!(block_id, BlockId::Number(123));
+    }
 
-#[test]
-fn block_id_from_latest() {
-    let s = "\"latest\"";
-    let block_id: BlockId = serde_json::from_str(s).unwrap();
-    assert_eq!(block_id, BlockId::Tag(BlockTag::Latest));
-}
+    #[test]
+    fn block_id_from_latest() {
+        let s = "\"latest\"";
+        let block_id: BlockId = serde_json::from_str(s).unwrap();
+        assert_eq!(block_id, BlockId::Tag(BlockTag::Latest));
+    }
 
-#[test]
-fn block_id_from_pending() {
-    let s = "\"pending\"";
-    let block_id: BlockId = serde_json::from_str(s).unwrap();
-    assert_eq!(block_id, BlockId::Tag(BlockTag::Pending));
-}
+    #[test]
+    fn block_id_from_pending() {
+        let s = "\"pending\"";
+        let block_id: BlockId = serde_json::from_str(s).unwrap();
+        assert_eq!(block_id, BlockId::Tag(BlockTag::Pending));
+    }
 
-#[cfg(test)]
-#[test]
-fn block_id_to_hash() {
-    use starknet_types_core::felt::Felt;
+    #[test]
+    fn block_id_to_hash() {
+        let block_id = BlockId::Hash(Felt::from_hex("0x123").unwrap());
+        let s = serde_json::to_string(&block_id).unwrap();
+        assert_eq!(s, "{\"block_hash\":\"0x123\"}");
+    }
 
-    let block_id = BlockId::Hash(Felt::from_hex("0x123").unwrap());
-    let s = serde_json::to_string(&block_id).unwrap();
-    assert_eq!(s, "{\"block_hash\":\"0x123\"}");
-}
+    #[test]
+    fn block_id_to_number() {
+        let block_id = BlockId::Number(123);
+        let s = serde_json::to_string(&block_id).unwrap();
+        assert_eq!(s, "{\"block_number\":123}");
+    }
 
-#[cfg(test)]
-#[test]
-fn block_id_to_number() {
-    let block_id = BlockId::Number(123);
-    let s = serde_json::to_string(&block_id).unwrap();
-    assert_eq!(s, "{\"block_number\":123}");
-}
+    #[test]
+    fn block_id_to_latest() {
+        let block_id = BlockId::Tag(BlockTag::Latest);
+        let s = serde_json::to_string(&block_id).unwrap();
+        assert_eq!(s, "\"latest\"");
+    }
 
-#[cfg(test)]
-#[test]
-fn block_id_to_latest() {
-    let block_id = BlockId::Tag(BlockTag::Latest);
-    let s = serde_json::to_string(&block_id).unwrap();
-    assert_eq!(s, "\"latest\"");
-}
-
-#[cfg(test)]
-#[test]
-fn block_id_to_pending() {
-    let block_id = BlockId::Tag(BlockTag::Pending);
-    let s = serde_json::to_string(&block_id).unwrap();
-    assert_eq!(s, "\"pending\"");
+    #[test]
+    fn block_id_to_pending() {
+        let block_id = BlockId::Tag(BlockTag::Pending);
+        let s = serde_json::to_string(&block_id).unwrap();
+        assert_eq!(s, "\"pending\"");
+    }
 }

@@ -65,24 +65,26 @@ impl<'de> Deserialize<'de> for SyncingStatus {
 }
 
 #[cfg(test)]
-#[test]
-fn syncing_status_from_false() {
-    let s = "false";
-    let syncing_status: SyncingStatus = serde_json::from_str(s).unwrap();
-    assert!(matches!(syncing_status, SyncingStatus::NotSyncing));
-}
+mod tests {
+    use super::*;
 
-#[cfg(test)]
-#[test]
-fn syncing_status_to_false() {
-    let syncing_status = SyncingStatus::NotSyncing;
-    let s = serde_json::to_string(&syncing_status).unwrap();
-    assert_eq!(s, "false");
-}
+    #[test]
+    fn syncing_status_from_false() {
+        let s = "false";
+        let syncing_status: SyncingStatus = serde_json::from_str(s).unwrap();
+        assert!(matches!(syncing_status, SyncingStatus::NotSyncing));
+    }
 
-#[cfg(test)]
-#[test]
-fn syncing_status_from_true() {
-    let s = "true";
-    assert!(serde_json::from_str::<SyncingStatus>(s).is_err());
+    #[test]
+    fn syncing_status_to_false() {
+        let syncing_status = SyncingStatus::NotSyncing;
+        let s = serde_json::to_string(&syncing_status).unwrap();
+        assert_eq!(s, "false");
+    }
+
+    #[test]
+    fn syncing_status_from_true() {
+        let s = "true";
+        assert!(serde_json::from_str::<SyncingStatus>(s).is_err());
+    }
 }

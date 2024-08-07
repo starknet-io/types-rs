@@ -66,78 +66,64 @@ impl<'de, F: Deserialize<'de>> serde::Deserialize<'de> for BlockId<F> {
     }
 }
 
-#[test]
-fn block_id_from_hash() {
-    pub use starknet_types_core::felt::Felt;
-
-    let s = "{\"block_hash\":\"0x123\"}";
-    let block_id: BlockId<Felt> = serde_json::from_str(s).unwrap();
-    assert_eq!(block_id, BlockId::Hash(Felt::from_hex("0x123").unwrap()));
-}
-
-#[test]
-fn block_id_from_number() {
-    pub use starknet_types_core::felt::Felt;
-
-    let s = "{\"block_number\":123}";
-    let block_id: BlockId<Felt> = serde_json::from_str(s).unwrap();
-    assert_eq!(block_id, BlockId::Number(123));
-}
-
-#[test]
-fn block_id_from_latest() {
-    pub use starknet_types_core::felt::Felt;
-
-    let s = "\"latest\"";
-    let block_id: BlockId<Felt> = serde_json::from_str(s).unwrap();
-    assert_eq!(block_id, BlockId::Tag(BlockTag::Latest));
-}
-
-#[test]
-fn block_id_from_pending() {
-    pub use starknet_types_core::felt::Felt;
-
-    let s = "\"pending\"";
-    let block_id: BlockId<Felt> = serde_json::from_str(s).unwrap();
-    assert_eq!(block_id, BlockId::Tag(BlockTag::Pending));
-}
-
 #[cfg(test)]
-#[test]
-fn block_id_to_hash() {
-    pub use starknet_types_core::felt::Felt;
+mod tests {
+    use super::*;
+    use starknet_types_core::felt::Felt;
 
-    let block_id = BlockId::Hash(Felt::from_hex("0x123").unwrap());
-    let s = serde_json::to_string(&block_id).unwrap();
-    assert_eq!(s, "{\"block_hash\":\"0x123\"}");
-}
+    #[test]
+    fn block_id_from_hash() {
+        let s = "{\"block_hash\":\"0x123\"}";
+        let block_id: BlockId<Felt> = serde_json::from_str(s).unwrap();
+        assert_eq!(block_id, BlockId::Hash(Felt::from_hex("0x123").unwrap()));
+    }
 
-#[cfg(test)]
-#[test]
-fn block_id_to_number() {
-    pub use starknet_types_core::felt::Felt;
+    #[test]
+    fn block_id_from_number() {
+        let s = "{\"block_number\":123}";
+        let block_id: BlockId<Felt> = serde_json::from_str(s).unwrap();
+        assert_eq!(block_id, BlockId::Number(123));
+    }
 
-    let block_id = BlockId::<Felt>::Number(123);
-    let s = serde_json::to_string(&block_id).unwrap();
-    assert_eq!(s, "{\"block_number\":123}");
-}
+    #[test]
+    fn block_id_from_latest() {
+        let s = "\"latest\"";
+        let block_id: BlockId<Felt> = serde_json::from_str(s).unwrap();
+        assert_eq!(block_id, BlockId::Tag(BlockTag::Latest));
+    }
 
-#[cfg(test)]
-#[test]
-fn block_id_to_latest() {
-    pub use starknet_types_core::felt::Felt;
+    #[test]
+    fn block_id_from_pending() {
+        let s = "\"pending\"";
+        let block_id: BlockId<Felt> = serde_json::from_str(s).unwrap();
+        assert_eq!(block_id, BlockId::Tag(BlockTag::Pending));
+    }
 
-    let block_id = BlockId::<Felt>::Tag(BlockTag::Latest);
-    let s = serde_json::to_string(&block_id).unwrap();
-    assert_eq!(s, "\"latest\"");
-}
+    #[test]
+    fn block_id_to_hash() {
+        let block_id = BlockId::Hash(Felt::from_hex("0x123").unwrap());
+        let s = serde_json::to_string(&block_id).unwrap();
+        assert_eq!(s, "{\"block_hash\":\"0x123\"}");
+    }
 
-#[cfg(test)]
-#[test]
-fn block_id_to_pending() {
-    pub use starknet_types_core::felt::Felt;
+    #[test]
+    fn block_id_to_number() {
+        let block_id = BlockId::<Felt>::Number(123);
+        let s = serde_json::to_string(&block_id).unwrap();
+        assert_eq!(s, "{\"block_number\":123}");
+    }
 
-    let block_id = BlockId::<Felt>::Tag(BlockTag::Pending);
-    let s = serde_json::to_string(&block_id).unwrap();
-    assert_eq!(s, "\"pending\"");
+    #[test]
+    fn block_id_to_latest() {
+        let block_id = BlockId::<Felt>::Tag(BlockTag::Latest);
+        let s = serde_json::to_string(&block_id).unwrap();
+        assert_eq!(s, "\"latest\"");
+    }
+
+    #[test]
+    fn block_id_to_pending() {
+        let block_id = BlockId::<Felt>::Tag(BlockTag::Pending);
+        let s = serde_json::to_string(&block_id).unwrap();
+        assert_eq!(s, "\"pending\"");
+    }
 }
