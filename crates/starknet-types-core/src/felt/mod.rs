@@ -924,7 +924,7 @@ mod arithmetic {
 mod serde_impl {
     use alloc::{format, string::String};
     use core::fmt;
-    use serde::{de, ser::SerializeSeq, Deserialize, Serialize};
+    use serde::{de, Deserialize, Serialize};
 
     use super::*;
 
@@ -936,11 +936,7 @@ mod serde_impl {
             if serializer.is_human_readable() {
                 serializer.serialize_str(&format!("{:#x}", self))
             } else {
-                let mut seq = serializer.serialize_seq(Some(32))?;
-                for b in self.to_bytes_be() {
-                    seq.serialize_element(&b)?;
-                }
-                seq.end()
+                serializer.serialize_bytes(&self.to_bytes_be())
             }
         }
     }
@@ -950,7 +946,11 @@ mod serde_impl {
         where
             D: ::serde::Deserializer<'de>,
         {
-            deserializer.deserialize_str(FeltVisitor)
+            if deserializer.is_human_readable() {
+                deserializer.deserialize_str(FeltVisitor)
+            } else {
+                deserializer.deserialize_bytes(FeltVisitor)
+            }
         }
     }
 
@@ -959,6 +959,7 @@ mod serde_impl {
     impl<'de> de::Visitor<'de> for FeltVisitor {
         type Value = Felt;
 
+        // TODO(xrvdg) change this
         fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
             formatter.write_str("Failed to deserialize hexadecimal string")
         }
@@ -974,6 +975,21 @@ mod serde_impl {
                 .map(Felt)
                 .ok_or(String::from("Expected hex string to be prefixed by '0x'"))
                 .map_err(de::Error::custom)
+        }
+
+        fn visit_bytes<E>(self, v: &[u8]) -> Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            let nv: Result<[u8; 32], _> = v.try_into();
+            match nv {
+                Ok(v) => Ok(Felt::from_bytes_be(&v)),
+                // TODO(xrvdg) use error::invalid length instead
+                _ => Err(de::Error::custom(format!(
+                    "Felt bytestring needs to be 32 bytes long, it is {}",
+                    v.len()
+                ))),
+            }
         }
     }
 }
