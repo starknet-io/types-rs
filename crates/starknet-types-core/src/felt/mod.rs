@@ -959,9 +959,12 @@ mod serde_impl {
     impl<'de> de::Visitor<'de> for FeltVisitor {
         type Value = Felt;
 
-        // TODO(xrvdg) change this
         fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-            formatter.write_str("Failed to deserialize hexadecimal string")
+            // The message below is append to “This Visitor expects to receive …”
+            write!(
+                formatter,
+                "a 32 byte array ([u8;32]) or a hexadecimal string."
+            )
         }
 
         fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
@@ -973,22 +976,17 @@ mod serde_impl {
                 .strip_prefix("0x")
                 .and_then(|v| FieldElement::<Stark252PrimeField>::from_hex(v).ok())
                 .map(Felt)
-                .ok_or(String::from("Expected hex string to be prefixed by '0x'"))
+                .ok_or(String::from("expected hex string to be prefixed by '0x'"))
                 .map_err(de::Error::custom)
         }
 
-        fn visit_bytes<E>(self, v: &[u8]) -> Result<Self::Value, E>
+        fn visit_bytes<E>(self, value: &[u8]) -> Result<Self::Value, E>
         where
             E: de::Error,
         {
-            let nv: Result<[u8; 32], _> = v.try_into();
-            match nv {
+            match value.try_into() {
                 Ok(v) => Ok(Felt::from_bytes_be(&v)),
-                // TODO(xrvdg) use error::invalid length instead
-                _ => Err(de::Error::custom(format!(
-                    "Felt bytestring needs to be 32 bytes long, it is {}",
-                    v.len()
-                ))),
+                _ => Err(de::Error::invalid_length(value.len(), &self)),
             }
         }
     }
