@@ -1,0 +1,21 @@
+[package]
+name = "starknet-types-macros"
+version = "0.1.5"
+edition = "2021"
+license = "MIT"
+homepage = "https://github.com/starknet-io/types-rs"
+repository = "https://github.com/starknet-io/types-rs"
+categories = ["mathematics", "cryptography"]
+keywords = ["stark", "zkp", "cairo"]
+description = "Macros types representation for Starknet"
+readme = "README.md"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+starknet-types-core = { path = "../starknet-types-core", default-features = false, features = [
+    "serde",
+] }
+syn = { version = "0.15", features = ["full", "extra-traits"] }
+quote = "0.6"
