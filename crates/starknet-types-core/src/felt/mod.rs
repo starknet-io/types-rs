@@ -1116,8 +1116,6 @@ mod test {
     use core::ops::Shl;
     use proptest::prelude::*;
     use regex::Regex;
-    #[cfg(feature = "serde")]
-    use serde_test::{assert_de_tokens, assert_ser_tokens, Configure, Token};
 
     #[test]
     fn test_debug_format() {
@@ -1642,7 +1640,7 @@ mod test {
     #[test]
     #[cfg(feature = "serde")]
     fn serde() {
-        use serde_test::assert_tokens;
+        use serde_test::{assert_tokens, Configure, Token};
 
         assert_tokens(&Felt::ZERO.readable(), &[Token::String("0x0")]);
         assert_tokens(&Felt::TWO.readable(), &[Token::String("0x2")]);
