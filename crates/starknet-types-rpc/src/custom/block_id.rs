@@ -69,10 +69,11 @@ impl<'de, F: Deserialize<'de>> serde::Deserialize<'de> for BlockId<F> {
 #[test]
 fn block_id_from_hash() {
     pub use starknet_types_core::felt::Felt;
+    use starknet_types_macros::felt;
 
     let s = "{\"block_hash\":\"0x123\"}";
     let block_id: BlockId<Felt> = serde_json::from_str(s).unwrap();
-    assert_eq!(block_id, BlockId::Hash(Felt::from_hex("0x123").unwrap()));
+    assert_eq!(block_id, BlockId::Hash(felt!("0x123")));
 }
 
 #[test]
@@ -106,8 +107,9 @@ fn block_id_from_pending() {
 #[test]
 fn block_id_to_hash() {
     pub use starknet_types_core::felt::Felt;
+    use starknet_types_macros::felt;
 
-    let block_id = BlockId::Hash(Felt::from_hex("0x123").unwrap());
+    let block_id = BlockId::Hash(felt!("0x123"));
     let s = serde_json::to_string(&block_id).unwrap();
     assert_eq!(s, "{\"block_hash\":\"0x123\"}");
 }
