@@ -18,6 +18,6 @@ jobs:
       - name: Install toolchain
         run: rustup show
 
-      - run: cargo publish --dry-run --token "$CARGO_REGISTRY_TOKEN" -p starknet-types-core
+      - run: cargo publish --token "$CARGO_REGISTRY_TOKEN" -p starknet-types-core
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
