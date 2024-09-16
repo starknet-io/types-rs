@@ -1,0 +1,34 @@
+on:
+  push:
+    branches:
+      - "main"
+  pull_request:
+
+name: "Build feature combinations"
+
+jobs:
+  feature-powerset:
+    name: "Build ${{ matrix.package }} features"
+    runs-on: "ubuntu-latest"
+
+    strategy:
+      matrix:
+        package:
+          - "starknet-types-core"
+          - "starknet-types-rpc"
+
+    steps:
+      - name: "Checkout source code"
+        uses: "actions/checkout@v3"
+
+      - uses: actions/checkout@v3
+      - name: Install toolchain
+        run: rustup show
+
+      - name: "Install cargo-hack"
+        run: |
+          cargo install --locked cargo-hack
+
+      - name: "Build all feature combinations"
+        run: |
+          cargo hack build --package ${{ matrix.package }} --feature-powerset

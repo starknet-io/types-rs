@@ -878,7 +878,7 @@ mod arithmetic {
 mod serde_impl {
     use alloc::{format, string::String};
     use core::fmt;
-    use serde::{de, ser::SerializeSeq, Deserialize, Serialize};
+    use serde::{de, Deserialize, Serialize};
 
     use super::*;
 
@@ -890,11 +890,7 @@ mod serde_impl {
             if serializer.is_human_readable() {
                 serializer.serialize_str(&format!("{:#x}", self))
             } else {
-                let mut seq = serializer.serialize_seq(Some(32))?;
-                for b in self.to_bytes_be() {
-                    seq.serialize_element(&b)?;
-                }
-                seq.end()
+                serializer.serialize_bytes(&self.to_bytes_be())
             }
         }
     }
@@ -904,7 +900,11 @@ mod serde_impl {
         where
             D: ::serde::Deserializer<'de>,
         {
-            deserializer.deserialize_str(FeltVisitor)
+            if deserializer.is_human_readable() {
+                deserializer.deserialize_str(FeltVisitor)
+            } else {
+                deserializer.deserialize_bytes(FeltVisitor)
+            }
         }
     }
 
@@ -914,7 +914,11 @@ mod serde_impl {
         type Value = Felt;
 
         fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-            formatter.write_str("Failed to deserialize hexadecimal string")
+            // The message below is append to “This Visitor expects to receive …”
+            write!(
+                formatter,
+                "a 32 byte array ([u8;32]) or a hexadecimal string."
+            )
         }
 
         fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
@@ -926,8 +930,18 @@ mod serde_impl {
                 .strip_prefix("0x")
                 .and_then(|v| FieldElement::<Stark252PrimeField>::from_hex(v).ok())
                 .map(Felt)
-                .ok_or(String::from("Expected hex string to be prefixed by '0x'"))
+                .ok_or(String::from("expected hex string to be prefixed by '0x'"))
                 .map_err(de::Error::custom)
+        }
+
+        fn visit_bytes<E>(self, value: &[u8]) -> Result<Self::Value, E>
+        where
+            E: de::Error,
+        {
+            match value.try_into() {
+                Ok(v) => Ok(Felt::from_bytes_be(&v)),
+                _ => Err(de::Error::invalid_length(value.len(), &self)),
+            }
         }
     }
 }
@@ -969,7 +983,7 @@ mod formatting {
 
     impl fmt::Debug for Felt {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            write!(f, "{}", self.to_fixed_hex_string())
+            write!(f, "{}", self.0)
         }
     }
 
@@ -1056,23 +1070,12 @@ mod test {
     use core::ops::Shl;
     use proptest::prelude::*;
     use regex::Regex;
-    #[cfg(feature = "serde")]
-    use serde_test::{assert_de_tokens, assert_ser_tokens, Configure, Token};
 
     #[test]
     fn test_debug_format() {
-        assert_eq!(
-            format!("{:?}", Felt::ONE),
-            String::from("0x") + &"0".repeat(63) + "1"
-        );
-        assert_eq!(
-            format!("{:?}", Felt::from(2)),
-            String::from("0x") + &"0".repeat(63) + "2"
-        );
-        assert_eq!(
-            format!("{:?}", Felt::from(12345)),
-            String::from("0x") + &"0".repeat(60) + "3039"
-        );
+        assert_eq!(format!("{:?}", Felt::ONE), "0x1");
+        assert_eq!(format!("{:?}", Felt::from(2)), "0x2");
+        assert_eq!(format!("{:?}", Felt::from(12345)), "0x3039");
     }
 
     // Helper function to generate a vector of bits for testing purposes
@@ -1590,187 +1593,35 @@ mod test {
 
     #[test]
     #[cfg(feature = "serde")]
-    fn deserialize() {
-        assert_de_tokens(&Felt::ZERO, &[Token::String("0x0")]);
-        assert_de_tokens(&Felt::TWO, &[Token::String("0x2")]);
-        assert_de_tokens(&Felt::THREE, &[Token::String("0x3")]);
-        assert_de_tokens(
-            &Felt::MAX,
-            &[Token::String(
-                "0x800000000000011000000000000000000000000000000000000000000000000",
-            )],
-        );
-    }
+    fn serde() {
+        use serde_test::{assert_tokens, Configure, Token};
 
-    #[test]
-    #[cfg(feature = "serde")]
-    fn serialize() {
-        assert_ser_tokens(&Felt::ZERO.readable(), &[Token::String("0x0")]);
-        assert_ser_tokens(&Felt::TWO.readable(), &[Token::String("0x2")]);
-        assert_ser_tokens(&Felt::THREE.readable(), &[Token::String("0x3")]);
-        assert_ser_tokens(
+        assert_tokens(&Felt::ZERO.readable(), &[Token::String("0x0")]);
+        assert_tokens(&Felt::TWO.readable(), &[Token::String("0x2")]);
+        assert_tokens(&Felt::THREE.readable(), &[Token::String("0x3")]);
+        assert_tokens(
             &Felt::MAX.readable(),
             &[Token::String(
                 "0x800000000000011000000000000000000000000000000000000000000000000",
             )],
         );
 
-        assert_ser_tokens(
-            &Felt::ZERO.compact(),
-            &[
-                Token::Seq { len: Some(32) },
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::SeqEnd,
-            ],
-        );
-        assert_ser_tokens(
-            &Felt::TWO.compact(),
-            &[
-                Token::Seq { len: Some(32) },
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(2),
-                Token::SeqEnd,
-            ],
-        );
-        assert_ser_tokens(
-            &Felt::THREE.compact(),
-            &[
-                Token::Seq { len: Some(32) },
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(3),
-                Token::SeqEnd,
-            ],
-        );
-        assert_ser_tokens(
-            &Felt::MAX.compact(),
-            &[
-                Token::Seq { len: Some(32) },
-                Token::U8(8),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(17),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::U8(0),
-                Token::SeqEnd,
-            ],
-        );
+        assert_tokens(&Felt::ZERO.compact(), &[Token::Bytes(&[0; 32])]);
+        static TWO: [u8; 32] = [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 2,
+        ];
+        assert_tokens(&Felt::TWO.compact(), &[Token::Bytes(&TWO)]);
+        static THREE: [u8; 32] = [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 3,
+        ];
+        assert_tokens(&Felt::THREE.compact(), &[Token::Bytes(&THREE)]);
+        static MAX: [u8; 32] = [
+            8, 0, 0, 0, 0, 0, 0, 17, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0,
+        ];
+        assert_tokens(&Felt::MAX.compact(), &[Token::Bytes(&MAX)]);
     }
 
     #[test]
