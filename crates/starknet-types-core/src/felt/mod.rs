@@ -574,15 +574,10 @@ impl From<&BigInt> for Felt {
 
 impl From<BigInt> for Felt {
     fn from(bigint: BigInt) -> Felt {
-        let (sign, bytes) = bigint.to_bytes_le();
-        let felt = Felt::from_bytes_le_slice(&bytes);
-        if sign == Sign::Minus {
-            felt.neg()
-        } else {
-            felt
-        }
+        Self::from(&bigint)
     }
 }
+
 impl From<&BigUint> for Felt {
     fn from(biguint: &BigUint) -> Felt {
         Felt::from_bytes_le_slice(&biguint.to_bytes_le())
@@ -591,7 +586,7 @@ impl From<&BigUint> for Felt {
 
 impl From<BigUint> for Felt {
     fn from(biguint: BigUint) -> Felt {
-        Felt::from_bytes_le_slice(&biguint.to_bytes_le())
+        Self::from(&biguint)
     }
 }
 
