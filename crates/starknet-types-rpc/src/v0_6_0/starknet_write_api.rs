@@ -8,11 +8,10 @@
 //     https://github.com/nils-mathieu/openrpc-gen
 //
 
-use super::{
-    BroadcastedDeclareTxn, BroadcastedDeployAccountTxn, BroadcastedInvokeTxn, Felt, TxnHash,
-};
+use super::{BroadcastedDeclareTxn, BroadcastedDeployAccountTxn, BroadcastedInvokeTxn, TxnHash};
 use serde::ser::SerializeMap;
 use serde::{Deserialize, Serialize};
+use starknet_types_core::felt::Felt;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ClassAndTxnHash {

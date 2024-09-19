@@ -2,7 +2,7 @@ use core::marker::PhantomData;
 use serde::de::Visitor;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use crate::SyncStatus;
+use super::SyncStatus;
 
 /// The syncing status of a node.
 #[derive(Clone, Debug)]
