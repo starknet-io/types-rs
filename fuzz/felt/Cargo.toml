@@ -18,7 +18,7 @@ starknet-types-core = { path = "../../crates/starknet-types-core", default-featu
 libfuzzer-sys.workspace = true
 num-bigint = "0.4.4"
 num-traits = "0.2.18"
-lambdaworks-math = { version = "0.7.0", default-features = false }
+lambdaworks-math = { version = "0.10.0", default-features = false }
 
 [[bin]]
 name = "add_sub_fuzzer"
