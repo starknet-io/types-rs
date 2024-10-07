@@ -26,7 +26,7 @@ parity-scale-codec = { version = "3.6", default-features = false, optional = tru
 lazy_static = { version = "1.5", default-features = false, optional = true }
 
 [features]
-default = ["std", "serde", "curve", "num-traits"]
+default = ["std", "serde", "curve", "num-traits", "hash"]
 std = [
   "lambdaworks-math/std",
   "num-traits/std",

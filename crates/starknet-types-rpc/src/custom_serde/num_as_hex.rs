@@ -198,72 +198,66 @@ where
 }
 
 #[cfg(test)]
-#[derive(serde::Serialize, serde::Deserialize)]
-#[serde(transparent)]
-struct Helper {
-    #[serde(with = "NumAsHex")]
-    num: u64,
-}
+mod tests {
+    use super::*;
 
-#[cfg(test)]
-fn serialize(num: u64) -> serde_json::Result<alloc::string::String> {
-    let helper = Helper { num };
-    serde_json::to_string(&helper)
-}
+    #[derive(serde::Serialize, serde::Deserialize)]
+    #[serde(transparent)]
+    struct Helper {
+        #[serde(with = "NumAsHex")]
+        num: u64,
+    }
 
-#[cfg(test)]
-fn deserialize(s: &str) -> serde_json::Result<u64> {
-    let helper: Helper = serde_json::from_str(s)?;
-    Ok(helper.num)
-}
+    fn serialize(num: u64) -> serde_json::Result<alloc::string::String> {
+        let helper = Helper { num };
+        serde_json::to_string(&helper)
+    }
 
-#[test]
-#[cfg(test)]
-fn serialize_0_hex() {
-    assert_eq!(serialize(0x0).unwrap(), "\"0x0\"");
-}
+    fn deserialize(s: &str) -> serde_json::Result<u64> {
+        let helper: Helper = serde_json::from_str(s)?;
+        Ok(helper.num)
+    }
 
-#[test]
-#[cfg(test)]
-fn srialize_hex() {
-    assert_eq!(serialize(0x1234).unwrap(), "\"0x1234\"");
-}
+    #[test]
+    fn serialize_0_hex() {
+        assert_eq!(serialize(0x0).unwrap(), "\"0x0\"");
+    }
 
-#[test]
-#[cfg(test)]
-fn srialize_max() {
-    assert_eq!(serialize(u64::MAX).unwrap(), "\"0xffffffffffffffff\"");
-}
+    #[test]
+    fn serialize_hex() {
+        assert_eq!(serialize(0x1234).unwrap(), "\"0x1234\"");
+    }
 
-#[test]
-#[cfg(test)]
-fn deserialize_zero() {
-    assert_eq!(deserialize("\"0x0\"").unwrap(), 0);
-}
+    #[test]
+    fn serialize_max() {
+        assert_eq!(serialize(u64::MAX).unwrap(), "\"0xffffffffffffffff\"");
+    }
 
-#[test]
-#[cfg(test)]
-fn deserialize_zeros() {
-    assert_eq!(deserialize("\"0x00000\"").unwrap(), 0);
-}
+    #[test]
+    fn deserialize_zero() {
+        assert_eq!(deserialize("\"0x0\"").unwrap(), 0);
+    }
 
-#[test]
-#[cfg(test)]
-fn deserialize_max() {
-    assert_eq!(deserialize("\"0xFFFFFFFFFFFFFFFF\"").unwrap(), u64::MAX);
-}
+    #[test]
+    fn deserialize_zeros() {
+        assert_eq!(deserialize("\"0x00000\"").unwrap(), 0);
+    }
 
-#[test]
-#[cfg(test)]
-fn deserialize_big_one() {
-    assert_eq!(
-        deserialize("\"0x000000000000000000000000000001\"").unwrap(),
-        1
-    );
-}
+    #[test]
+    fn deserialize_max() {
+        assert_eq!(deserialize("\"0xFFFFFFFFFFFFFFFF\"").unwrap(), u64::MAX);
+    }
 
-#[test]
-#[cfg(test)]
-fn deserialize_hex() {
-    assert_eq!(deserialize("\"0x1234\"").unwrap(), 0x1234);
+    #[test]
+    fn deserialize_big_one() {
+        assert_eq!(
+            deserialize("\"0x000000000000000000000000000001\"").unwrap(),
+            1
+        );
+    }
+
+    #[test]
+    fn deserialize_hex() {
+        assert_eq!(deserialize("\"0x1234\"").unwrap(), 0x1234);
+    }
 }
