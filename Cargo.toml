@@ -2,6 +2,7 @@
 members = [
     "crates/starknet-types-core",
     "crates/starknet-types-rpc",
+    "crates/starknet-types-macros",
 ]
 
 exclude = ["ensure_no_std", "fuzz"]
