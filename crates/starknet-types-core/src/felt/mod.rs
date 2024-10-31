@@ -1076,7 +1076,7 @@ mod test {
     // Helper function to generate a vector of bits for testing purposes
     fn generate_be_bits(x: &Felt) -> Vec<bool> {
         // Initialize an empty vector to store the expected bits
-        let mut bits = Vec::new();
+        let mut bits = Vec::with_capacity(x.0.representative().limbs.len() * 8 * 8);
 
         // Iterate over each limb in the representative of x
         for limb in x.0.representative().limbs {
@@ -1831,7 +1831,7 @@ mod test {
                 bytes[31 - (i >> 1)] |= 15 << (4 * (i & 1));
             }
             let h = Felt::from_bytes_be(&bytes);
-            let mut res = Vec::new();
+            let mut res = Vec::with_capacity(enc_len(n_nibbles));
             assert!(h.serialize(&mut res).is_ok());
             assert_eq!(res.len(), enc_len(n_nibbles));
             let mut reader = &res[..];
