@@ -33,6 +33,8 @@ pub enum BroadcastedDeclareTxn<F: Default> {
 pub enum BroadcastedDeployAccountTxn<F> {
     #[serde(rename = "0x1")]
     V1(DeployAccountTxnV1<F>),
+    #[serde(rename = "0x3")]
+    V3(DeployAccountTxnV3<F>),
     /// Query-only broadcasted deploy account transaction.
     #[serde(rename = "0x0000000000000000000000000000000100000000000000000000000000000001")]
     QueryV1(DeployAccountTxnV1<F>),
