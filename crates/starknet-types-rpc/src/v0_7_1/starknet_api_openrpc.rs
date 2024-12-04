@@ -305,11 +305,9 @@ pub struct ContractStorageDiffItem<F: Default> {
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub struct KeyValuePair<F> {
     /// The key of the changed value
-    #[serde(default)]
-    pub key: Option<F>,
+    pub key: F,
     /// The new value applied to the given address
-    #[serde(default)]
-    pub value: Option<F>,
+    pub value: F,
 }
 
 /// Specifies a storage domain in Starknet. Each domain has different gurantess regarding availability
@@ -504,15 +502,12 @@ pub struct DeprecatedContractClass<F: Default> {
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub struct DeprecatedEntryPointsByType<F> {
-    #[serde(default)]
     #[serde(rename = "CONSTRUCTOR")]
-    pub constructor: Option<Vec<DeprecatedCairoEntryPoint<F>>>,
-    #[serde(default)]
+    pub constructor: Vec<DeprecatedCairoEntryPoint<F>>,
     #[serde(rename = "EXTERNAL")]
-    pub external: Option<Vec<DeprecatedCairoEntryPoint<F>>>,
-    #[serde(default)]
+    pub external: Vec<DeprecatedCairoEntryPoint<F>>,
     #[serde(rename = "L1_HANDLER")]
-    pub l1_handler: Option<Vec<DeprecatedCairoEntryPoint<F>>>,
+    pub l1_handler: Vec<DeprecatedCairoEntryPoint<F>>,
 }
 
 /// Event information decorated with metadata on where it was emitted / An event emitted as a result of transaction execution
@@ -892,33 +887,27 @@ pub struct StateDiff<F: Default> {
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub struct NewClasses<F> {
     /// The hash of the declared class
-    #[serde(default)]
-    pub class_hash: Option<F>,
+    pub class_hash: F,
     /// The Cairo assembly hash corresponding to the declared class
-    #[serde(default)]
-    pub compiled_class_hash: Option<F>,
+    pub compiled_class_hash: F,
 }
 
 /// The updated nonce per contract address
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub struct NonceUpdate<F> {
     /// The address of the contract
-    #[serde(default)]
-    pub contract_address: Option<Address<F>>,
+    pub contract_address: Address<F>,
     /// The nonce for the given address at the end of the block
-    #[serde(default)]
-    pub nonce: Option<F>,
+    pub nonce: F,
 }
 
 /// The list of contracts whose class was replaced
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub struct ReplacedClass<F> {
     /// The new class hash
-    #[serde(default)]
-    pub class_hash: Option<F>,
+    pub class_hash: F,
     /// The address of the contract whose class was replaced
-    #[serde(default)]
-    pub contract_address: Option<Address<F>>,
+    pub contract_address: Address<F>,
 }
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
@@ -951,8 +940,7 @@ pub struct StructMember {
     #[serde(flatten)]
     pub typed_parameter: TypedParameter,
     /// offset of this property within the struct
-    #[serde(default)]
-    pub offset: Option<u64>,
+    pub offset: u64,
 }
 
 /// An object describing the node synchronization status
