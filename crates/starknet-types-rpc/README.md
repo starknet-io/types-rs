@@ -31,7 +31,7 @@ Rust files:
 make all
 ```
 
-NOTE: Currently the `starknet_trace_api_openrpc` file requires a modification for `starknet_simulateTransactions` (nested `schema` in the result, see previous version for infos)
+NOTE: Currently the `starknet_trace_api_openrpc` file requires a modification for `starknet_simulateTransactions` (nested `schema` in the result, see previous version for information)
 
 *Note that this first step is normally already done for you upon cloning the repository.*
 
