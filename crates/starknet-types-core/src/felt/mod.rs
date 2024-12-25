@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod felt_arbitrary;
+mod primitive_conversions;
 
 use core::ops::{Add, Mul, Neg};
 use core::str::FromStr;
@@ -38,13 +39,14 @@ use lambdaworks_math::{
 #[cfg(feature = "arbitrary")]
 use arbitrary::{self, Arbitrary, Unstructured};
 
-#[repr(transparent)]
 /// Definition of the Field Element type.
+#[repr(transparent)]
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Felt(pub(crate) FieldElement<Stark252PrimeField>);
 
 /// A non-zero [Felt].
-#[derive(Debug, Clone, Copy, Eq, PartialEq, PartialOrd, Ord)]
+#[repr(transparent)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct NonZeroFelt(FieldElement<Stark252PrimeField>);
 
 impl NonZeroFelt {
@@ -533,33 +535,6 @@ impl TryFrom<&Felt> for NonZeroFelt {
     }
 }
 
-impl From<u128> for Felt {
-    fn from(value: u128) -> Felt {
-        Self(FieldElement::from(&UnsignedInteger::from(value)))
-    }
-}
-
-impl From<i128> for Felt {
-    fn from(value: i128) -> Felt {
-        let mut res = Self(FieldElement::from(&UnsignedInteger::from(
-            value.unsigned_abs(),
-        )));
-        if value.is_negative() {
-            res = -res;
-        }
-        res
-    }
-}
-
-impl From<bool> for Felt {
-    fn from(value: bool) -> Felt {
-        match value {
-            true => Felt::ONE,
-            false => Felt::ZERO,
-        }
-    }
-}
-
 impl From<&BigInt> for Felt {
     fn from(bigint: &BigInt) -> Felt {
         let (sign, bytes) = bigint.to_bytes_le();
@@ -589,27 +564,6 @@ impl From<BigUint> for Felt {
         Self::from(&biguint)
     }
 }
-
-macro_rules! impl_from {
-    ($from:ty, $with:ty) => {
-        impl From<$from> for Felt {
-            fn from(value: $from) -> Self {
-                (value as $with).into()
-            }
-        }
-    };
-}
-
-impl_from!(u8, u128);
-impl_from!(u16, u128);
-impl_from!(u32, u128);
-impl_from!(u64, u128);
-impl_from!(usize, u128);
-impl_from!(i8, i128);
-impl_from!(i16, i128);
-impl_from!(i32, i128);
-impl_from!(i64, i128);
-impl_from!(isize, i128);
 
 impl FromStr for Felt {
     type Err = FromStrError;
