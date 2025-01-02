@@ -5,6 +5,12 @@ mod primitive_conversions;
 use core::ops::{Add, Mul, Neg};
 use core::str::FromStr;
 
+use revision::implementations::primitives::read_buffer;
+use revision::Error;
+use revision::Revisioned;
+use starknet_types_core::felt::Felt;
+use std::io;
+
 use num_bigint::{BigInt, BigUint, Sign};
 use num_integer::Integer;
 use num_traits::{One, Zero};
@@ -444,6 +450,26 @@ impl Felt {
     #[cfg(feature = "prime-bigint")]
     pub fn prime() -> BigUint {
         (*CAIRO_PRIME_BIGINT).to_biguint().unwrap()
+    }
+}
+
+impl Revisioned for Felt {
+    fn revision() -> u16 {
+        1
+    }
+
+    fn serialize_revisioned<W: std::io::Write>(&self, writer: &mut W) -> Result<(), Error> {
+        let bytes = self.0.to_bytes_le();
+        writer.write_all(&bytes).map_err(Error::Io)?;
+        Ok(())
+    }
+
+    fn deserialize_revisioned<R: io::Read>(r: &mut R) -> Result<Self, Error>
+    where
+        Self: Sized,
+    {
+        let b = read_buffer::<32, _>(r)?;
+        Ok(Felt252(Felt::from_bytes_le(&b)))
     }
 }
 
