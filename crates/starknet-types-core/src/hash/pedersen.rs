@@ -17,6 +17,9 @@ impl StarkHash for Pedersen {
 
     /// Computes the Pedersen hash of an array of Felts, as defined
     /// in <https://docs.starknet.io/documentation/architecture_and_concepts/Hashing/hash-functions/#array_hashing.>
+    ///
+    /// Warning: there is room for collision as:
+    /// Pedersen::hash_array([value]) and Pedersen::hash(Pedersen::hash(0, value), 1) will return the same values
     fn hash_array(felts: &[Felt]) -> Felt {
         let data_len = Felt::from(felts.len());
         let current_hash: FieldElement<Stark252PrimeField> = felts
@@ -26,15 +29,31 @@ impl StarkHash for Pedersen {
             });
         Felt(PedersenStarkCurve::hash(&current_hash, &data_len.0))
     }
-    
+
+    /// Computes the Pedersen hash of a single Felt
+    ///
+    /// Warning: there is room for collision as:
+    /// Pedersen::hash_single(value) and Pedersen::hash(value, 0) will return the same values
     fn hash_single(felt: &Felt) -> Felt {
-        todo!()
+        Felt(PedersenStarkCurve::hash(&felt.0, &Felt::from(0).0))
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_pedersen_hash_single() {
+        let x =
+            Felt::from_hex("0x03d937c035c878245caf64531a5756109c53068da139362728feb561405371cb")
+                .unwrap();
+        assert_eq!(
+            Pedersen::hash_single(&x),
+            Felt::from_hex("0x460ded9dacd215bcfc43f1b30b2a02690378e00f82a2283617d47d948c7b7f1")
+                .unwrap()
+        )
+    }
 
     #[test]
     fn test_pedersen_hash() {
