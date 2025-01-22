@@ -7,7 +7,6 @@ use lambdaworks_math::{
         },
         traits::{FromAffine, IsEllipticCurve},
     },
-    unsigned_integer::traits::IsUnsignedInteger,
 };
 
 /// Represents a point on the Stark elliptic curve.
@@ -57,7 +56,8 @@ impl AffinePoint {
         AffinePoint(StarkCurve::generator())
     }
 
-    pub fn mul<T: IsUnsignedInteger>(&self, exponent: T) -> Self {
+    pub fn mul(&self, exponent: Felt) -> Self {
+        let exponent = exponent.representative();
         AffinePoint(self.0.operate_with_self(exponent))
     }
 }
@@ -174,7 +174,7 @@ mod test {
         .unwrap();
 
         assert_eq!(
-            p.mul(2u128),
+            p.mul(Felt::from(2)),
             AffinePoint::new(
                 Felt::from_hex_unchecked(
                     "0x23a1c9a32dd397fb1e7f758b9089757c1223057aea1d8b52cbec583ad74eaab",

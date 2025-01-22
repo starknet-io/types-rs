@@ -295,7 +295,7 @@ impl Felt {
 
     /// Quotient and remainder between `self` and `rhs`.
     pub fn div_rem(&self, rhs: &NonZeroFelt) -> (Self, Self) {
-        let (q, r) = self.0.representative().div_rem(&rhs.0.representative());
+        let (q, r) = self.representative().div_rem(&rhs.0.representative());
         (Self(FieldElement::from(&q)), Self(FieldElement::from(&r)))
     }
 
@@ -412,20 +412,24 @@ impl Felt {
     /// Convert `self`'s representative into an array of `u64` digits,
     /// least significant digits first.
     pub fn to_le_digits(&self) -> [u64; 4] {
-        let mut limbs = self.0.representative().limbs;
+        let mut limbs = self.representative().limbs;
         limbs.reverse();
         limbs
+    }
+
+    pub fn representative(&self) -> UnsignedInteger<4> {
+        self.0.representative()
     }
 
     /// Convert `self`'s representative into an array of `u64` digits,
     /// most significant digits first.
     pub fn to_be_digits(&self) -> [u64; 4] {
-        self.0.representative().limbs
+        self.representative().limbs
     }
 
     /// Count the minimum number of bits needed to express `self`'s representative.
     pub fn bits(&self) -> usize {
-        self.0.representative().bits_le()
+        self.representative().bits_le()
     }
 
     pub fn to_biguint(&self) -> BigUint {
@@ -961,7 +965,7 @@ mod formatting {
 
             let mut buf = [0u8; 4 * 20];
             let mut i = buf.len() - 1;
-            let mut current = self.0.representative();
+            let mut current = self.representative();
             let ten = UnsignedInteger::from(10_u16);
 
             loop {
