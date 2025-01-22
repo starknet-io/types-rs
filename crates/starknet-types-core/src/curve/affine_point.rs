@@ -1,9 +1,14 @@
-use crate::curve::curve_errors::CurveError;
-use crate::felt::Felt;
-use lambdaworks_math::cyclic_group::IsGroup;
-use lambdaworks_math::elliptic_curve::short_weierstrass::curves::stark_curve::StarkCurve;
-use lambdaworks_math::elliptic_curve::short_weierstrass::point::ShortWeierstrassProjectivePoint;
-use lambdaworks_math::elliptic_curve::traits::FromAffine;
+use crate::{curve::curve_errors::CurveError, felt::Felt};
+use lambdaworks_math::{
+    cyclic_group::IsGroup,
+    elliptic_curve::{
+        short_weierstrass::{
+            curves::stark_curve::StarkCurve, point::ShortWeierstrassProjectivePoint,
+        },
+        traits::{FromAffine, IsEllipticCurve},
+    },
+    unsigned_integer::traits::IsUnsignedInteger,
+};
 
 /// Represents a point on the Stark elliptic curve.
 /// Doc: https://docs.starkware.co/starkex/crypto/stark-curve.html
@@ -47,6 +52,14 @@ impl AffinePoint {
     pub fn y(&self) -> Felt {
         Felt(*self.0.y())
     }
+
+    pub fn generator() -> Self {
+        AffinePoint(StarkCurve::generator())
+    }
+
+    pub fn mul<T: IsUnsignedInteger>(&self, exponent: T) -> Self {
+        AffinePoint(self.0.operate_with_self(exponent))
+    }
 }
 
 impl core::ops::Neg for &AffinePoint {
@@ -54,6 +67,14 @@ impl core::ops::Neg for &AffinePoint {
 
     fn neg(self) -> AffinePoint {
         AffinePoint(self.0.neg())
+    }
+}
+
+impl core::ops::Add for &AffinePoint {
+    type Output = AffinePoint;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        AffinePoint(self.0.operate_with_affine(&rhs.0))
     }
 }
 
@@ -116,5 +137,53 @@ mod test {
             .unwrap()
         );
         assert_eq!(-&AffinePoint::identity(), AffinePoint::identity());
+    }
+
+    #[test]
+    fn affine_add() {
+        let p = AffinePoint::new(
+            Felt::from_hex_unchecked("0x2d39148a92f479fb077389d"),
+            Felt::from_hex_unchecked(
+                "0x6e5d97edf7283fe7a7fe9deef2619224f42cb1bd531dd23380ad066c61ee20b",
+            ),
+        )
+        .unwrap();
+
+        assert_eq!(
+            &p + &p,
+            AffinePoint::new(
+                Felt::from_hex_unchecked(
+                    "0x23a1c9a32dd397fb1e7f758b9089757c1223057aea1d8b52cbec583ad74eaab",
+                ),
+                Felt::from_hex_unchecked(
+                    "0x466880caf4086bac129ae52ee98ddf75b2b394ae7c7ed1a19d9c61aa1f69f62",
+                ),
+            )
+            .unwrap()
+        );
+    }
+
+    #[test]
+    fn affine_mul() {
+        let p = AffinePoint::new(
+            Felt::from_hex_unchecked("0x2d39148a92f479fb077389d"),
+            Felt::from_hex_unchecked(
+                "0x6e5d97edf7283fe7a7fe9deef2619224f42cb1bd531dd23380ad066c61ee20b",
+            ),
+        )
+        .unwrap();
+
+        assert_eq!(
+            p.mul(2u128),
+            AffinePoint::new(
+                Felt::from_hex_unchecked(
+                    "0x23a1c9a32dd397fb1e7f758b9089757c1223057aea1d8b52cbec583ad74eaab",
+                ),
+                Felt::from_hex_unchecked(
+                    "0x466880caf4086bac129ae52ee98ddf75b2b394ae7c7ed1a19d9c61aa1f69f62",
+                ),
+            )
+            .unwrap()
+        );
     }
 }
