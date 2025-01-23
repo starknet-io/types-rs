@@ -89,6 +89,11 @@ impl NonZeroFelt {
     pub const fn from_felt_unchecked(value: Felt) -> Self {
         Self(value.0)
     }
+
+    // Returns the representative of the value stored
+    pub fn representative(&self) -> UnsignedInteger<4> {
+        self.0.representative()
+    }
 }
 
 #[derive(Debug)]
@@ -289,13 +294,13 @@ impl Felt {
     /// Truncated quotient between `self` and `rhs`.
     pub fn floor_div(&self, rhs: &NonZeroFelt) -> Self {
         Self(FieldElement::from(
-            &(self.0.representative().div_rem(&rhs.0.representative())).0,
+            &(self.representative().div_rem(&rhs.representative())).0,
         ))
     }
 
     /// Quotient and remainder between `self` and `rhs`.
     pub fn div_rem(&self, rhs: &NonZeroFelt) -> (Self, Self) {
-        let (q, r) = self.representative().div_rem(&rhs.0.representative());
+        let (q, r) = self.representative().div_rem(&rhs.representative());
         (Self(FieldElement::from(&q)), Self(FieldElement::from(&r)))
     }
 
@@ -327,7 +332,7 @@ impl Felt {
 
     /// Raises `self` to the power of `exponent`.
     pub fn pow_felt(&self, exponent: &Felt) -> Self {
-        Self(self.0.pow(exponent.0.representative()))
+        Self(self.0.pow(exponent.representative()))
     }
 
     // Implemention taken from Jonathan Lei's starknet-rs
@@ -417,6 +422,7 @@ impl Felt {
         limbs
     }
 
+    // Returns the representative of the value stored
     pub fn representative(&self) -> UnsignedInteger<4> {
         self.0.representative()
     }
@@ -1088,7 +1094,7 @@ mod test {
         let mut bits = Vec::new();
 
         // Iterate over each limb in the representative of x
-        for limb in x.0.representative().limbs {
+        for limb in x.representative().limbs {
             // Convert the limb to a sequence of 8 bytes (u8) in big-endian
             let bytes = limb.to_be_bytes();
 
@@ -1258,8 +1264,8 @@ mod test {
 
         #[test]
         fn floor_div_is_mul_inv(x in any::<Felt>(), y in nonzero_felt()) {
-            let x = Felt(FieldElement::from(&x.0.representative().shl(127)));
-            let y = Felt(FieldElement::from(&y.0.representative().shl(127)));
+            let x = Felt(FieldElement::from(&x.representative().shl(127)));
+            let y = Felt(FieldElement::from(&y.representative().shl(127)));
             let q = x.field_div(&NonZeroFelt(y.0));
             prop_assert!(q <= Felt::MAX);
             prop_assert_eq!(q * y, x);

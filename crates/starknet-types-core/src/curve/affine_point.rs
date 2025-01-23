@@ -52,13 +52,15 @@ impl AffinePoint {
         Felt(*self.0.y())
     }
 
+    // Returns the generator point of the StarkCurve
     pub fn generator() -> Self {
         AffinePoint(StarkCurve::generator())
     }
 
-    pub fn mul(&self, exponent: Felt) -> Self {
-        let exponent = exponent.representative();
-        AffinePoint(self.0.operate_with_self(exponent))
+    // Add the point (`self`) to itself for `scalar` many times
+    pub fn mul(&self, scalar: &Felt) -> Self {
+        let scalar = scalar.representative();
+        AffinePoint(self.0.operate_with_self(scalar))
     }
 }
 
@@ -174,7 +176,7 @@ mod test {
         .unwrap();
 
         assert_eq!(
-            p.mul(Felt::from(2)),
+            p.mul(&Felt::from(2)),
             AffinePoint::new(
                 Felt::from_hex_unchecked(
                     "0x23a1c9a32dd397fb1e7f758b9089757c1223057aea1d8b52cbec583ad74eaab",
