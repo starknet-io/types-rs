@@ -56,6 +56,17 @@ mod tests {
     }
 
     #[test]
+    fn test_pedersen_hash_collision() {
+        let x =
+            Felt::from_hex("0x03d937c035c878245caf64531a5756109c53068da139362728feb561405371cb")
+                .unwrap();
+        assert_eq!(
+            Pedersen::hash_single(&x),
+            Pedersen::hash(&x, &Felt::from(0))
+        )
+    }
+
+    #[test]
     fn test_pedersen_hash() {
         let x =
             Felt::from_hex("0x03d937c035c878245caf64531a5756109c53068da139362728feb561405371cb")
