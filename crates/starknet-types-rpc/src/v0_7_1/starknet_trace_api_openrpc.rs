@@ -66,8 +66,7 @@ pub type NestedCall<F> = FunctionInvocation<F>;
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub struct OrderedEvent<F> {
     /// the order of the event within the transaction
-    #[serde(default)]
-    pub order: Option<u64>,
+    pub order: u64,
     #[serde(flatten)]
     pub event: Event<F>,
 }
@@ -76,8 +75,7 @@ pub struct OrderedEvent<F> {
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub struct OrderedMessage<F> {
     /// the order of the message within the transaction
-    #[serde(default)]
-    pub order: Option<u64>,
+    pub order: u64,
     #[serde(flatten)]
     pub msg_to_l_1: MsgToL1<F>,
 }
@@ -182,19 +180,15 @@ pub struct L1HandlerTransactionTrace<F: Default> {
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub struct SimulateTransactionsResult<F: Default> {
-    #[serde(default)]
-    pub fee_estimation: Option<FeeEstimate<F>>,
-    #[serde(default)]
-    pub transaction_trace: Option<TransactionTrace<F>>,
+    pub fee_estimation: FeeEstimate<F>,
+    pub transaction_trace: TransactionTrace<F>,
 }
 
 /// A single pair of transaction hash and corresponding trace
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub struct TraceBlockTransactionsResult<F: Default> {
-    #[serde(default)]
-    pub trace_root: Option<TransactionTrace<F>>,
-    #[serde(default)]
-    pub transaction_hash: Option<F>,
+    pub trace_root: TransactionTrace<F>,
+    pub transaction_hash: F,
 }
 
 /// Parameters of the `starknet_traceTransaction` method.
