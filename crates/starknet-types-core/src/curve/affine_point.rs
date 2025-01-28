@@ -4,6 +4,7 @@ use lambdaworks_math::{
     elliptic_curve::{
         short_weierstrass::{
             curves::stark_curve::StarkCurve, point::ShortWeierstrassProjectivePoint,
+            traits::IsShortWeierstrass,
         },
         traits::{FromAffine, IsEllipticCurve},
     },
@@ -31,6 +32,28 @@ impl AffinePoint {
             y.0,
             Felt::ONE.0,
         ]))
+    }
+
+    /// Construct new affine point from the `x` coordinate and the parity bit.
+    /// If the parity bit is false, choose the y-coordinate with even parity.
+    /// If the parity bit is true, choose the y-coordinate with odd parity.
+    pub fn new_from_x(x: &Felt, y_parity: bool) -> Option<Self> {
+        // right hand side of the stark curve equation `y^2 = x^3 + α*x + β (mod p)`.
+        let rhs = x * x * x + Felt(StarkCurve::a()) * x + Felt(StarkCurve::b());
+
+        let (root_1, root_2) = rhs.0.sqrt()?;
+
+        let root_1_le_bits = root_1.to_bits_le();
+        let first_bit = root_1_le_bits.first()?;
+
+        let y = if *first_bit == y_parity {
+            root_1
+        } else {
+            root_2
+        };
+
+        // the curve equation is already satisfied above and is safe to create a new unchecked point
+        Some(Self::new_unchecked(*x, Felt(y)))
     }
 
     /// The point at infinity.
@@ -85,6 +108,7 @@ impl core::ops::Mul<Felt> for &AffinePoint {
 
 #[cfg(test)]
 mod test {
+    use std::ops::Neg;
     use super::*;
 
     #[test]
@@ -190,5 +214,33 @@ mod test {
             )
             .unwrap()
         );
+    }
+
+    #[test]
+    fn affine_new_from_x_odd() {
+        let p = AffinePoint::new(
+            Felt::from_hex_unchecked("0x2d39148a92f479fb077389d"),
+            Felt::from_hex_unchecked(
+                "0x6e5d97edf7283fe7a7fe9deef2619224f42cb1bd531dd23380ad066c61ee20b",
+            ),
+        )
+        .unwrap();
+
+        let x = p.x();
+        assert_eq!(p, AffinePoint::new_from_x(&x, true).unwrap());
+    }
+
+    #[test]
+    fn affine_new_from_x_even() {
+        let p = AffinePoint::new(
+            Felt::from_hex_unchecked("0x2d39148a92f479fb077389d"),
+            Felt::from_hex_unchecked(
+                "0x6e5d97edf7283fe7a7fe9deef2619224f42cb1bd531dd23380ad066c61ee20b",
+            ),
+        )
+        .unwrap();
+
+        let x = p.x();
+        assert_eq!(p.neg(), AffinePoint::new_from_x(&x, false).unwrap());
     }
 }
