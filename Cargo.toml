@@ -1,7 +1,6 @@
 [workspace]
 members = [
     "crates/starknet-types-core",
-    "crates/starknet-types-rpc",
 ]
 
 exclude = ["ensure_no_std", "fuzz"]
@@ -18,6 +17,7 @@ authors = [
     "Federico Carrone <@unbalancedparentheses>",
     "Jonathan Lei <@xJonathanLEI>",
     "Maciej Kamiński <@maciejka>",
+    "Timothée Delabrouille <@tdelabro>"
 ]
 edition = "2021"
 repository = "https://github.com/starknet-io/types-rs"
