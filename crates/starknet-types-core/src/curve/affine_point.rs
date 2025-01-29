@@ -70,7 +70,7 @@ impl core::ops::Add<AffinePoint> for AffinePoint {
     type Output = AffinePoint;
 
     fn add(self, rhs: Self) -> Self::Output {
-        AffinePoint(self.0.operate_with_affine(&rhs.0.to_affine()))
+        AffinePoint(self.0.operate_with(&rhs.0))
     }
 }
 
