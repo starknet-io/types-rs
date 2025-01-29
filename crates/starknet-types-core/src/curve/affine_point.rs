@@ -44,12 +44,12 @@ impl AffinePoint {
 
     /// Returns the `x` coordinate of the point.
     pub fn x(&self) -> Felt {
-        Felt(*self.0.x())
+        Felt(*self.0.to_affine().x())
     }
 
     /// Returns the `y` coordinate of the point.
     pub fn y(&self) -> Felt {
-        Felt(*self.0.y())
+        Felt(*self.0.to_affine().y())
     }
 
     // Returns the generator point of the StarkCurve
@@ -70,7 +70,7 @@ impl core::ops::Add<AffinePoint> for AffinePoint {
     type Output = AffinePoint;
 
     fn add(self, rhs: Self) -> Self::Output {
-        AffinePoint(self.0.operate_with_affine(&rhs.0))
+        AffinePoint(self.0.operate_with_affine(&rhs.0.to_affine()))
     }
 }
 
