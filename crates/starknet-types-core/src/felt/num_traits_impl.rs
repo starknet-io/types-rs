@@ -1,6 +1,8 @@
 use super::Felt;
 use num_bigint::{ToBigInt, ToBigUint};
-use num_traits::{FromPrimitive, Inv, One, Pow, ToPrimitive, Zero};
+use num_traits::{
+    CheckedAdd, CheckedMul, CheckedSub, FromPrimitive, Inv, One, Pow, ToPrimitive, Zero,
+};
 
 impl ToBigInt for Felt {
     /// Converts the value of `self` to a [`BigInt`].
@@ -121,6 +123,39 @@ impl Pow<u128> for Felt {
     }
 }
 
+impl CheckedAdd for Felt {
+    fn checked_add(&self, v: &Self) -> Option<Self> {
+        let res = self + v;
+        if res < *self {
+            None
+        } else {
+            Some(res)
+        }
+    }
+}
+
+impl CheckedMul for Felt {
+    fn checked_mul(&self, v: &Self) -> Option<Self> {
+        let res = self * v;
+        if res < *self {
+            None
+        } else {
+            Some(res)
+        }
+    }
+}
+
+impl CheckedSub for Felt {
+    fn checked_sub(&self, v: &Self) -> Option<Self> {
+        let res = self - v;
+        if res > *self {
+            None
+        } else {
+            Some(res)
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -138,5 +173,18 @@ mod tests {
     #[test]
     fn default_is_zero() {
         assert!(Felt::default().is_zero());
+    }
+
+    #[test]
+    fn checked_ops() {
+        assert_eq!(Felt::ONE.checked_add(&Felt::TWO), Some(Felt::THREE));
+        assert!(Felt::MAX.checked_add(&Felt::ONE).is_none());
+        assert_eq!(
+            Felt::TWO.checked_mul(&Felt::THREE),
+            Some(Felt::from_hex_unchecked("0x6"))
+        );
+        assert!(Felt::MAX.checked_mul(&Felt::TWO).is_none());
+        assert_eq!(Felt::THREE.checked_sub(&Felt::TWO), Some(Felt::ONE));
+        assert!(Felt::ONE.checked_sub(&Felt::TWO).is_none());
     }
 }
