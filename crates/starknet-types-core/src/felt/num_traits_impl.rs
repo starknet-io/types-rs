@@ -136,7 +136,12 @@ impl CheckedAdd for Felt {
 
 impl CheckedMul for Felt {
     fn checked_mul(&self, v: &Self) -> Option<Self> {
-        let max = self.max(v);
+        let (min, max) = if self < v { (self, v) } else { (v, self) };
+
+        if *min == Felt::ZERO {
+            return Some(*min);
+        }
+
         let res = self * v;
         if res < *max {
             None
@@ -180,6 +185,7 @@ mod tests {
     fn checked_ops() {
         // Add
         assert_eq!(Felt::ONE.checked_add(&Felt::TWO), Some(Felt::THREE));
+        assert_eq!(Felt::ONE.checked_add(&Felt::ZERO), Some(Felt::ONE));
         assert!(Felt::MAX.checked_add(&Felt::ONE).is_none());
         assert!(Felt::ONE.checked_add(&(Felt::MAX)).is_none());
         // Mul
@@ -187,10 +193,12 @@ mod tests {
             Felt::TWO.checked_mul(&Felt::THREE),
             Some(Felt::from_hex_unchecked("0x6"))
         );
+        assert_eq!(Felt::TWO.checked_mul(&Felt::ZERO), Some(Felt::ZERO));
         assert!(Felt::MAX.checked_mul(&Felt::TWO).is_none());
         assert!(Felt::TWO.checked_mul(&Felt::MAX).is_none());
         // Sub
         assert_eq!(Felt::THREE.checked_sub(&Felt::TWO), Some(Felt::ONE));
+        assert_eq!(Felt::THREE.checked_sub(&Felt::ZERO), Some(Felt::THREE));
         assert!(Felt::ONE.checked_sub(&Felt::TWO).is_none());
     }
 }
