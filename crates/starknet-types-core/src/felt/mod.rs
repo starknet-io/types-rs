@@ -160,7 +160,7 @@ impl Felt {
         // multiplying by BASE, effectively decomposing in base 2^256 to build
         // digits with a length of 32 bytes. This is analogous to splitting the
         // number `xyz` as `x * 10^2 + y * 10^1 + z * 10^0`.
-        const BASE: Felt = Self(FieldElement::<Stark252PrimeField>::const_from_raw(
+        const BASE: Felt = Felt(FieldElement::<Stark252PrimeField>::const_from_raw(
             UnsignedInteger::from_limbs([
                 576413109808302096,
                 18446744073700081664,
@@ -204,7 +204,7 @@ impl Felt {
         // multiplying by BASE, effectively decomposing in base 2^256 to build
         // digits with a length of 32 bytes. This is analogous to splitting the
         // number `xyz` as `x * 10^2 + y * 10^1 + z * 10^0`.
-        const BASE: Felt = Self(FieldElement::<Stark252PrimeField>::const_from_raw(
+        const BASE: Felt = Felt(FieldElement::<Stark252PrimeField>::const_from_raw(
             UnsignedInteger::from_limbs([
                 576413109808302096,
                 18446744073700081664,
