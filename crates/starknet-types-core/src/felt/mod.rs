@@ -448,7 +448,7 @@ impl Felt {
 }
 
 #[cfg(feature = "arbitrary")]
-impl<'a> Arbitrary<'a> for Felt {
+impl Arbitrary<'_> for Felt {
     // Creates an arbitrary `Felt` from unstructured input for fuzzing.
     // It uses the default implementation to create the internal limbs and then
     // uses the usual constructors from `lambdaworks-math`.
@@ -905,7 +905,7 @@ mod serde_impl {
 
     struct FeltVisitor;
 
-    impl<'de> de::Visitor<'de> for FeltVisitor {
+    impl de::Visitor<'_> for FeltVisitor {
         type Value = Felt;
 
         fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
