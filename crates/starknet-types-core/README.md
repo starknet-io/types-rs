@@ -78,4 +78,4 @@ Contributions are welcome! Please read our [contributing guidelines](CONTRIBUTIN
 
 ## License
 
-This repository is licensed under the MIT License, see [LICENSE](LICENSE) for more information.
+This repository is licensed under the MIT License, see [LICENSE](https://github.com/starknet-io/types-rs/blob/main/LICENSE) for more information.
