@@ -27,7 +27,7 @@ lazy_static = { version = "1.5", default-features = false, optional = true }
 zeroize = { version = "1.8.1", default-features = false, optional = true }
 
 [features]
-default = ["std", "serde", "curve", "num-traits", "zeroing"]
+default = ["std", "serde", "curve", "num-traits", "zeroize"]
 std = [
   "lambdaworks-math/std",
   "num-traits/std",
@@ -46,7 +46,7 @@ serde = ["alloc", "dep:serde"]
 prime-bigint = ["dep:lazy_static"]
 num-traits = []
 papyrus-serialization = ["std"]
-zeroing = ["zeroize"]
+zeroize = ["dep:zeroize"]
 
 [dev-dependencies]
 proptest = "1.5"

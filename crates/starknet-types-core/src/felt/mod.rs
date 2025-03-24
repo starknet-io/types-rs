@@ -1060,13 +1060,8 @@ mod errors {
 mod zeroing {
     use super::*;
 
-    #[cfg(feature = "zeroing")]
-    impl zeroize::Zeroize for Felt {
-        fn zeroize(&mut self) {
-            core::mem::take(self);
-            core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
-        }
-    }
+    #[cfg(feature = "zeroize")]
+    impl zeroize::DefaultIsZeroes for Felt {}
 }
 
 #[cfg(test)]
@@ -1852,7 +1847,7 @@ mod test {
         }
     }
 
-    #[cfg(feature = "zeroing")]
+    #[cfg(feature = "zeroize")]
     #[test]
     fn zeroing_felt() {
         use zeroize::Zeroize;
