@@ -160,7 +160,7 @@ impl Felt {
         // multiplying by BASE, effectively decomposing in base 2^256 to build
         // digits with a length of 32 bytes. This is analogous to splitting the
         // number `xyz` as `x * 10^2 + y * 10^1 + z * 10^0`.
-        const BASE: Felt = Self(FieldElement::<Stark252PrimeField>::const_from_raw(
+        const BASE: Felt = Felt(FieldElement::<Stark252PrimeField>::const_from_raw(
             UnsignedInteger::from_limbs([
                 576413109808302096,
                 18446744073700081664,
@@ -204,7 +204,7 @@ impl Felt {
         // multiplying by BASE, effectively decomposing in base 2^256 to build
         // digits with a length of 32 bytes. This is analogous to splitting the
         // number `xyz` as `x * 10^2 + y * 10^1 + z * 10^0`.
-        const BASE: Felt = Self(FieldElement::<Stark252PrimeField>::const_from_raw(
+        const BASE: Felt = Felt(FieldElement::<Stark252PrimeField>::const_from_raw(
             UnsignedInteger::from_limbs([
                 576413109808302096,
                 18446744073700081664,
@@ -448,7 +448,7 @@ impl Felt {
 }
 
 #[cfg(feature = "arbitrary")]
-impl<'a> Arbitrary<'a> for Felt {
+impl Arbitrary<'_> for Felt {
     // Creates an arbitrary `Felt` from unstructured input for fuzzing.
     // It uses the default implementation to create the internal limbs and then
     // uses the usual constructors from `lambdaworks-math`.
@@ -549,15 +549,10 @@ impl From<&BigInt> for Felt {
 
 impl From<BigInt> for Felt {
     fn from(bigint: BigInt) -> Felt {
-        let (sign, bytes) = bigint.to_bytes_le();
-        let felt = Felt::from_bytes_le_slice(&bytes);
-        if sign == Sign::Minus {
-            felt.neg()
-        } else {
-            felt
-        }
+        Self::from(&bigint)
     }
 }
+
 impl From<&BigUint> for Felt {
     fn from(biguint: &BigUint) -> Felt {
         Felt::from_bytes_le_slice(&biguint.to_bytes_le())
@@ -566,7 +561,7 @@ impl From<&BigUint> for Felt {
 
 impl From<BigUint> for Felt {
     fn from(biguint: BigUint) -> Felt {
-        Felt::from_bytes_le_slice(&biguint.to_bytes_le())
+        Self::from(&biguint)
     }
 }
 
@@ -910,7 +905,7 @@ mod serde_impl {
 
     struct FeltVisitor;
 
-    impl<'de> de::Visitor<'de> for FeltVisitor {
+    impl de::Visitor<'_> for FeltVisitor {
         type Value = Felt;
 
         fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {

@@ -1,9 +1,13 @@
-use crate::curve::curve_errors::CurveError;
-use crate::felt::Felt;
-use lambdaworks_math::cyclic_group::IsGroup;
-use lambdaworks_math::elliptic_curve::short_weierstrass::curves::stark_curve::StarkCurve;
-use lambdaworks_math::elliptic_curve::short_weierstrass::point::ShortWeierstrassProjectivePoint;
-use lambdaworks_math::elliptic_curve::traits::FromAffine;
+use crate::{curve::curve_errors::CurveError, felt::Felt};
+use lambdaworks_math::{
+    cyclic_group::IsGroup,
+    elliptic_curve::{
+        short_weierstrass::{
+            curves::stark_curve::StarkCurve, point::ShortWeierstrassProjectivePoint,
+        },
+        traits::{FromAffine, IsEllipticCurve},
+    },
+};
 
 /// Represents a point on the Stark elliptic curve.
 /// Doc: https://docs.starkware.co/starkex/crypto/stark-curve.html
@@ -40,12 +44,17 @@ impl AffinePoint {
 
     /// Returns the `x` coordinate of the point.
     pub fn x(&self) -> Felt {
-        Felt(*self.0.x())
+        Felt(*self.0.to_affine().x())
     }
 
     /// Returns the `y` coordinate of the point.
     pub fn y(&self) -> Felt {
-        Felt(*self.0.y())
+        Felt(*self.0.to_affine().y())
+    }
+
+    // Returns the generator point of the StarkCurve
+    pub fn generator() -> Self {
+        AffinePoint(StarkCurve::generator())
     }
 }
 
@@ -54,6 +63,23 @@ impl core::ops::Neg for &AffinePoint {
 
     fn neg(self) -> AffinePoint {
         AffinePoint(self.0.neg())
+    }
+}
+
+impl core::ops::Add<AffinePoint> for AffinePoint {
+    type Output = AffinePoint;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        AffinePoint(self.0.operate_with(&rhs.0))
+    }
+}
+
+impl core::ops::Mul<Felt> for &AffinePoint {
+    type Output = AffinePoint;
+
+    // Add the point (`self`) to itself for `scalar` many times
+    fn mul(self, rhs: Felt) -> AffinePoint {
+        AffinePoint(self.0.operate_with_self(rhs.0.representative()))
     }
 }
 
@@ -116,5 +142,53 @@ mod test {
             .unwrap()
         );
         assert_eq!(-&AffinePoint::identity(), AffinePoint::identity());
+    }
+
+    #[test]
+    fn affine_add() {
+        let p = AffinePoint::new(
+            Felt::from_hex_unchecked("0x2d39148a92f479fb077389d"),
+            Felt::from_hex_unchecked(
+                "0x6e5d97edf7283fe7a7fe9deef2619224f42cb1bd531dd23380ad066c61ee20b",
+            ),
+        )
+        .unwrap();
+
+        assert_eq!(
+            p.clone() + p,
+            AffinePoint::new(
+                Felt::from_hex_unchecked(
+                    "0x23a1c9a32dd397fb1e7f758b9089757c1223057aea1d8b52cbec583ad74eaab",
+                ),
+                Felt::from_hex_unchecked(
+                    "0x466880caf4086bac129ae52ee98ddf75b2b394ae7c7ed1a19d9c61aa1f69f62",
+                ),
+            )
+            .unwrap()
+        );
+    }
+
+    #[test]
+    fn affine_mul() {
+        let p = AffinePoint::new(
+            Felt::from_hex_unchecked("0x2d39148a92f479fb077389d"),
+            Felt::from_hex_unchecked(
+                "0x6e5d97edf7283fe7a7fe9deef2619224f42cb1bd531dd23380ad066c61ee20b",
+            ),
+        )
+        .unwrap();
+
+        assert_eq!(
+            &p * Felt::from(2),
+            AffinePoint::new(
+                Felt::from_hex_unchecked(
+                    "0x23a1c9a32dd397fb1e7f758b9089757c1223057aea1d8b52cbec583ad74eaab",
+                ),
+                Felt::from_hex_unchecked(
+                    "0x466880caf4086bac129ae52ee98ddf75b2b394ae7c7ed1a19d9c61aa1f69f62",
+                ),
+            )
+            .unwrap()
+        );
     }
 }

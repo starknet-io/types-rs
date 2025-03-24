@@ -28,6 +28,10 @@ impl StarkHash for Poseidon {
             )
         }))
     }
+
+    fn hash_single(felt: &Felt) -> Felt {
+        Felt(PoseidonCairoStark252::hash_single(&felt.0))
+    }
 }
 
 impl Poseidon {
@@ -45,6 +49,17 @@ impl Poseidon {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_poseidon_single() {
+        let x = Felt::from_hex("0x9").unwrap();
+
+        assert_eq!(
+            Poseidon::hash_single(&x),
+            Felt::from_hex("0x3bb3b91c714cb47003947f36dadc98326176963c434cd0a10320b8146c948b3")
+                .unwrap()
+        );
+    }
 
     #[test]
     fn test_poseidon_hash() {

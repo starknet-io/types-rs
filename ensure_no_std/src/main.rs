@@ -19,5 +19,3 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 #[allow(unused_imports)]
 use starknet_types_core;
-#[allow(unused_imports)]
-use starknet_types_rpc;
