@@ -1057,6 +1057,13 @@ mod errors {
     }
 }
 
+#[cfg(feature = "zeroize")]
+mod zeroing {
+    use super::Felt;
+
+    impl zeroize::DefaultIsZeroes for Felt {}
+}
+
 #[cfg(test)]
 mod test {
     use super::alloc::{format, string::String, vec::Vec};
@@ -1838,5 +1845,15 @@ mod test {
             let d = Felt::deserialize(&mut reader).unwrap();
             assert_eq!(Felt::from_bytes_be(&bytes), d);
         }
+    }
+
+    #[cfg(feature = "zeroize")]
+    #[test]
+    fn zeroing_felt() {
+        use zeroize::Zeroize;
+
+        let mut felt = Felt::from_hex_unchecked("0x01");
+        felt.zeroize();
+        assert_eq!(felt, Felt::ZERO);
     }
 }
