@@ -1059,7 +1059,7 @@ mod errors {
 
 #[cfg(feature = "zeroize")]
 mod zeroing {
-    use super::*;
+    use super::Felt;
 
     impl zeroize::DefaultIsZeroes for Felt {}
 }

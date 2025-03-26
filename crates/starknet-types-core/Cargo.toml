@@ -27,7 +27,7 @@ lazy_static = { version = "1.5", default-features = false, optional = true }
 zeroize = { version = "1.8.1", default-features = false, optional = true }
 
 [features]
-default = ["std", "serde", "curve", "num-traits", "zeroize"]
+default = ["std", "serde", "curve", "num-traits"]
 std = [
   "lambdaworks-math/std",
   "num-traits/std",
