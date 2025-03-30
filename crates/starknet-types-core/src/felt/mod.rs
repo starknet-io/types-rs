@@ -1083,10 +1083,11 @@ mod test {
     // Helper function to generate a vector of bits for testing purposes
     fn generate_be_bits(x: &Felt) -> Vec<bool> {
         // Initialize an empty vector to store the expected bits
-        let mut bits = Vec::new();
+        let representative = x.0.representative();
+        let mut bits = Vec::with_capacity(limbs.len() * 8 * 8);
 
         // Iterate over each limb in the representative of x
-        for limb in x.0.representative().limbs {
+        for limb in bits.limbs {
             // Convert the limb to a sequence of 8 bytes (u8) in big-endian
             let bytes = limb.to_be_bytes();
 
