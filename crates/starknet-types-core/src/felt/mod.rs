@@ -8,6 +8,7 @@ use core::str::FromStr;
 use num_bigint::{BigInt, BigUint, Sign};
 use num_integer::Integer;
 use num_traits::{One, Zero};
+use size_of::SizeOf;
 #[cfg(any(feature = "prime-bigint", test))]
 use {lazy_static::lazy_static, num_traits::Num};
 
@@ -43,6 +44,10 @@ use arbitrary::{self, Arbitrary, Unstructured};
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Felt(pub(crate) FieldElement<Stark252PrimeField>);
+
+impl SizeOf for Felt {
+    fn size_of_children(&self, _context: &mut size_of::Context) {}
+}
 
 /// A non-zero [Felt].
 #[repr(transparent)]
@@ -1072,6 +1077,7 @@ mod test {
     use core::ops::Shl;
     use proptest::prelude::*;
     use regex::Regex;
+    use size_of::TotalSize;
 
     #[test]
     fn test_debug_format() {
@@ -1855,5 +1861,16 @@ mod test {
         let mut felt = Felt::from_hex_unchecked("0x01");
         felt.zeroize();
         assert_eq!(felt, Felt::ZERO);
+    }
+
+    #[test]
+    fn felt_size_of() {
+        assert_eq!(Felt::ZERO.size_of(), TotalSize::total(32));
+        assert_eq!(Felt::ONE.size_of(), TotalSize::total(32));
+        assert_eq!(
+            Felt(FieldElement::from(1600000000)).size_of(),
+            TotalSize::total(32)
+        );
+        assert_eq!(Felt::MAX.size_of(), TotalSize::total(32));
     }
 }
