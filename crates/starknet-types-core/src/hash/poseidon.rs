@@ -12,12 +12,12 @@ pub struct Poseidon;
 
 impl StarkHash for Poseidon {
     /// Computes the Poseidon hash of two Felts, as defined
-    /// in <https://docs.starknet.io/documentation/architecture_and_concepts/Hashing/hash-functions/#poseidon_hash.>
+    /// in <https://docs.starknet.io/architecture-and-concepts/cryptography/#poseidon_hash.>
     fn hash(felt_0: &Felt, felt_1: &Felt) -> Felt {
         Felt(PoseidonCairoStark252::hash(&felt_0.0, &felt_1.0))
     }
     /// Computes the Poseidon hash of an array of Felts, as defined
-    /// in <https://docs.starknet.io/documentation/architecture_and_concepts/Cryptography/hash-functions/#poseidon_array_hash.>
+    /// in <https://docs.starknet.io/architecture-and-concepts/cryptography/#array_hashing_2.>
     fn hash_array(felts: &[Felt]) -> Felt {
         // Non-copy but less dangerous than transmute
         // https://doc.rust-lang.org/std/mem/fn.transmute.html#alternatives
