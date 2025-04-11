@@ -1,6 +1,6 @@
 [package]
 name = "starknet-types-core"
-version = "0.1.7"
+version = "0.1.8"
 edition = "2021"
 license = "MIT"
 homepage = "https://github.com/starknet-io/types-rs"
@@ -15,6 +15,7 @@ lambdaworks-math = { version = "0.10.0", default-features = false }
 num-traits = { version = "0.2", default-features = false }
 num-bigint = { version = "0.4", default-features = false }
 num-integer = { version = "0.1", default-features = false }
+size-of = { version = "0.1.5", default-features = false }
 
 # Optional
 arbitrary = { version = "1.3", optional = true }
@@ -24,6 +25,7 @@ serde = { version = "1", optional = true, default-features = false, features = [
 lambdaworks-crypto = { version = "0.10.0", default-features = false, optional = true }
 parity-scale-codec = { version = "3.6", default-features = false, optional = true }
 lazy_static = { version = "1.5", default-features = false, optional = true }
+zeroize = { version = "1.8.1", default-features = false, optional = true }
 
 [features]
 default = ["std", "serde", "curve", "num-traits"]
@@ -34,8 +36,9 @@ std = [
   "num-integer/std",
   "serde?/std",
   "lambdaworks-crypto?/std",
+  "zeroize?/std",
 ]
-alloc = []
+alloc = ["zeroize?/alloc"]
 curve = []
 hash = ["dep:lambdaworks-crypto"]
 arbitrary = ["std", "dep:arbitrary"]
@@ -44,6 +47,7 @@ serde = ["alloc", "dep:serde"]
 prime-bigint = ["dep:lazy_static"]
 num-traits = []
 papyrus-serialization = ["std"]
+zeroize = ["dep:zeroize"]
 
 [dev-dependencies]
 proptest = "1.5"
