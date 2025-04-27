@@ -119,8 +119,11 @@ mod test {
             Felt::from_hex_unchecked(
                 "0x11a2681208d7c128580162110d9e6ddb0bd34e42ace22dcc7f52f9939e11df6",
             ),
-        );
-        assert!(!a.unwrap().is_identity());
+        )
+        .unwrap(); // <-- вызываем unwrap() здесь, так как это ожидается в тестах
+
+        // Исправлено: убрал лишний вызов unwrap() для `a`
+        assert!(!a.is_identity());
     }
 
     #[test]
