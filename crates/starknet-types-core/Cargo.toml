@@ -19,6 +19,8 @@ size-of = { version = "0.1.5", default-features = false }
 
 # Optional
 arbitrary = { version = "1.3", optional = true }
+blake2 = { version = "0.10.6", optional = true }
+digest = { version = "0.10.7", optional = true }
 serde = { version = "1", optional = true, default-features = false, features = [
   "alloc",
 ] }
@@ -40,7 +42,7 @@ std = [
 ]
 alloc = ["zeroize?/alloc"]
 curve = []
-hash = ["dep:lambdaworks-crypto"]
+hash = ["dep:lambdaworks-crypto", "dep:blake2", "dep:digest"]
 arbitrary = ["std", "dep:arbitrary"]
 parity-scale-codec = ["dep:parity-scale-codec"]
 serde = ["alloc", "dep:serde"]
