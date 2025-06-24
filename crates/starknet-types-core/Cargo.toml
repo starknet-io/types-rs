@@ -59,6 +59,7 @@ criterion = "0.5"
 rand_chacha = "0.3"
 rand = "0.8"
 lazy_static = { version = "1.5", default-features = false }
+starknet-types-core = { path = ".", features = ["prime-bigint"] }
 
 [[bench]]
 name = "criterion_hashes"

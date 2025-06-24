@@ -3,8 +3,14 @@ mod arbitrary;
 #[cfg(test)]
 mod felt_arbitrary;
 mod non_zero;
+#[cfg(feature = "num-traits")]
+mod num_traits_impl;
+#[cfg(feature = "papyrus-serialization")]
+mod papyrus_serialization;
 #[cfg(feature = "parity-scale-codec")]
 mod parity_scale_codec;
+#[cfg(feature = "prime-bigint")]
+mod prime_bigint;
 mod primitive_conversions;
 #[cfg(feature = "zeroize")]
 mod zeroize;
@@ -18,22 +24,6 @@ use num_bigint::{BigInt, BigUint, Sign};
 use num_integer::Integer;
 use num_traits::{One, Zero};
 use size_of::SizeOf;
-#[cfg(any(feature = "prime-bigint", test))]
-use {lazy_static::lazy_static, num_traits::Num};
-
-#[cfg(feature = "num-traits")]
-mod num_traits_impl;
-#[cfg(feature = "papyrus-serialization")]
-mod papyrus_serialization;
-
-#[cfg(any(feature = "prime-bigint", test))]
-lazy_static! {
-    pub static ref CAIRO_PRIME_BIGINT: BigInt = BigInt::from_str_radix(
-        "800000000000011000000000000000000000000000000000000000000000001",
-        16
-    )
-    .unwrap();
-}
 
 #[cfg(any(test, feature = "alloc"))]
 pub extern crate alloc;
@@ -400,11 +390,6 @@ impl Felt {
 
     pub fn to_bigint(&self) -> BigInt {
         self.to_biguint().into()
-    }
-
-    #[cfg(feature = "prime-bigint")]
-    pub fn prime() -> BigUint {
-        (*CAIRO_PRIME_BIGINT).to_biguint().unwrap()
     }
 }
 
@@ -940,6 +925,8 @@ mod test {
     use super::felt_arbitrary::nonzero_felt;
     use super::*;
     use core::ops::Shl;
+    use num_traits::Num;
+    use prime_bigint::CAIRO_PRIME_BIGINT;
     use proptest::prelude::*;
     use regex::Regex;
     use size_of::TotalSize;
@@ -1300,12 +1287,6 @@ mod test {
             0, 0, 0,
         ];
         assert_eq!(Felt::MAX.to_bytes_be(), max_bytes);
-    }
-
-    #[cfg(feature = "prime-bigint")]
-    #[test]
-    fn prime() {
-        assert_eq!(Felt::prime(), CAIRO_PRIME_BIGINT.to_biguint().unwrap());
     }
 
     #[test]
