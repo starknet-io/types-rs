@@ -1,3 +1,5 @@
+#[cfg(feature = "alloc")]
+mod alloc_impls;
 #[cfg(feature = "arbitrary")]
 mod arbitrary;
 #[cfg(test)]
@@ -28,7 +30,7 @@ use num_integer::Integer;
 use num_traits::{One, Zero};
 use size_of::SizeOf;
 
-#[cfg(any(test, feature = "alloc"))]
+#[cfg(feature = "alloc")]
 pub extern crate alloc;
 
 use lambdaworks_math::{
@@ -56,16 +58,13 @@ impl std::error::Error for FromStrError {}
 
 impl core::fmt::Display for FromStrError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        format!(
-            "failed to create Felt from string: {}",
-            match self.0 {
-                CreationError::InvalidHexString => "invalid hex string",
-                CreationError::InvalidDecString => "invalid dex string",
-                CreationError::HexStringIsTooBig => "hex string too big",
-                CreationError::EmptyString => "empty string",
-            }
-        )
-        .fmt(f)
+        write!(f, "failed to create Felt from string: ")?;
+        match self.0 {
+            CreationError::InvalidHexString => write!(f, "invalid hex string"),
+            CreationError::InvalidDecString => write!(f, "invalid dec string"),
+            CreationError::HexStringIsTooBig => write!(f, "hex string too big"),
+            CreationError::EmptyString => write!(f, "empty string"),
+        }
     }
 }
 
@@ -221,24 +220,6 @@ impl Felt {
     /// This is as performant as [to_bytes_be](Felt::to_bytes_be)
     pub fn to_bytes_le(&self) -> [u8; 32] {
         self.0.to_bytes_le()
-    }
-
-    /// Helper to produce a hexadecimal formatted string.
-    /// Equivalent to calling `format!("{self:#x}")`.
-    #[cfg(feature = "alloc")]
-    pub fn to_hex_string(&self) -> alloc::string::String {
-        alloc::format!("{self:#x}")
-    }
-
-    /// Helper to produce a hexadecimal formatted string of 66 chars.
-    #[cfg(feature = "alloc")]
-    pub fn to_fixed_hex_string(&self) -> alloc::string::String {
-        let hex_str = alloc::format!("{self:#x}");
-        if hex_str.len() < 66 {
-            alloc::format!("0x{:0>64}", hex_str.strip_prefix("0x").unwrap())
-        } else {
-            hex_str
-        }
     }
 
     /// Converts to little-endian bit representation.
@@ -801,56 +782,6 @@ mod formatting {
             write!(f, "{}", self.0)
         }
     }
-
-    /// Represents [Felt] in lowercase hexadecimal format.
-    #[cfg(feature = "alloc")]
-    impl fmt::LowerHex for Felt {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            let hex = alloc::string::ToString::to_string(&self.0);
-            let hex = hex.strip_prefix("0x").unwrap();
-
-            let width = if f.sign_aware_zero_pad() {
-                f.width().unwrap().min(64)
-            } else {
-                1
-            };
-            if f.alternate() {
-                write!(f, "0x")?;
-            }
-
-            if hex.len() < width {
-                for _ in 0..(width - hex.len()) {
-                    write!(f, "0")?;
-                }
-            }
-            write!(f, "{}", hex)
-        }
-    }
-
-    /// Represents [Felt] in uppercase hexadecimal format.
-    #[cfg(feature = "alloc")]
-    impl fmt::UpperHex for Felt {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            let hex = alloc::string::ToString::to_string(&self.0);
-            let hex = hex.strip_prefix("0x").unwrap().to_uppercase();
-
-            let width = if f.sign_aware_zero_pad() {
-                f.width().unwrap().min(64)
-            } else {
-                1
-            };
-            if f.alternate() {
-                write!(f, "0x")?;
-            }
-
-            if hex.len() < width {
-                for _ in 0..(width - hex.len()) {
-                    write!(f, "0")?;
-                }
-            }
-            write!(f, "{}", hex)
-        }
-    }
 }
 
 #[cfg(test)]
@@ -946,13 +877,6 @@ mod test {
 
             // Assert that the generated bits match the expected bits
             prop_assert_eq!(bits, expected_bits);
-        }
-
-
-        #[test]
-        #[cfg(feature = "alloc")]
-        fn to_hex_string_is_same_as_format(ref x in any::<Felt>()) {
-            prop_assert_eq!(alloc::format!("{x:#x}"), x.to_hex_string());
         }
 
         #[test]

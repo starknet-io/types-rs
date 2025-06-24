@@ -112,6 +112,10 @@ impl TryFrom<&Felt> for NonZeroFelt {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "alloc")]
+    pub extern crate alloc;
+
+    use alloc::format;
     use proptest::prelude::*;
 
     use crate::felt::{felt_arbitrary::nonzero_felt, Felt, NonZeroFelt};
