@@ -1,3 +1,5 @@
+#[cfg(feature = "arbitrary")]
+mod arbitrary;
 #[cfg(test)]
 mod felt_arbitrary;
 mod non_zero;
@@ -43,9 +45,6 @@ use lambdaworks_math::{
     traits::ByteConversion,
     unsigned_integer::element::UnsignedInteger,
 };
-
-#[cfg(feature = "arbitrary")]
-use arbitrary::{self, Arbitrary, Unstructured};
 
 /// Definition of the Field Element type.
 #[repr(transparent)]
@@ -406,24 +405,6 @@ impl Felt {
     #[cfg(feature = "prime-bigint")]
     pub fn prime() -> BigUint {
         (*CAIRO_PRIME_BIGINT).to_biguint().unwrap()
-    }
-}
-
-#[cfg(feature = "arbitrary")]
-impl Arbitrary<'_> for Felt {
-    // Creates an arbitrary `Felt` from unstructured input for fuzzing.
-    // It uses the default implementation to create the internal limbs and then
-    // uses the usual constructors from `lambdaworks-math`.
-    fn arbitrary(u: &mut Unstructured) -> arbitrary::Result<Self> {
-        let limbs = <[u64; 4]>::arbitrary(u)?;
-        let uint = UnsignedInteger::from_limbs(limbs);
-        let felt = FieldElement::new(uint);
-        Ok(Felt(felt))
-    }
-
-    #[inline]
-    fn size_hint(depth: usize) -> (usize, Option<usize>) {
-        <[u64; 4]>::size_hint(depth)
     }
 }
 
