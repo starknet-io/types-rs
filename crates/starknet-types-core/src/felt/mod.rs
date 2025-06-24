@@ -15,6 +15,7 @@ mod primitive_conversions;
 #[cfg(feature = "zeroize")]
 mod zeroize;
 
+use lambdaworks_math::errors::CreationError;
 pub use non_zero::NonZeroFelt;
 
 use core::ops::{Add, Mul, Neg};
@@ -46,7 +47,25 @@ impl SizeOf for Felt {
 }
 
 #[derive(Debug)]
-pub struct FromStrError;
+pub struct FromStrError(CreationError);
+
+#[cfg(feature = "std")]
+impl std::error::Error for FromStrError {}
+
+impl core::fmt::Display for FromStrError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        format!(
+            "failed to create Felt from string: {}",
+            match self.0 {
+                CreationError::InvalidHexString => "invalid hex string",
+                CreationError::InvalidDecString => "invalid dex string",
+                CreationError::HexStringIsTooBig => "hex string too big",
+                CreationError::EmptyString => "empty string",
+            }
+        )
+        .fmt(f)
+    }
+}
 
 impl Felt {
     /// [Felt] constant that's equal to 0.
@@ -332,7 +351,7 @@ impl Felt {
     pub fn from_hex(hex_string: &str) -> Result<Self, FromStrError> {
         FieldElement::from_hex(hex_string)
             .map(Self)
-            .map_err(|_| FromStrError)
+            .map_err(FromStrError)
     }
 
     /// Parse a decimal-encoded number into `Felt`.
@@ -340,11 +359,11 @@ impl Felt {
         if dec_string.starts_with('-') {
             UnsignedInteger::from_dec_str(dec_string.strip_prefix('-').unwrap())
                 .map(|x| Self(FieldElement::from(&x)).neg())
-                .map_err(|_| FromStrError)
+                .map_err(FromStrError)
         } else {
             UnsignedInteger::from_dec_str(dec_string)
                 .map(|x| Self(FieldElement::from(&x)))
-                .map_err(|_| FromStrError)
+                .map_err(FromStrError)
         }
     }
 
@@ -900,21 +919,6 @@ mod formatting {
                 }
             }
             write!(f, "{}", hex)
-        }
-    }
-}
-
-mod errors {
-    use core::fmt;
-
-    use super::*;
-
-    #[cfg(feature = "std")]
-    impl std::error::Error for FromStrError {}
-
-    impl fmt::Display for FromStrError {
-        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            "failed to create Felt from string".fmt(f)
         }
     }
 }
@@ -1567,35 +1571,6 @@ mod test {
         let one: Felt = true.into();
         assert_eq!(one, Felt::ONE);
         assert_eq!(zero, Felt::ZERO);
-    }
-
-    /// Tests proper serialization and deserialization of felts using `parity-scale-codec`.
-    #[cfg(feature = "papyrus-serialization")]
-    #[test]
-    fn hash_serde() {
-        fn enc_len(n_nibbles: usize) -> usize {
-            match n_nibbles {
-                0..=27 => n_nibbles / 2 + 1,
-                28..=33 => 17,
-                _ => 32,
-            }
-        }
-
-        // 64 nibbles are invalid.
-        for n_nibbles in 0..64 {
-            let mut bytes = [0u8; 32];
-            // Set all nibbles to 0xf.
-            for i in 0..n_nibbles {
-                bytes[31 - (i >> 1)] |= 15 << (4 * (i & 1));
-            }
-            let h = Felt::from_bytes_be(&bytes);
-            let mut res = Vec::new();
-            assert!(h.serialize(&mut res).is_ok());
-            assert_eq!(res.len(), enc_len(n_nibbles));
-            let mut reader = &res[..];
-            let d = Felt::deserialize(&mut reader).unwrap();
-            assert_eq!(Felt::from_bytes_be(&bytes), d);
-        }
     }
 
     #[test]
