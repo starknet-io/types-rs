@@ -1,3 +1,7 @@
+pub extern crate alloc;
+
+use alloc::format;
+use alloc::string::String;
 use core::fmt;
 use lambdaworks_math::field::{
     element::FieldElement, fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
