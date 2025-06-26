@@ -20,7 +20,10 @@ mod serde;
 mod zeroize;
 
 use lambdaworks_math::errors::CreationError;
-pub use non_zero::NonZeroFelt;
+pub use non_zero::{FeltIsZeroError, NonZeroFelt};
+
+#[cfg(feature = "prime-bigint")]
+pub use prime_bigint::CAIRO_PRIME_BIGINT;
 
 use core::ops::{Add, Mul, Neg};
 use core::str::FromStr;
