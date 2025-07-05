@@ -1,8 +1,6 @@
-#[cfg(feature = "alloc")]
-pub extern crate alloc;
-
 use core::fmt;
 
+use super::alloc;
 use super::Felt;
 
 impl Felt {
@@ -12,7 +10,13 @@ impl Felt {
         alloc::format!("{self:#x}")
     }
 
-    /// Helper to produce a hexadecimal formatted string of 66 chars.
+    /// Helper to produce a `0` padded hexadecimal string.
+    /// The formated string will be prefixed by `0x`,
+    /// followed by some amount`0` for padding
+    /// and an hexadecimal representation of the actual value.
+    ///
+    /// The resulting string is guaranted to be 66 chars long,
+    /// which is enough to represent `Felt::MAX`.
     pub fn to_fixed_hex_string(&self) -> alloc::string::String {
         let hex_str = alloc::format!("{self:#x}");
         if hex_str.len() < 66 {
