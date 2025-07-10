@@ -7,5 +7,5 @@ pub mod hash;
 
 pub mod felt;
 
-#[cfg(feature = "short-string")]
-mod short_string;
+#[cfg(any(feature = "std", feature = "alloc"))]
+pub mod short_string;
