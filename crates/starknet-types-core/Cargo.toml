@@ -50,7 +50,6 @@ prime-bigint = ["dep:lazy_static"]
 num-traits = []
 papyrus-serialization = ["std"]
 zeroize = ["dep:zeroize"]
-short-string = ["alloc"]
 
 [dev-dependencies]
 proptest = "1.5"

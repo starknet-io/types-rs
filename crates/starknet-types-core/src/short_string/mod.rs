@@ -9,6 +9,7 @@
 //!
 //! The convesion to `Felt` is done by using the internal ascii short string as bytes and parse those as a big endian number.
 
+#[cfg(not(feature = "std"))]
 use crate::felt::alloc::string::{String, ToString};
 use crate::felt::Felt;
 
@@ -114,10 +115,7 @@ impl TryFrom<&str> for ShortString {
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        felt::Felt,
-        short_string::{ShortString, TryShortStringFromStringError},
-    };
+    use super::*;
 
     #[test]
     fn ok() {
