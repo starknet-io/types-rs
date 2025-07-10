@@ -1,11 +1,21 @@
+//! Cairo short string
+//!
+//! The cairo language make it possible to create `Felt` values at compile time from so-called "short string".
+//! See https://docs.starknet.io/archive/cairo-101/strings/ for more information and syntax.
+//!
+//! This modules allows to mirror this behaviour in Rust, by leveraging type safety.
+//! A `ShortString` is string that have been checked and is guaranted to be convertible into a valid `Felt`.
+//! It checks that the `String` only contains ascii characters and is no longer than 31 characters.
+//!
+//! The convesion to `Felt` is done by using the internal ascii short string as bytes and parse those as a big endian number.
+
+use crate::felt::alloc::string::{String, ToString};
 use crate::felt::Felt;
 
 /// A cairo short string
 ///
-/// Allow for safe String to Felt conversion,
-/// as it is guaranted that the string it contains can be represented as a felt.
-///
-/// https://docs.starknet.io/archive/cairo-101/strings/
+/// Allow for safe conversion of cairo short string `String` into `Felt`,
+/// as it is guaranted that the value it contains can be represented as a felt.
 #[repr(transparent)]
 #[derive(Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ShortString(String);
@@ -64,6 +74,10 @@ impl TryFrom<String> for ShortString {
 }
 
 impl Felt {
+    /// Create a felt value from a cairo short string
+    ///
+    /// The string must contains only ascii characters
+    /// and its length must not exceed 31.
     pub fn try_from_cairo_short_string(
         string: &str,
     ) -> Result<Self, TryShortStringFromStringError> {
@@ -108,6 +122,7 @@ mod tests {
     #[test]
     fn ok() {
         for (string, expected_felt) in [
+            (String::default(), Felt::ZERO),
             (String::from("aa"), Felt::from_hex_unchecked("0x6161")),
             (
                 String::from("approve"),
