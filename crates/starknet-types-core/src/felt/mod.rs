@@ -463,6 +463,11 @@ impl Arbitrary<'_> for Felt {
         let felt = FieldElement::new(uint);
         Ok(Felt(felt))
     }
+
+    #[inline]
+    fn size_hint(depth: usize) -> (usize, Option<usize>) {
+        <[u64; 4]>::size_hint(depth)
+    }
 }
 
 /// Allows transparent binary serialization of Felts with `parity_scale_codec`.
