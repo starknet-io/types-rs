@@ -6,3 +6,6 @@ pub mod curve;
 pub mod hash;
 
 pub mod felt;
+
+#[cfg(feature = "short-string")]
+mod short_string;

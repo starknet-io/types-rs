@@ -51,6 +51,7 @@ prime-bigint = ["dep:lazy_static"]
 num-traits = []
 papyrus-serialization = ["std"]
 zeroize = ["dep:zeroize"]
+short-string = ["alloc"]
 
 [dev-dependencies]
 proptest = { version = "1.5", default-features = false, features = ["alloc", "proptest-macro"] } 
