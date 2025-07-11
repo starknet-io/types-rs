@@ -34,9 +34,9 @@ impl AffinePoint {
         ]))
     }
 
-    /// Construct new affine point from the `x` coordinate and the parity bit.
-    /// If the parity bit is false, choose the y-coordinate with even parity.
-    /// If the parity bit is true, choose the y-coordinate with odd parity.
+    /// Construct new affine point from the `x` coordinate and the parity bit `y_parity`.
+    /// If `y_parity` is false, choose the y-coordinate with even parity.
+    /// If `y_parity` is true, choose the y-coordinate with odd parity.
     pub fn new_from_x(x: &Felt, y_parity: bool) -> Option<Self> {
         // right hand side of the stark curve equation `y^2 = x^3 + α*x + β (mod p)`.
         let rhs = x * x * x + Felt(StarkCurve::a()) * x + Felt(StarkCurve::b());
