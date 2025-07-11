@@ -17,7 +17,6 @@ jobs:
           - "starknet-types-core"
 
     steps:
-      - name: "Checkout source code"
       - uses: actions/checkout@v4
       - name: Install toolchain
         run: rustup show
