@@ -1,4 +1,5 @@
 #![cfg_attr(not(feature = "std"), no_std)]
+
 #[cfg(feature = "curve")]
 pub mod curve;
 #[cfg(feature = "hash")]
