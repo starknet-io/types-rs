@@ -31,6 +31,7 @@ use core::str::FromStr;
 use num_bigint::{BigInt, BigUint, Sign};
 use num_integer::Integer;
 use num_traits::{One, Zero};
+pub use primitive_conversions::PrimitiveFromFeltError;
 
 #[cfg(feature = "alloc")]
 pub extern crate alloc;
