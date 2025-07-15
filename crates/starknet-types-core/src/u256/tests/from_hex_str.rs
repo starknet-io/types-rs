@@ -70,13 +70,14 @@ fn test_from_hex_str_small_values() {
 #[test]
 fn test_from_hex_str_max_low_value() {
     // Test maximum u128 value (32 hex chars)
-    let max_u128_hex = format!("{:x}", u128::MAX);
-    let result = U256::from_hex_str(&format!("0x{}", max_u128_hex)).unwrap();
+    let max_u128_hex = "ffffffffffffffffffffffffffffffff";
+    let result = U256::from_hex_str(max_u128_hex).unwrap();
     assert_eq!(result.low(), u128::MAX);
     assert_eq!(result.high(), 0);
 
     // Test without prefix
-    let result = U256::from_hex_str(&max_u128_hex).unwrap();
+    let max_u128_hex = "0xffffffffffffffffffffffffffffffff";
+    let result = U256::from_hex_str(max_u128_hex).unwrap();
     assert_eq!(result.low(), u128::MAX);
     assert_eq!(result.high(), 0);
 }
@@ -96,19 +97,20 @@ fn test_from_hex_str_values_requiring_high() {
     assert_eq!(result.high(), 1);
 
     // Test maximum value (64 hex chars)
-    let max_hex = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
-    let result = U256::from_hex_str(&format!("0x{}", max_hex)).unwrap();
+    let max_hex = "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+    let result = U256::from_hex_str(max_hex).unwrap();
     assert_eq!(result.low(), u128::MAX);
     assert_eq!(result.high(), u128::MAX);
 
     // Test maximum value (64 hex chars) with leading zeros
-    let result = U256::from_hex_str(&format!("0x000000000000000{}", max_hex)).unwrap();
+    let max_hex = "0x0000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+    let result = U256::from_hex_str(max_hex).unwrap();
     assert_eq!(result.low(), u128::MAX);
     assert_eq!(result.high(), u128::MAX);
 
     // Test 64 chars (maximum allowed)
-    let max_64 = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
-    let result = U256::from_hex_str(&format!("0x{}", max_64)).unwrap();
+    let max_64 = "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+    let result = U256::from_hex_str(max_64).unwrap();
     assert_eq!(
         result.high(),
         u128::from_str_radix("0123456789abcdef0123456789abcdef", 16).unwrap()
@@ -119,8 +121,8 @@ fn test_from_hex_str_values_requiring_high() {
     );
 
     // Test a 40-character hex string to verify correct splitting
-    let hex_40 = "1234567890abcdef1234567890abcdef12345678";
-    let result = U256::from_hex_str(&format!("0x{}", hex_40)).unwrap();
+    let hex_40 = "0x1234567890abcdef1234567890abcdef12345678";
+    let result = U256::from_hex_str(hex_40).unwrap();
 
     // Should split at position 8 (40 - 32 = 8)
     let expected_high = u128::from_str_radix("12345678", 16).unwrap();
@@ -133,9 +135,9 @@ fn test_from_hex_str_values_requiring_high() {
 #[test]
 fn test_from_hex_str_value_too_big() {
     // Test 65 hex chars (too big)
-    let too_big = "1ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+    let too_big = "0x1ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
     assert!(matches!(
-        U256::from_hex_str(&format!("0x{}", too_big)),
+        U256::from_hex_str(too_big),
         Err(FromStrError::ValueTooBig)
     ));
 
@@ -146,9 +148,9 @@ fn test_from_hex_str_value_too_big() {
     ));
 
     // Test even longer string
-    let very_long = "1".repeat(100);
+    let very_long = "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111";
     assert!(matches!(
-        U256::from_hex_str(&format!("0x{}", very_long)),
+        U256::from_hex_str(very_long),
         Err(FromStrError::ValueTooBig)
     ));
 }
