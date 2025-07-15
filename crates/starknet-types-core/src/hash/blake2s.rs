@@ -12,12 +12,12 @@
 //!   with the MSB of the first word set as a marker
 //!
 //! The resulting words are serialized in little-endian byte order before hashing.
-//! The Blake2s-256 digest is then truncated to 224 bits to fit within a `Felt`.
+//! The Blake2s-256 digest is then packed into a `Felt` using all 256 bits modulo the field prime.
 //!
 //! ## Reference Implementation
 //!
 //! This implementation follows the Cairo specification:
-//! - [Cairo Blake2s implementation](https://github.com/starkware-libs/cairo-lang/blob/ab8be40403a7634ba296c467b26b8bd945ba5cfa/src/starkware/cairo/common/cairo_blake2s/blake2s.cairo)
+//! - [Cairo Blake2s implementation](https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/cairo/common/cairo_blake2s/blake2s.cairo)
 
 use crate::felt::Felt;
 use blake2::Blake2s256;
@@ -36,7 +36,7 @@ impl StarkHash for Blake2Felt252 {
     }
 
     fn hash_array(felts: &[Felt]) -> Felt {
-        Self::encode_felt252_data_and_calc_224_bit_blake_hash(felts)
+        Self::encode_felt252_data_and_calc_blake_hash(felts)
     }
 
     fn hash_single(felt: &Felt) -> Felt {
@@ -84,14 +84,14 @@ impl Blake2Felt252 {
         unpacked_u32s
     }
 
-    /// Packs the first 7 little-endian 32-bit words (28 bytes) of `bytes`
-    /// into a single 224-bit Felt.
-    fn pack_224_le_to_felt(bytes: &[u8]) -> Felt {
-        assert!(bytes.len() >= 28, "need at least 28 bytes to pack 7 words");
+    /// Packs the first 8 little-endian 32-bit words (32 bytes) of `bytes`
+    /// into a single 252-bit Felt.
+    fn pack_256_le_to_felt(bytes: &[u8]) -> Felt {
+        assert!(bytes.len() >= 32, "need at least 32 bytes to pack 8 words");
 
-        // 1) copy your 28-byte LE-hash into the low 28 bytes of a 32-byte buffer.
+        // 1) copy your 32-byte LE-hash into the low 32 bytes of a 32-byte buffer.
         let mut buf = [0u8; 32];
-        buf[..28].copy_from_slice(&bytes[..28]);
+        buf[..32].copy_from_slice(&bytes[..32]);
 
         // 2) interpret the whole 32-byte buffer as a little-endian Felt.
         Felt::from_bytes_le(&buf)
@@ -101,14 +101,14 @@ impl Blake2Felt252 {
         let mut hasher = Blake2s256::new();
         hasher.update(data);
         let hash32 = hasher.finalize();
-        Self::pack_224_le_to_felt(hash32.as_slice())
+        Self::pack_256_le_to_felt(hash32.as_slice())
     }
 
     /// Encodes a slice of `Felt` values into 32-bit words exactly as Cairo's
     /// [`encode_felt252_to_u32s`](https://github.com/starkware-libs/cairo-lang/blob/ab8be40403a7634ba296c467b26b8bd945ba5cfa/src/starkware/cairo/common/cairo_blake2s/blake2s.cairo)
     /// hint does, then hashes the resulting byte stream with Blake2s-256 and
-    /// returns the 224-bit truncated digest as a `Felt`.
-    pub fn encode_felt252_data_and_calc_224_bit_blake_hash(data: &[Felt]) -> Felt {
+    /// returns the full 256-bit digest as a `Felt`.
+    pub fn encode_felt252_data_and_calc_blake_hash(data: &[Felt]) -> Felt {
         // 1) Unpack each Felt into 2 or 8 u32.
         let u32_words = Self::encode_felts_to_u32s(data);
 
@@ -127,6 +127,7 @@ impl Blake2Felt252 {
 mod tests {
     use super::*;
     use crate::felt::Felt;
+    use rstest::rstest;
 
     /// Test two-limb encoding for a small Felt (< 2^63) into high and low 32-bit words.
     #[test]
@@ -154,49 +155,94 @@ mod tests {
         assert_eq!(words, expected);
     }
 
-    /// Test packing of a 28-byte little-endian buffer into a 224-bit Felt.
+    /// Test packing of a 32-byte little-endian buffer into a 256-bit Felt.
     #[test]
-    fn test_pack_224_le_to_felt_roundtrip() {
-        // Create a 28-byte buffer with values 1..28 and pad to 32 bytes.
+    fn test_pack_256_le_to_felt_basic() {
+        // Test with small values that won't trigger modular reduction.
         let mut buf = [0u8; 32];
-        for i in 0..28 {
-            buf[i] = (i + 1) as u8;
-        }
-        let f = Blake2Felt252::pack_224_le_to_felt(&buf);
+        buf[0] = 0x01;
+        buf[1] = 0x02;
+        buf[2] = 0x03;
+        buf[3] = 0x04;
+        // Leave the rest as zeros.
+
+        let f = Blake2Felt252::pack_256_le_to_felt(&buf);
         let out = f.to_bytes_le();
 
-        // Low 28 bytes must match the input buffer.
-        assert_eq!(&out[..28], &buf[..28]);
-        // High 4 bytes must remain zero.
-        assert_eq!(&out[28..], &[0, 0, 0, 0]);
+        // For small values, the first few bytes should match exactly.
+        assert_eq!(out[0], 0x01);
+        assert_eq!(out[1], 0x02);
+        assert_eq!(out[2], 0x03);
+        assert_eq!(out[3], 0x04);
+
+        // Test that the packing formula works correctly for a simple case.
+        let expected = Felt::from(0x01)
+            + Felt::from(0x02) * Felt::from(1u64 << 8)
+            + Felt::from(0x03) * Felt::from(1u64 << 16)
+            + Felt::from(0x04) * Felt::from(1u64 << 24);
+        assert_eq!(f, expected);
+
+        // Test with a value that exceeds the field prime P to verify modular reduction.
+        // Create a 32-byte buffer with all 0xFF bytes, representing 2^256 - 1.
+        let max_buf = [0xFF_u8; 32];
+        let f_max = Blake2Felt252::pack_256_le_to_felt(&max_buf);
+
+        // The result should be (2^256 - 1) mod P.
+        // Since 2^256 = Felt::TWO.pow(256), we can compute this value directly.
+        // This tests that modular reduction works correctly when exceeding the field prime.
+        let two_pow_256_minus_one = Felt::TWO.pow(256u32) - Felt::ONE;
+        assert_eq!(f_max, two_pow_256_minus_one);
     }
 
-    /// Test that pack_224_le_to_felt panics when input is shorter than 28 bytes.
+    /// Test that pack_256_le_to_felt panics when input is shorter than 32 bytes.
     #[test]
-    #[should_panic(expected = "need at least 28 bytes")]
-    fn test_pack_224_le_to_felt_too_short() {
-        let too_short = [0u8; 27];
-        Blake2Felt252::pack_224_le_to_felt(&too_short);
+    #[should_panic(expected = "need at least 32 bytes to pack 8 words")]
+    fn test_pack_256_le_to_felt_too_short() {
+        let too_short = [0u8; 31];
+        Blake2Felt252::pack_256_le_to_felt(&too_short);
     }
 
-    /// Test that hashing a single zero Felt produces the expected 224-bit Blake2s digest.
+    /// Test that hashing a single zero Felt produces the expected 256-bit Blake2s digest.
     #[test]
     fn test_hash_single_zero() {
         let zero = Felt::from_hex_unchecked("0");
         let hash = Blake2Felt252::hash_single(&zero);
-        let expected =
-            Felt::from_hex_unchecked("71a2f9bc7c9df9dc4ca0e7a1c5908d5eff88af963c3264f412dbdf50");
+        let expected = Felt::from_hex_unchecked(
+            "5768af071a2f8df7c9df9dc4ca0e7a1c5908d5eff88af963c3264f412dbdf43",
+        );
         assert_eq!(hash, expected);
     }
 
-    /// Test that hashing an array of Felts [1, 2] produces the expected 224-bit Blake2s digest.
+    /// Test that hashing an array of Felts [1, 2] produces the expected 256-bit Blake2s digest.
     #[test]
     fn test_hash_array_one_two() {
         let one = Felt::from_hex_unchecked("1");
         let two = Felt::from_hex_unchecked("2");
         let hash = Blake2Felt252::hash_array(&[one, two]);
-        let expected =
-            Felt::from_hex_unchecked("a14b223236366f30e9c77b6e56c8835de7dc5aee36957d4384cce67b");
+        let expected = Felt::from_hex_unchecked(
+            "5534c03a14b214436366f30e9c77b6e56c8835de7dc5aee36957d4384cce66d",
+        );
         assert_eq!(hash, expected);
+    }
+
+    /// Test the encode_felt252_data_and_calc_blake_hash function
+    /// with the same result as the Cairo v0.14 version.
+    #[rstest]
+    #[case::empty(vec![], "874258848688468311465623299960361657518391155660316941922502367727700287818")]
+    #[case::boundary_under_2_63(vec![Felt::from((1u64 << 63) - 1)], "94160078030592802631039216199460125121854007413180444742120780261703604445")]
+    #[case::boundary_at_2_63(vec![Felt::from(1u64 << 63)], "318549634615606806810268830802792194529205864650702991817600345489579978482")]
+    #[case::very_large_felt(vec![Felt::from_hex_unchecked("800000000000011000000000000000000000000000000000000000000000000")], "3505594194634492896230805823524239179921427575619914728883524629460058657521")]
+    #[case::mixed_small_large(vec![Felt::from(42), Felt::from(1u64 << 63), Felt::from(1337)], "1127477916086913892828040583976438888091205536601278656613505514972451246501")]
+    #[case::max_u64(vec![Felt::from(u64::MAX)], "3515074221976790747383295076946184515593027667350620348239642126105984996390")]
+    fn test_encode_felt252_data_and_calc_blake_hash(
+        #[case] input: Vec<Felt>,
+        #[case] expected_result: &str,
+    ) {
+        let result = Blake2Felt252::encode_felt252_data_and_calc_blake_hash(&input);
+        let expected = Felt::from_dec_str(expected_result).unwrap();
+        assert_eq!(
+            result, expected,
+            "rust_implementation: {result:?} != cairo_implementation: {expected:?}"
+        );
     }
 }
