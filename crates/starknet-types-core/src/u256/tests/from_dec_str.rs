@@ -209,7 +209,6 @@ fn test_from_dec_str_overflow_detection() {
     let overflow_test =
         "999999999999999999999999999999999999999999999999999999999999999999999999999999";
     let x = U256::from_dec_str(overflow_test);
-    println!("{:?}", x);
     assert!(matches!(x, Err(FromStrError::ValueTooBig)));
 }
 
