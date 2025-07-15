@@ -32,6 +32,9 @@ impl From<ShortString> for Felt {
         let bytes = ss.0.as_bytes();
 
         let mut buffer = [0u8; 32];
+        // `ShortString` initialization guarantee that the string is ascii and its len doesn't exceed 31.
+        // Which mean that its bytes representation won't either exceed 31 bytes.
+        // So, this won't panic.
         buffer[(32 - bytes.len())..].copy_from_slice(bytes);
 
         // The conversion will never fail
@@ -82,12 +85,12 @@ impl Felt {
     pub fn try_from_cairo_short_string(
         string: &str,
     ) -> Result<Self, TryShortStringFromStringError> {
-        if string.len() > 31 {
-            return Err(TryShortStringFromStringError::TooLong);
-        }
         let bytes = string.as_bytes();
         if !bytes.is_ascii() {
             return Err(TryShortStringFromStringError::NonAscii);
+        }
+        if bytes.len() > 31 {
+            return Err(TryShortStringFromStringError::TooLong);
         }
 
         let mut buffer = [0u8; 32];
