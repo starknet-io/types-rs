@@ -31,7 +31,6 @@ use core::str::FromStr;
 use num_bigint::{BigInt, BigUint, Sign};
 use num_integer::Integer;
 use num_traits::{One, Zero};
-use size_of::SizeOf;
 
 #[cfg(feature = "alloc")]
 pub extern crate alloc;
@@ -48,10 +47,6 @@ use lambdaworks_math::{
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Felt(pub(crate) FieldElement<Stark252PrimeField>);
-
-impl SizeOf for Felt {
-    fn size_of_children(&self, _context: &mut size_of::Context) {}
-}
 
 #[derive(Debug)]
 pub struct FromStrError(CreationError);
@@ -796,7 +791,6 @@ mod test {
     use num_traits::Num;
     use proptest::prelude::*;
     use regex::Regex;
-    use size_of::TotalSize;
 
     #[test]
     fn test_debug_format() {
@@ -1357,16 +1351,5 @@ mod test {
         let one: Felt = true.into();
         assert_eq!(one, Felt::ONE);
         assert_eq!(zero, Felt::ZERO);
-    }
-
-    #[test]
-    fn felt_size_of() {
-        assert_eq!(Felt::ZERO.size_of(), TotalSize::total(32));
-        assert_eq!(Felt::ONE.size_of(), TotalSize::total(32));
-        assert_eq!(
-            Felt(FieldElement::from(1600000000)).size_of(),
-            TotalSize::total(32)
-        );
-        assert_eq!(Felt::MAX.size_of(), TotalSize::total(32));
     }
 }
