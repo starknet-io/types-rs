@@ -133,25 +133,26 @@ fn test_from_hex_str_values_requiring_high() {
 }
 
 #[test]
-fn test_from_hex_str_value_too_big() {
+fn test_from_hex_str_too_long() {
     // Test 65 hex chars (too big)
     let too_big = "0x1ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
     assert!(matches!(
         U256::from_hex_str(too_big),
-        Err(FromStrError::ValueTooBig)
+        Err(FromStrError::StringTooLong)
     ));
 
     // Test without prefix
+    let too_big = "1ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
     assert!(matches!(
         U256::from_hex_str(too_big),
-        Err(FromStrError::ValueTooBig)
+        Err(FromStrError::StringTooLong)
     ));
 
     // Test even longer string
     let very_long = "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111";
     assert!(matches!(
         U256::from_hex_str(very_long),
-        Err(FromStrError::ValueTooBig)
+        Err(FromStrError::StringTooLong)
     ));
 }
 

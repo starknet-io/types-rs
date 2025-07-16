@@ -96,22 +96,29 @@ fn test_from_dec_str_maximum_allowed_value() {
     let result = U256::from_dec_str(max_u256_str).unwrap();
     assert_eq!(result.low(), u128::MAX);
     assert_eq!(result.high(), u128::MAX);
+
+    let max_u256_plus_one_str =
+        "115792089237316195423570985008687907853269984665640564039457584007913129639936";
+    assert!(matches!(
+        U256::from_dec_str(max_u256_plus_one_str),
+        Err(FromStrError::ValueTooBig)
+    ));
 }
 
 #[test]
-fn test_from_dec_str_value_too_big() {
+fn test_from_dec_str_too_long() {
     // Test 79 digits (too big)
     let too_big = "1157920892373161954235709850086879078532699846656405640394575840079131296399350";
     assert!(matches!(
         U256::from_dec_str(too_big),
-        Err(FromStrError::ValueTooBig)
+        Err(FromStrError::StringTooLong)
     ));
 
     // Test even longer string
     let very_long = "1".repeat(100);
     assert!(matches!(
         U256::from_dec_str(&very_long),
-        Err(FromStrError::ValueTooBig)
+        Err(FromStrError::StringTooLong)
     ));
 }
 
@@ -120,38 +127,38 @@ fn test_from_dec_str_invalid_characters_lower_only() {
     // Test invalid decimal characters
     assert!(matches!(
         U256::from_dec_str("123a"),
-        Err(FromStrError::Parse(_))
+        Err(FromStrError::Invalid)
     ));
 
     assert!(matches!(
         U256::from_dec_str("12.3"),
-        Err(FromStrError::Parse(_))
+        Err(FromStrError::Invalid)
     ));
 
     assert!(matches!(
         U256::from_dec_str("12-3"),
-        Err(FromStrError::Parse(_))
+        Err(FromStrError::Invalid)
     ));
 
     assert!(matches!(
         U256::from_dec_str("12+3"),
-        Err(FromStrError::Parse(_))
+        Err(FromStrError::Invalid)
     ));
 
     assert!(matches!(
         U256::from_dec_str("12 3"),
-        Err(FromStrError::Parse(_))
+        Err(FromStrError::Invalid)
     ));
 
     // Test characters outside 0-9 range
     assert!(matches!(
         U256::from_dec_str("12:3"), // ':' is ASCII 58, '0' is 48, so b':' - b'0' = 10
-        Err(FromStrError::Parse(_))
+        Err(FromStrError::Invalid)
     ));
 
     assert!(matches!(
         U256::from_dec_str("12/3"), // '/' is ASCII 47, '0' is 48, so b'/' - b'0' = 255 (wrapping)
-        Err(FromStrError::Parse(_))
+        Err(FromStrError::Invalid)
     ));
 }
 
@@ -184,9 +191,9 @@ fn test_from_dec_str_boundary_lengths() {
     assert!(result.low() > 0 || result.high() > 0);
 
     // Test exactly 38 digits (just under 39)
-    let digits_38 = "12345678901234567890123456789012345678";
+    let digits_38 = "340282366920938463463374607431768211455";
     let result = U256::from_dec_str(digits_38).unwrap();
-    assert_eq!(result.low(), 12345678901234567890123456789012345678u128);
+    assert_eq!(result.low(), 340282366920938463463374607431768211455u128);
     assert_eq!(result.high(), 0);
 
     // Test exactly 39 digits (boundary for manual parsing)
@@ -239,12 +246,12 @@ fn test_from_dec_str_parse_error_for_small_values() {
     // Test that invalid characters in small values (< 39 digits) return Parse error
     assert!(matches!(
         U256::from_dec_str("1234567890123456789012a"),
-        Err(FromStrError::Parse(_))
+        Err(FromStrError::Invalid)
     ));
 
     assert!(matches!(
         U256::from_dec_str("1234567890123456789012.8"),
-        Err(FromStrError::Parse(_))
+        Err(FromStrError::Invalid)
     ));
 }
 

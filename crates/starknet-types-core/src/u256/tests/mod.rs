@@ -36,6 +36,9 @@ fn try_from_felt_parts() {
 fn try_from_dec_str_parts() {
     let valid_str = "123";
     assert!(U256::try_from_dec_str_parts(valid_str, valid_str).is_ok());
+    let valid_str =
+        "00000000000000000000000000000000000000000000000000000000000000000000000000000000000123";
+    assert!(U256::try_from_dec_str_parts(valid_str, valid_str).is_ok());
 
     let invalid_str = "";
     assert!(U256::try_from_dec_str_parts(valid_str, invalid_str).is_err());
@@ -48,8 +51,12 @@ fn try_from_dec_str_parts() {
 fn try_from_hex_str_parts() {
     let valid_str = "123";
     assert!(U256::try_from_hex_str_parts(valid_str, valid_str).is_ok());
+    let valid_str = "0x123";
+    assert!(U256::try_from_hex_str_parts(valid_str, valid_str).is_ok());
+    let valid_str =
+        "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000123";
+    assert!(U256::try_from_hex_str_parts(valid_str, valid_str).is_ok());
 
-    let valid_str = "0X123";
     let invalid_str = "";
     assert!(U256::try_from_hex_str_parts(valid_str, invalid_str).is_err());
     let invalid_str = "10p";
@@ -76,6 +83,8 @@ fn from_str() {
         U256::from_dec_str(input).unwrap()
     );
     let input = "1234ff";
+    assert!(U256::from_str(input).is_err());
+    let input = "0x0x1";
     assert!(U256::from_str(input).is_err());
 }
 
