@@ -78,13 +78,13 @@ impl TryFrom<String> for ShortString {
 }
 
 impl Felt {
-    /// Create a felt value from a cairo short string
+    /// Create a felt value from a cairo short string.
     ///
     /// The string must contains only ascii characters
     /// and its length must not exceed 31.
-    pub fn try_from_cairo_short_string(
-        string: &str,
-    ) -> Result<Self, TryShortStringFromStringError> {
+    ///
+    /// The returned felt value be that of the input raw bytes.
+    pub fn parse_cairo_short_string(string: &str) -> Result<Self, TryShortStringFromStringError> {
         let bytes = string.as_bytes();
         if !bytes.is_ascii() {
             return Err(TryShortStringFromStringError::NonAscii);
@@ -139,7 +139,7 @@ mod tests {
                 ]),
             ),
         ] {
-            let felt = Felt::try_from_cairo_short_string(&string).unwrap();
+            let felt = Felt::parse_cairo_short_string(&string).unwrap();
             let short_string = ShortString::try_from(string.clone()).unwrap();
 
             assert_eq!(felt, expected_felt);
@@ -151,13 +151,13 @@ mod tests {
     #[test]
     fn ko_too_long() {
         let ok_string = String::from("This is a 31 characters string.");
-        assert!(Felt::try_from_cairo_short_string(&ok_string).is_ok());
+        assert!(Felt::parse_cairo_short_string(&ok_string).is_ok());
         assert!(ShortString::try_from(ok_string).is_ok());
 
         let ko_string = String::from("This is a 32 characters string..");
 
         assert_eq!(
-            Felt::try_from_cairo_short_string(&ko_string),
+            Felt::parse_cairo_short_string(&ko_string),
             Err(TryShortStringFromStringError::TooLong)
         );
         assert_eq!(
@@ -171,7 +171,7 @@ mod tests {
         let string = String::from("What a nice emoji 💫");
 
         assert_eq!(
-            Felt::try_from_cairo_short_string(&string),
+            Felt::parse_cairo_short_string(&string),
             Err(TryShortStringFromStringError::NonAscii)
         );
         assert_eq!(
