@@ -300,3 +300,43 @@ impl FromStr for U256 {
         }
     }
 }
+
+macro_rules! impl_from_uint {
+    ($from:ty) => {
+        impl From<$from> for U256 {
+            fn from(value: $from) -> U256 {
+                U256 {
+                    high: 0,
+                    low: value.into(),
+                }
+            }
+        }
+    };
+}
+
+impl_from_uint!(u8);
+impl_from_uint!(u16);
+impl_from_uint!(u32);
+impl_from_uint!(u64);
+impl_from_uint!(u128);
+
+macro_rules! impl_try_from_int {
+    ($from:ty) => {
+        impl TryFrom<$from> for U256 {
+            type Error = core::num::TryFromIntError;
+
+            fn try_from(value: $from) -> Result<Self, Self::Error> {
+                Ok(U256 {
+                    high: 0,
+                    low: value.try_into()?,
+                })
+            }
+        }
+    };
+}
+
+impl_try_from_int!(i8);
+impl_try_from_int!(i16);
+impl_try_from_int!(i32);
+impl_try_from_int!(i64);
+impl_try_from_int!(i128);
