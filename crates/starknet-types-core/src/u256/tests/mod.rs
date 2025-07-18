@@ -95,3 +95,101 @@ fn ordering() {
     assert!(value2 < value1);
     assert_eq!(value2, value2);
 }
+
+#[test]
+fn from_primitives_impl() {
+    let value: U256 = u8::MAX.into();
+    assert_eq!(
+        value,
+        U256 {
+            high: 0,
+            low: u8::MAX.into()
+        }
+    );
+    let value: U256 = u16::MAX.into();
+    assert_eq!(
+        value,
+        U256 {
+            high: 0,
+            low: u16::MAX.into()
+        }
+    );
+    let value: U256 = u32::MAX.into();
+    assert_eq!(
+        value,
+        U256 {
+            high: 0,
+            low: u32::MAX.into()
+        }
+    );
+    let value: U256 = u64::MAX.into();
+    assert_eq!(
+        value,
+        U256 {
+            high: 0,
+            low: u64::MAX.into()
+        }
+    );
+    let value: U256 = u128::MAX.into();
+    assert_eq!(
+        value,
+        U256 {
+            high: 0,
+            low: u128::MAX
+        }
+    );
+
+    // Try from positive signed values
+    let value: U256 = i8::MAX.try_into().unwrap();
+    assert_eq!(
+        value,
+        U256 {
+            high: 0,
+            low: i8::MAX.try_into().unwrap()
+        }
+    );
+    let value: U256 = i16::MAX.try_into().unwrap();
+    assert_eq!(
+        value,
+        U256 {
+            high: 0,
+            low: i16::MAX.try_into().unwrap()
+        }
+    );
+    let value: U256 = i32::MAX.try_into().unwrap();
+    assert_eq!(
+        value,
+        U256 {
+            high: 0,
+            low: i32::MAX.try_into().unwrap()
+        }
+    );
+    let value: U256 = i64::MAX.try_into().unwrap();
+    assert_eq!(
+        value,
+        U256 {
+            high: 0,
+            low: i64::MAX.try_into().unwrap()
+        }
+    );
+    let value: U256 = i128::MAX.try_into().unwrap();
+    assert_eq!(
+        value,
+        U256 {
+            high: 0,
+            low: i128::MAX.try_into().unwrap()
+        }
+    );
+
+    // Try from negative values
+    let res = U256::try_from(i8::MIN);
+    assert!(res.is_err());
+    let res = U256::try_from(i16::MIN);
+    assert!(res.is_err());
+    let res = U256::try_from(i32::MIN);
+    assert!(res.is_err());
+    let res = U256::try_from(i64::MIN);
+    assert!(res.is_err());
+    let res = U256::try_from(i128::MIN);
+    assert!(res.is_err());
+}
