@@ -135,17 +135,16 @@ impl U256 {
             hex_str
         };
 
+        if string_without_prefix.is_empty() {
+            return Err(FromStrError::Invalid);
+        }
+
         // Remove leading zero
         let string_without_zero_padding = string_without_prefix.trim_start_matches('0');
 
         let (high, low) = if string_without_zero_padding.is_empty() {
-            if string_without_zero_padding.len() == string_without_prefix.len() {
-                // The string is truly empty
-                return Err(FromStrError::Invalid);
-            } else {
-                // The string was uniquely made out of of `0`
-                (0, 0)
-            }
+            // The string was uniquely made out of of `0`
+            (0, 0)
         } else if string_without_zero_padding.len() > 64 {
             return Err(FromStrError::StringTooLong);
         } else if string_without_zero_padding.len() > 32 {
@@ -179,17 +178,16 @@ impl U256 {
     /// silent wraparound and ensures accurate representation of large decimal numbers.
     /// Values with more than 78 decimal digits are rejected as they exceed U256 capacity.
     pub fn from_dec_str(dec_str: &str) -> Result<Self, FromStrError> {
+        if dec_str.is_empty() {
+            return Err(FromStrError::Invalid);
+        }
+
         // Ignore leading zeros
         let string_without_zero_padding = dec_str.trim_start_matches('0');
 
         let (high, low) = if string_without_zero_padding.is_empty() {
-            if string_without_zero_padding.len() == dec_str.len() {
-                // The string is truly empty
-                return Err(FromStrError::Invalid);
-            } else {
-                // The string was uniquely made out of of `0`
-                (0, 0)
-            }
+            // The string was uniquely made out of of `0`
+            (0, 0)
         } else if string_without_zero_padding.len() > 78 {
             return Err(FromStrError::StringTooLong);
         } else {
