@@ -69,3 +69,36 @@ impl Felt {
         Some(Self::from_bytes_be(&res))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Tests proper serialization and deserialization of felts using `parity-scale-codec`.
+    #[test]
+    fn hash_serde() {
+        fn enc_len(n_nibbles: usize) -> usize {
+            match n_nibbles {
+                0..=27 => n_nibbles / 2 + 1,
+                28..=33 => 17,
+                _ => 32,
+            }
+        }
+
+        // 64 nibbles are invalid.
+        for n_nibbles in 0..64 {
+            let mut bytes = [0u8; 32];
+            // Set all nibbles to 0xf.
+            for i in 0..n_nibbles {
+                bytes[31 - (i >> 1)] |= 15 << (4 * (i & 1));
+            }
+            let h = Felt::from_bytes_be(&bytes);
+            let mut res = Vec::new();
+            assert!(h.serialize(&mut res).is_ok());
+            assert_eq!(res.len(), enc_len(n_nibbles));
+            let mut reader = &res[..];
+            let d = Felt::deserialize(&mut reader).unwrap();
+            assert_eq!(Felt::from_bytes_be(&bytes), d);
+        }
+    }
+}

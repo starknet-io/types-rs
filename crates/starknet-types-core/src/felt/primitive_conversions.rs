@@ -187,69 +187,96 @@ mod tests {
     fn from_and_try_from_works_both_way_for_valid_unsigned_values() {
         // u8
         let u8_max_value = u8::MAX;
-        assert_eq!(u8_max_value, Felt::from(u8_max_value).try_into().unwrap());
+        assert_eq!(
+            u8_max_value,
+            u8::try_from(Felt::from(u8_max_value)).unwrap()
+        );
         let u8_42_value = 42u8;
-        assert_eq!(u8_42_value, Felt::from(u8_42_value).try_into().unwrap());
+        assert_eq!(u8_42_value, u8::try_from(Felt::from(u8_42_value)).unwrap());
         let u8_zero_value = 0u8;
-        assert_eq!(u8_zero_value, Felt::from(u8_zero_value).try_into().unwrap());
+        assert_eq!(
+            u8_zero_value,
+            u8::try_from(Felt::from(u8_zero_value)).unwrap()
+        );
         // u16
         let u16_max_value = u16::MAX;
-        assert_eq!(u16_max_value, Felt::from(u16_max_value).try_into().unwrap());
+        assert_eq!(
+            u16_max_value,
+            u16::try_from(Felt::from(u16_max_value)).unwrap()
+        );
         let u16_42_value = 42u16;
-        assert_eq!(u16_42_value, Felt::from(u16_42_value).try_into().unwrap());
+        assert_eq!(
+            u16_42_value,
+            u16::try_from(Felt::from(u16_42_value)).unwrap()
+        );
         let u16_zero_value = 0u16;
         assert_eq!(
             u16_zero_value,
-            Felt::from(u16_zero_value).try_into().unwrap()
+            u16::try_from(Felt::from(u16_zero_value)).unwrap()
         );
         // u32
         let u32_max_value = u32::MAX;
-        assert_eq!(u32_max_value, Felt::from(u32_max_value).try_into().unwrap());
+        assert_eq!(
+            u32_max_value,
+            u32::try_from(Felt::from(u32_max_value)).unwrap()
+        );
         let u32_42_value = 42u32;
-        assert_eq!(u32_42_value, Felt::from(u32_42_value).try_into().unwrap());
+        assert_eq!(
+            u32_42_value,
+            u32::try_from(Felt::from(u32_42_value)).unwrap()
+        );
         let u32_zero_value = 0u32;
         assert_eq!(
             u32_zero_value,
-            Felt::from(u32_zero_value).try_into().unwrap()
+            u32::try_from(Felt::from(u32_zero_value)).unwrap()
         );
         // u64
         let u64_max_value = u64::MAX;
-        assert_eq!(u64_max_value, Felt::from(u64_max_value).try_into().unwrap());
+        assert_eq!(
+            u64_max_value,
+            u64::try_from(Felt::from(u64_max_value)).unwrap()
+        );
         let u64_42_value = 42u64;
-        assert_eq!(u64_42_value, Felt::from(u64_42_value).try_into().unwrap());
+        assert_eq!(
+            u64_42_value,
+            u64::try_from(Felt::from(u64_42_value)).unwrap()
+        );
         let u64_zero_value = 0u64;
         assert_eq!(
             u64_zero_value,
-            Felt::from(u64_zero_value).try_into().unwrap()
+            u64::try_from(Felt::from(u64_zero_value)).unwrap()
         );
         // u128
         let u128_max_value = u128::MAX;
         assert_eq!(
             u128_max_value,
-            Felt::from(u128_max_value).try_into().unwrap()
+            u128::try_from(Felt::from(u128_max_value)).unwrap()
         );
         let u128_42_value = 42u128;
-        assert_eq!(u128_42_value, Felt::from(u128_42_value).try_into().unwrap());
+        assert_eq!(
+            u128_42_value,
+            u128::try_from(Felt::from(u128_42_value)).unwrap()
+        );
         let u128_zero_value = 0u128;
         assert_eq!(
             u128_zero_value,
-            Felt::from(u128_zero_value).try_into().unwrap()
+            u128::try_from(Felt::from(u128_zero_value)).unwrap()
         );
         // usize
         let usize_max_value = usize::MAX;
         assert_eq!(
             usize_max_value,
-            Felt::from(usize_max_value).try_into().unwrap()
+            usize::try_from(Felt::from(usize_max_value)).unwrap()
         );
         let usize_42_value = 42usize;
         assert_eq!(
             usize_42_value,
-            Felt::from(usize_42_value).try_into().unwrap()
+            usize::try_from(Felt::from(usize_42_value)).unwrap()
         );
         let usize_zero_value = 0usize;
         assert_eq!(
             usize_zero_value,
-            Felt::from(usize_zero_value).try_into().unwrap()
+            usize::try_from(Felt::from(usize_zero_value)).unwrap()
         );
     }
 
@@ -257,11 +284,11 @@ mod tests {
     fn from_and_try_from_works_both_way_for_all_valid_i8_and_i16_values() {
         // i8
         for i in i8::MIN..i8::MAX {
-            assert_eq!(i, Felt::from(i).try_into().unwrap());
+            assert_eq!(i, i8::try_from(Felt::from(i)).unwrap());
         }
         // i16
         for i in i16::MIN..i16::MAX {
-            assert_eq!(i, Felt::from(i).try_into().unwrap());
+            assert_eq!(i, i16::try_from(Felt::from(i)).unwrap());
         }
         // For the others types it would be too long to test every value exhaustively,
         // so we only check keys values in `from_and_try_from_works_both_way_for_valid_signed_values`
@@ -271,33 +298,39 @@ mod tests {
     fn from_and_try_from_works_both_way_for_valid_signed_values() {
         // i32
         let i32_max = i32::MAX;
-        assert_eq!(i32_max, Felt::from(i32_max).try_into().unwrap());
+        assert_eq!(i32_max, i32::try_from(Felt::from(i32_max)).unwrap());
         let i32_min = i32::MIN;
-        assert_eq!(i32_min, Felt::from(i32_min).try_into().unwrap());
+        assert_eq!(i32_min, i32::try_from(Felt::from(i32_min)).unwrap());
         let i32_zero = 0i32;
-        assert_eq!(i32_zero, Felt::from(i32_zero).try_into().unwrap());
+        assert_eq!(i32_zero, i32::try_from(Felt::from(i32_zero)).unwrap());
         let i32_minus_one = -1i32;
-        assert_eq!(i32_minus_one, Felt::from(i32_minus_one).try_into().unwrap());
+        assert_eq!(
+            i32_minus_one,
+            i32::try_from(Felt::from(i32_minus_one)).unwrap()
+        );
         // i64
         let i64_max = i64::MAX;
-        assert_eq!(i64_max, Felt::from(i64_max).try_into().unwrap());
+        assert_eq!(i64_max, i64::try_from(Felt::from(i64_max)).unwrap());
         let i64_min = i64::MIN;
-        assert_eq!(i64_min, Felt::from(i64_min).try_into().unwrap());
+        assert_eq!(i64_min, i64::try_from(Felt::from(i64_min)).unwrap());
         let i64_zero = 0i64;
-        assert_eq!(i64_zero, Felt::from(i64_zero).try_into().unwrap());
+        assert_eq!(i64_zero, i64::try_from(Felt::from(i64_zero)).unwrap());
         let i64_minus_one = -1i64;
-        assert_eq!(i64_minus_one, Felt::from(i64_minus_one).try_into().unwrap());
+        assert_eq!(
+            i64_minus_one,
+            i64::try_from(Felt::from(i64_minus_one)).unwrap()
+        );
         // isize
         let isize_max = isize::MAX;
-        assert_eq!(isize_max, Felt::from(isize_max).try_into().unwrap());
+        assert_eq!(isize_max, isize::try_from(Felt::from(isize_max)).unwrap());
         let isize_min = isize::MIN;
-        assert_eq!(isize_min, Felt::from(isize_min).try_into().unwrap());
+        assert_eq!(isize_min, isize::try_from(Felt::from(isize_min)).unwrap());
         let isize_zero = 0isize;
-        assert_eq!(isize_zero, Felt::from(isize_zero).try_into().unwrap());
+        assert_eq!(isize_zero, isize::try_from(Felt::from(isize_zero)).unwrap());
         let isize_minus_one = -1isize;
         assert_eq!(
             isize_minus_one,
-            Felt::from(isize_minus_one).try_into().unwrap()
+            isize::try_from(Felt::from(isize_minus_one)).unwrap()
         );
         // i128
         let i128_max = i128::MAX;
