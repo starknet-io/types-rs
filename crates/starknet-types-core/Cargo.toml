@@ -50,7 +50,7 @@ serde = ["alloc", "dep:serde"]
 prime-bigint = ["dep:lazy_static"]
 num-traits = []
 papyrus-serialization = ["std"]
-zeroize = ["dep:zeroize"]
+secret_felt = ["dep:zeroize"]
 
 [dev-dependencies]
 proptest = { version = "1.5", default-features = false, features = ["alloc", "proptest-macro"] } 
