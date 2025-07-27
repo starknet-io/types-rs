@@ -1,6 +1,6 @@
 use crate::felt::{Felt, FromStrError};
 use lambdaworks_math::errors::ByteConversionError;
-use zeroize::Zeroize;
+use zeroize::{Zeroize, Zeroizing};
 
 /// A wrapper for a [Felt] that ensures the value is securely zeroized when dropped.
 ///
@@ -28,6 +28,11 @@ impl SecretFelt {
     /// It takes a mutable reference to a [Felt] value, creates a copy,
     /// and then zeroize the original value to ensure it doesn't remain in memory.
     ///
+    /// # Warning
+    ///
+    /// Avoid moving the secret [Felt] in the memory and initialize the [SecretFelt]
+    /// as soon as possible in order to not let any copy of the value in memory
+    ///
     /// # Example
     ///
     /// ```
@@ -37,9 +42,9 @@ impl SecretFelt {
     /// let secret_felt = SecretFelt::from_felt(&mut private_key);
     /// // private_key is now zeroized (set to Felt::ZERO)
     /// ```
-    pub fn from_felt(secret_scalar: &mut Felt) -> Self {
-        let boxed_copy = Box::new(*secret_scalar);
-        secret_scalar.zeroize();
+    pub fn from_felt(secret_felt: &mut Felt) -> Self {
+        let boxed_copy = Box::new(secret_felt.clone());
+        secret_felt.zeroize();
         Self(boxed_copy)
     }
 
@@ -86,14 +91,14 @@ impl SecretFelt {
         Ok(secret_felt)
     }
 
-    /// Provides reference access to the secret scalar.
+    /// Returns a safe copy of the inner value.
     ///
     /// # Warning
     ///
     /// Be careful not to copy the value elsewhere, as that would defeat
     /// the security guarantees of this type.
-    pub fn secret_scalar(&self) -> &Felt {
-        &self.0
+    pub fn inner_value(&self) -> Zeroizing<Felt> {
+        Zeroizing::new(*self.0.clone())
     }
 }
 
@@ -101,7 +106,7 @@ impl SecretFelt {
 mod test {
     use crate::felt::{secret_felt::SecretFelt, Felt};
     use core::mem::size_of;
-    use std::str::FromStr;
+    use std::{ops::Deref, str::FromStr};
     use zeroize::Zeroize;
 
     #[test]
@@ -114,7 +119,7 @@ mod test {
         signing_key.zeroize();
 
         // Get a pointer to the inner Felt
-        let ptr = signing_key.secret_scalar() as *const Felt as *const u8;
+        let ptr = signing_key.inner_value().deref() as *const Felt as *const u8;
         let after_zeroize = unsafe { std::slice::from_raw_parts(ptr, size_of::<Felt>()) };
 
         // Check that the memory is zeroed
@@ -166,20 +171,19 @@ mod test {
 
     #[test]
     fn test_zeroize_on_drop() {
-        // Create a raw pointer to track the memory
         let mut private_key = Felt::from_hex_unchecked(
             "0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
         );
 
+        // the initial Felt will be zeroized
         let pk_clone = private_key.clone();
 
-        // pointer to the memory that will be zeroed
         let raw_ptr;
-
         {
             let signing_key = SecretFelt::from_felt(&mut private_key);
 
-            raw_ptr = signing_key.secret_scalar() as *const Felt as *const u8;
+            let inner_value = *signing_key.0;
+            raw_ptr = &inner_value as *const Felt as *const u8;
 
             // Verify it's not zero before dropping
             let before_drop = unsafe { std::slice::from_raw_parts(raw_ptr, size_of::<Felt>()) };
@@ -192,6 +196,34 @@ mod test {
         // Check that the memory is zeroed after drop
         let after_drop = unsafe { std::slice::from_raw_parts(raw_ptr, size_of::<Felt>()) };
 
+        let felt_after_drop = Felt::from_bytes_be_slice(after_drop);
+
+        // Memory is not zero because the compiler reuse that memory slot
+        // but should not be equal to the initial value
+        assert_ne!(pk_clone, felt_after_drop);
+    }
+
+    #[test]
+    fn test_inner_value() {
+        let mut private_key = Felt::from_hex_unchecked(
+            "0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+        );
+
+        // the initial Felt will be zeroized
+        let pk_clone = private_key.clone();
+
+        let raw_ptr;
+        {
+            let signing_key = SecretFelt::from_felt(&mut private_key);
+
+            let inner_felt = signing_key.inner_value();
+
+            assert_eq!(*inner_felt, pk_clone);
+
+            raw_ptr = inner_felt.as_ref() as *const Felt as *const u8;
+        } // inner_value should be zeroized when is out of scope
+
+        let after_drop = unsafe { std::slice::from_raw_parts(raw_ptr, size_of::<Felt>()) };
         let felt_after_drop = Felt::from_bytes_be_slice(after_drop);
 
         // Memory is not zero because the compiler reuse that memory slot
