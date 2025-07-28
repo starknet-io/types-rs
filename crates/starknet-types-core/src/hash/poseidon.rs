@@ -12,7 +12,7 @@ pub struct Poseidon;
 
 impl StarkHash for Poseidon {
     /// Computes the Poseidon hash of two Felts, as defined
-    /// in <https://docs.starknet.io/architecture-and-concepts/cryptography/#poseidon_hash>
+    /// in <https://docs.starknet.io/architecture/cryptography/#poseidon_hash>
     fn hash(felt_0: &Felt, felt_1: &Felt) -> Felt {
         Felt(PoseidonCairoStark252::hash(&felt_0.0, &felt_1.0))
     }
