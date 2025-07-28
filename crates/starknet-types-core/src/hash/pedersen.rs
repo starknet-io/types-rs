@@ -16,7 +16,7 @@ impl StarkHash for Pedersen {
     }
 
     /// Computes the Pedersen hash of an array of Felts, as defined
-    /// in <https://docs.starknet.io/architecture-and-concepts/cryptography/#array_hashing>
+    /// in <https://docs.starknet.io/architecture/cryptography/#array_hashing>
     ///
     /// Warning: there is room for collision as:
     /// Pedersen::hash_array([value]) and Pedersen::hash(Pedersen::hash(0, value), 1) will return the same values
