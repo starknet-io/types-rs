@@ -10,7 +10,7 @@ pub struct Pedersen;
 
 impl StarkHash for Pedersen {
     /// Computes the Pedersen hash of two Felts, as defined
-    /// in <https://docs.starknet.io/architecture-and-concepts/cryptography/#pedersen_hash>
+    /// in <https://docs.starknet.io/architecture/cryptography/#pedersen_hash>
     fn hash(felt_0: &Felt, felt_1: &Felt) -> Felt {
         Felt(PedersenStarkCurve::hash(&felt_0.0, &felt_1.0))
     }
