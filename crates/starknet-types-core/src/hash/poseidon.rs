@@ -17,7 +17,7 @@ impl StarkHash for Poseidon {
         Felt(PoseidonCairoStark252::hash(&felt_0.0, &felt_1.0))
     }
     /// Computes the Poseidon hash of an array of Felts, as defined
-    /// in <https://docs.starknet.io/architecture-and-concepts/cryptography/#array_hashing_2>
+    /// in <https://docs.starknet.io/architecture/cryptography/#array_hashing_2>
     fn hash_array(felts: &[Felt]) -> Felt {
         // Non-copy but less dangerous than transmute
         // https://doc.rust-lang.org/std/mem/fn.transmute.html#alternatives
