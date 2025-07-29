@@ -67,6 +67,7 @@ impl SecretFelt {
 
     /// Creates a new [SecretFelt] from its big-endian representation in a Vec<u8> of length 32.
     /// Internally it uses [from_bytes_be](Felt::from_bytes_be).
+    /// The input will be zeroized after calling this function
     pub fn from_bytes_be(secret: &mut Vec<u8>) -> Result<Self, ByteConversionError> {
         let mut value: [u8; 32] = secret
             .as_slice()
@@ -80,6 +81,7 @@ impl SecretFelt {
 
     /// Creates a new [SecretFelt] from its little-endian representation in a Vec<u8> of length 32.
     /// Internally it uses [from_bytes_le](Felt::from_bytes_le).
+    /// The input will be zeroized after calling this function
     pub fn from_bytes_le(secret: &mut Vec<u8>) -> Result<Self, ByteConversionError> {
         let mut value: [u8; 32] = secret
             .as_slice()
