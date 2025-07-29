@@ -14,10 +14,10 @@ mod parity_scale_codec;
 #[cfg(feature = "prime-bigint")]
 mod prime_bigint;
 mod primitive_conversions;
-#[cfg(feature = "serde")]
-mod serde;
 #[cfg(feature = "secret_felt")]
 pub mod secret_felt;
+#[cfg(feature = "serde")]
+mod serde;
 
 use lambdaworks_math::errors::CreationError;
 pub use non_zero::{FeltIsZeroError, NonZeroFelt};
