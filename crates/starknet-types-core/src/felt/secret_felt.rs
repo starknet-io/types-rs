@@ -2,6 +2,9 @@ use crate::felt::{Felt, FromStrError};
 use lambdaworks_math::errors::ByteConversionError;
 use zeroize::{Zeroize, Zeroizing};
 
+#[cfg(feature = "alloc")]
+use super::alloc::{boxed::Box, string::String, vec::Vec};
+
 /// A wrapper for a [Felt] that ensures the value is securely zeroized when dropped.
 ///
 /// This type provides secure handling of sensitive [Felt] values (like private keys)
