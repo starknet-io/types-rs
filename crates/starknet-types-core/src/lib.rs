@@ -9,3 +9,4 @@ pub mod felt;
 
 #[cfg(any(feature = "std", feature = "alloc"))]
 pub mod short_string;
+pub mod u256;
