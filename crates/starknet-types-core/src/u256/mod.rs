@@ -9,6 +9,9 @@
 //! We recommand you create From/Into implementation to bridge the gap between your favourite u256 type,
 //! and the one provided by this crate.
 
+#[cfg(feature = "num-traits")]
+mod num_traits_impl;
+mod primitive_conversions;
 #[cfg(test)]
 mod tests;
 
@@ -194,8 +197,9 @@ impl U256 {
             let mut low = 0u128;
             let mut high = 0u128;
 
-            // b is ascii value of the char - ascii value of the char '0',
+            // b is ascii value of the char less the ascii value of the char '0'
             // which happen to be equal to the number represented by the char.
+            // b = ascii(char) - ascii('0')
             for b in string_without_zero_padding
                 .bytes()
                 .map(|b| b.wrapping_sub(b'0'))
@@ -298,43 +302,3 @@ impl FromStr for U256 {
         }
     }
 }
-
-macro_rules! impl_from_uint {
-    ($from:ty) => {
-        impl From<$from> for U256 {
-            fn from(value: $from) -> U256 {
-                U256 {
-                    high: 0,
-                    low: value.into(),
-                }
-            }
-        }
-    };
-}
-
-impl_from_uint!(u8);
-impl_from_uint!(u16);
-impl_from_uint!(u32);
-impl_from_uint!(u64);
-impl_from_uint!(u128);
-
-macro_rules! impl_try_from_int {
-    ($from:ty) => {
-        impl TryFrom<$from> for U256 {
-            type Error = core::num::TryFromIntError;
-
-            fn try_from(value: $from) -> Result<Self, Self::Error> {
-                Ok(U256 {
-                    high: 0,
-                    low: value.try_into()?,
-                })
-            }
-        }
-    };
-}
-
-impl_try_from_int!(i8);
-impl_try_from_int!(i16);
-impl_try_from_int!(i32);
-impl_try_from_int!(i64);
-impl_try_from_int!(i128);
