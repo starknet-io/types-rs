@@ -10,6 +10,7 @@ starknet-types-core = { path = "../crates/starknet-types-core", default-features
     "curve",
     "parity-scale-codec",
     "num-traits",
+    "hash",
 ] }
 wee_alloc = "0.4.5"
 
