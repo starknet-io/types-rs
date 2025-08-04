@@ -46,7 +46,7 @@ impl SecretFelt {
     /// // private_key is now zeroized (set to Felt::ZERO)
     /// ```
     pub fn from_felt(secret_felt: &mut Felt) -> Self {
-        let boxed_copy = Box::new(secret_felt.clone());
+        let boxed_copy = Box::new(*secret_felt);
         secret_felt.zeroize();
         Self(boxed_copy)
     }
@@ -63,7 +63,7 @@ impl SecretFelt {
     /// let secret_felt = SecretFelt::from_hex_string(&mut private_key);
     /// ```
     pub fn from_hex_string(hex: &mut String) -> Result<Self, FromStrError> {
-        let secret_felt = Felt::from_hex(&hex)?;
+        let secret_felt = Felt::from_hex(hex)?;
         hex.zeroize();
         Ok(Self(Box::new(secret_felt)))
     }
