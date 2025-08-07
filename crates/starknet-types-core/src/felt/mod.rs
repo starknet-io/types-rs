@@ -750,29 +750,7 @@ mod formatting {
     /// Represents [Felt] in decimal by default.
     impl fmt::Display for Felt {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            if *self == Felt::ZERO {
-                return write!(f, "0");
-            }
-
-            let mut buf = [0u8; 4 * 20];
-            let mut i = buf.len() - 1;
-            let mut current = self.0.representative();
-            let ten = UnsignedInteger::from(10_u16);
-
-            loop {
-                let (quotient, remainder) = current.div_rem(&ten);
-                let digit = remainder.limbs[3] as u8;
-                buf[i] = digit + b'0';
-                current = quotient;
-                if current == UnsignedInteger::from(0_u16) {
-                    break;
-                }
-                i -= 1;
-            }
-
-            // sequence of `'0'..'9'` chars is guaranteed to be a valid UTF8 string
-            let s = core::str::from_utf8(&buf[i..]).unwrap();
-            fmt::Display::fmt(s, f)
+            write!(f, "{}", self.to_biguint())
         }
     }
 
