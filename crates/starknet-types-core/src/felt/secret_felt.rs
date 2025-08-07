@@ -1,5 +1,6 @@
 use crate::felt::{Felt, FromStrError};
-use lambdaworks_math::errors::ByteConversionError;
+use rand::{CryptoRng, RngCore};
+use subtle::ConstantTimeEq;
 use zeroize::{Zeroize, Zeroizing};
 
 #[cfg(not(feature = "std"))]
@@ -55,11 +56,12 @@ impl SecretFelt {
     ///
     /// # Example
     /// ```
+    /// use std::fs;
     /// use starknet_types_core::felt::secret_felt::SecretFelt;
     /// use std::str::FromStr;
     ///
     /// // make sure the String is initialized in a secure way
-    /// let mut private_key = String::from_utf8(vec![255,255,..]).unwrap();
+    /// let mut private_key = fs::read_to_string("path/to/secret_value").unwrap();
     /// let secret_felt = SecretFelt::from_hex_string(&mut private_key);
     /// ```
     pub fn from_hex_string(hex: &mut String) -> Result<Self, FromStrError> {
@@ -71,29 +73,43 @@ impl SecretFelt {
     /// Creates a new [SecretFelt] from its big-endian representation in a Vec<u8> of length 32.
     /// Internally it uses [from_bytes_be](Felt::from_bytes_be).
     /// The input will be zeroized after calling this function
-    pub fn from_bytes_be(secret: &mut Vec<u8>) -> Result<Self, ByteConversionError> {
-        let mut value: [u8; 32] = secret
-            .as_slice()
-            .try_into()
-            .map_err(|_| ByteConversionError::InvalidValue)?;
-        let secret_felt = Self(Box::new(Felt::from_bytes_be(&value)));
+    pub fn from_bytes_be(secret: &mut [u8; 32]) -> Self {
+        let secret_felt = Self(Box::new(Felt::from_bytes_be(secret)));
         secret.zeroize();
-        value.zeroize();
-        Ok(secret_felt)
+        secret_felt
     }
 
     /// Creates a new [SecretFelt] from its little-endian representation in a Vec<u8> of length 32.
     /// Internally it uses [from_bytes_le](Felt::from_bytes_le).
     /// The input will be zeroized after calling this function
-    pub fn from_bytes_le(secret: &mut Vec<u8>) -> Result<Self, ByteConversionError> {
-        let mut value: [u8; 32] = secret
-            .as_slice()
-            .try_into()
-            .map_err(|_| ByteConversionError::InvalidValue)?;
-        let secret_felt = Self(Box::new(Felt::from_bytes_le(&value)));
+    pub fn from_bytes_le(secret: &mut [u8; 32]) -> Self {
+        let secret_felt = Self(Box::new(Felt::from_bytes_le(secret)));
         secret.zeroize();
-        value.zeroize();
-        Ok(secret_felt)
+        secret_felt
+    }
+
+    /// Create a new [SecretFelt] from cryptographically secure PRNG
+    ///
+    /// # Example
+    /// ```
+    /// use starknet_types_core::felt::secret_felt::SecretFelt;
+    /// use rand_chacha::ChaCha20Rng;
+    /// use rand::SeedableRng;
+    ///
+    /// let rng = ChaCha20Rng::from_os_rng();
+    /// let secret_key = SecretFelt::from_random(rng);
+    /// ```
+    pub fn from_random<T>(mut rng: T) -> Self
+    where
+        T: RngCore + CryptoRng,
+    {
+        let mut buffer = [0u8; 32];
+        rng.fill_bytes(&mut buffer);
+
+        let secret_felt = Self(Box::new(Felt::from_bytes_be(&buffer)));
+        buffer.zeroize();
+
+        secret_felt
     }
 
     /// Returns a safe copy of the inner value.
@@ -107,20 +123,32 @@ impl SecretFelt {
     }
 }
 
+/// Constant time equality check for [SecretFelt]
+impl PartialEq for SecretFelt {
+    fn eq(&self, other: &Self) -> bool {
+        let mut self_limbs = self.0 .0.representative().limbs;
+        let mut other_limbs = other.0 .0.representative().limbs;
+
+        let is_eq: bool = self_limbs.ct_eq(&other_limbs).into();
+
+        self_limbs.zeroize();
+        other_limbs.zeroize();
+
+        is_eq
+    }
+}
+
 #[cfg(test)]
 mod test {
     use crate::felt::{secret_felt::SecretFelt, Felt};
     use core::mem::size_of;
+    use rand_chacha::{rand_core::SeedableRng, ChaCha20Rng};
     use std::{ops::Deref, str::FromStr};
     use zeroize::Zeroize;
 
     #[test]
     fn test_zeroize_secret_felt() {
-        let mut private_key = Felt::from_hex_unchecked(
-            "0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
-        );
-
-        let mut signing_key = SecretFelt::from_felt(&mut private_key);
+        let mut signing_key = SecretFelt::from_random(ChaCha20Rng::seed_from_u64(1));
         signing_key.zeroize();
 
         // Get a pointer to the inner Felt
@@ -158,7 +186,7 @@ mod test {
     #[test]
     fn test_zeroize_hex_string() {
         let mut private_key =
-            String::from_str(&"0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
+            String::from_str("0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
                 .unwrap();
 
         let mut signing_key = SecretFelt::from_hex_string(&mut private_key).unwrap();
@@ -180,8 +208,8 @@ mod test {
             "0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
         );
 
-        // the initial Felt will be zeroized
-        let pk_clone = private_key.clone();
+        // make a copy, the initial Felt will be zeroized
+        let pk_copy = private_key;
 
         let raw_ptr;
         {
@@ -205,7 +233,7 @@ mod test {
 
         // Memory is not zero because the compiler reuse that memory slot
         // but should not be equal to the initial value
-        assert_ne!(pk_clone, felt_after_drop);
+        assert_ne!(pk_copy, felt_after_drop);
     }
 
     #[test]
@@ -214,8 +242,8 @@ mod test {
             "0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
         );
 
-        // the initial Felt will be zeroized
-        let pk_clone = private_key.clone();
+        // make a copy, the initial Felt will be zeroized
+        let pk_copy = private_key;
 
         let raw_ptr;
         {
@@ -223,7 +251,7 @@ mod test {
 
             let inner_felt = signing_key.inner_value();
 
-            assert_eq!(*inner_felt, pk_clone);
+            assert_eq!(*inner_felt, pk_copy);
 
             raw_ptr = inner_felt.as_ref() as *const Felt as *const u8;
         } // inner_value should be zeroized when is out of scope
@@ -233,6 +261,20 @@ mod test {
 
         // Memory is not zero because the compiler reuse that memory slot
         // but should not be equal to the initial value
-        assert_ne!(pk_clone, felt_after_drop);
+        assert_ne!(pk_copy, felt_after_drop);
+    }
+
+    #[test]
+    fn test_partial_eq() {
+        let mut private_key1 = [255u8; 32];
+        let mut private_key2 = [255u8; 32];
+        let mut private_key3 = [254u8; 32];
+
+        let signing_key1 = SecretFelt::from_bytes_be(&mut private_key1);
+        let signing_key2 = SecretFelt::from_bytes_be(&mut private_key2);
+        let signing_key3 = SecretFelt::from_bytes_be(&mut private_key3);
+
+        assert!(signing_key1.eq(&signing_key2));
+        assert!(signing_key1.ne(&signing_key3));
     }
 }
