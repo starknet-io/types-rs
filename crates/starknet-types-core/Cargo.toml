@@ -60,7 +60,7 @@ regex = "1.11"
 serde_test = "1"
 criterion = "0.5"
 rand_chacha = "0.3"
-rand = "0.8"
+rand = { version = "0.8", features = ["small_rng"]}
 rstest = "0.24"
 lazy_static = { version = "1.5", default-features = false }
 
