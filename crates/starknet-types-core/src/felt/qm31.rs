@@ -48,7 +48,7 @@ impl QM31Felt {
     /// # Safety
     /// This function reads from an already created QM31. If there were an error, it would've been caught during
     /// its creation.
-    fn read_coordinates(&self) -> [u64; 4] {
+    pub fn read_coordinates(&self) -> [u64; 4] {
         let limbs = self.as_le_digits();
 
         [
