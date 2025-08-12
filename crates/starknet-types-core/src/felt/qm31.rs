@@ -1,16 +1,40 @@
 use core::fmt;
 
+use crate::felt::Felt;
 use lambdaworks_math::field::{
     element::FieldElement, fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
 };
-
-use crate::felt::Felt;
 
 pub const STWO_PRIME: u64 = (1 << 31) - 1;
 const STWO_PRIME_U128: u128 = STWO_PRIME as u128;
 const MASK_36: u64 = (1 << 36) - 1;
 const MASK_8: u64 = (1 << 8) - 1;
 
+#[derive(Debug)]
+pub enum QM31Error {
+    QM31UnreducedError(Felt),
+    QM31InvalidCoordinates([u64; 4]),
+}
+
+#[cfg(feature = "std")]
+impl std::error::Error for QM31Error {}
+
+impl fmt::Display for QM31Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            QM31Error::QM31UnreducedError(felt) => writeln!(
+                f,
+                "Number is not a packing of a QM31 in reduced form: {}",
+                felt
+            ),
+            QM31Error::QM31InvalidCoordinates(coords) => writeln!(
+                f,
+                "The given coordinates cannot be packed into a QM31: {:#?}",
+                coords
+            ),
+        }
+    }
+}
 #[repr(transparent)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct QM31Felt(pub(crate) FieldElement<Stark252PrimeField>);
@@ -24,16 +48,14 @@ impl QM31Felt {
     /// This function reads from an already created QM31. If there were an error, it would've been caught during
     /// its creation.
     fn read_coordinates(&self) -> [u64; 4] {
-        let limbs = self.to_le_digits();
+        let limbs = self.as_le_digits();
 
-        let coordinates = [
+        [
             (limbs[0] & MASK_36),
             ((limbs[0] >> 36) + ((limbs[1] & MASK_8) << 28)),
             ((limbs[1] >> 8) & MASK_36),
             ((limbs[1] >> 44) + (limbs[2] << 20)),
-        ];
-
-        coordinates
+        ]
     }
 
     /// Create a [QM31Felt] without checking it. If the coordinates cannot be
@@ -61,7 +83,7 @@ impl QM31Felt {
     /// by 36 bits and a QM31 element can be stored in the first 144 bits of a Felt.
     pub fn from_coordinates(coordinates: [u64; 4]) -> Result<QM31Felt, QM31Error> {
         let qm31 = Self::from_coordinates_unchecked(coordinates);
-        let limbs = qm31.to_le_digits();
+        let limbs = qm31.as_le_digits();
         let coordinates = [
             (limbs[0] & MASK_36),
             ((limbs[0] >> 36) + ((limbs[1] & MASK_8) << 28)),
@@ -220,7 +242,7 @@ impl QM31Felt {
 
     /// Convert `self`'s representative into an array of `u64` digits,
     /// least significant digits first.
-    pub fn to_le_digits(&self) -> [u64; 4] {
+    pub fn as_le_digits(&self) -> [u64; 4] {
         let mut limbs = self.0.representative().limbs;
         limbs.reverse();
         limbs
@@ -228,34 +250,8 @@ impl QM31Felt {
 
     /// Convert `self`'s representative into an array of `u64` digits,
     /// most significant digits first.
-    pub fn to_be_digits(&self) -> [u64; 4] {
+    pub fn as_be_digits(&self) -> [u64; 4] {
         self.0.representative().limbs
-    }
-}
-
-#[derive(Debug)]
-pub enum QM31Error {
-    QM31UnreducedError(Felt),
-    QM31InvalidCoordinates([u64; 4]),
-}
-
-#[cfg(feature = "std")]
-impl std::error::Error for QM31Error {}
-
-impl fmt::Display for QM31Error {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            QM31Error::QM31UnreducedError(felt) => writeln!(
-                f,
-                "Number is not a packing of a QM31 in reduced form: {}",
-                felt
-            ),
-            QM31Error::QM31InvalidCoordinates(coords) => writeln!(
-                f,
-                "The given coordinates cannot be packed into a QM31: {:#?}",
-                coords
-            ),
-        }
     }
 }
 
