@@ -71,7 +71,7 @@ impl QM31Felt {
 
         for x in coordinates.iter() {
             if *x >= STWO_PRIME {
-                return Err(QM31Error::QM31UnreducedError(Box::new(qm31.into())));
+                return Err(QM31Error::QM31UnreducedError(qm31.into()));
             }
         }
 
@@ -235,8 +235,8 @@ impl QM31Felt {
 
 #[derive(Debug)]
 pub enum QM31Error {
-    QM31UnreducedError(Box<Felt>),
-    QM31InvalidCoordinates(Box<[u64; 4]>),
+    QM31UnreducedError(Felt),
+    QM31InvalidCoordinates([u64; 4]),
 }
 
 #[cfg(feature = "std")]
@@ -276,6 +276,14 @@ impl TryFrom<Felt> for QM31Felt {
 
     fn try_from(value: Felt) -> Result<Self, Self::Error> {
         let limbs = value.to_le_digits();
+
+        // Check value fits in 144 bits. This check is only done here
+        // because we are trying to convert a Felt into a QM31Felt. This
+        // Felt should represent a packed QM31 which is at most 144 bits long.
+        if limbs[3] != 0 || limbs[2] >= 1 << 16 {
+            return Err(QM31Error::QM31InvalidCoordinates(limbs));
+        }
+
         Self::from_coordinates(limbs)
     }
 }
@@ -285,6 +293,14 @@ impl TryFrom<&Felt> for QM31Felt {
 
     fn try_from(value: &Felt) -> Result<Self, Self::Error> {
         let limbs = value.to_le_digits();
+
+        // Check value fits in 144 bits. This check is only done here
+        // because we are trying to convert a Felt into a QM31Felt. This
+        // Felt should represent a packed QM31 which is at most 144 bits long.
+        if limbs[3] != 0 || limbs[2] >= 1 << 16 {
+            return Err(QM31Error::QM31InvalidCoordinates(limbs));
+        }
+
         Self::from_coordinates(limbs)
     }
 }
@@ -310,7 +326,7 @@ mod test {
         let qm31: Result<QM31Felt, QM31Error> = felt.try_into();
         assert!(matches!(
             qm31,
-            Err(QM31Error::QM31UnreducedError(bx)) if *bx == felt
+            Err(QM31Error::QM31UnreducedError(bx)) if bx == felt
         ));
     }
 
@@ -325,7 +341,7 @@ mod test {
         let qm31: Result<QM31Felt, QM31Error> = felt.try_into();
         assert!(matches!(
         qm31,
-        Err(QM31Error::QM31UnreducedError(bx)) if *bx == felt
+        Err(QM31Error::QM31UnreducedError(bx)) if bx == felt
         ));
     }
 
