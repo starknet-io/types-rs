@@ -251,7 +251,7 @@ impl QM31Felt {
 
     /// Convert `self`'s representative into an array of `u64` digits,
     /// most significant digits first.
-    pub fn to_be_digits(&self) -> [u64; 4] {
+    pub fn as_be_digits(&self) -> [u64; 4] {
         self.0.representative().limbs
     }
 }
