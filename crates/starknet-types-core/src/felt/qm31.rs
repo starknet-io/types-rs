@@ -57,7 +57,7 @@ impl QM31Felt {
     }
 
     /// Reduces four u64 coordinates and packs them into a single Felt.
-    /// STWO_PRIME fits in 36 bits, hence each coordinate can be represented 
+    /// STWO_PRIME fits in 36 bits, hence each coordinate can be represented
     /// by 36 bits and a QM31 element can be stored in the first 144 bits of a Felt.
     pub fn from_coordinates(coordinates: [u64; 4]) -> Result<QM31Felt, QM31Error> {
         let qm31 = Self::from_coordinates_unchecked(coordinates);
