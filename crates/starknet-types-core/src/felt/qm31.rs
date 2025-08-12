@@ -35,6 +35,7 @@ impl fmt::Display for QM31Error {
         }
     }
 }
+
 #[repr(transparent)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct QM31Felt(pub(crate) FieldElement<Stark252PrimeField>);
@@ -250,7 +251,7 @@ impl QM31Felt {
 
     /// Convert `self`'s representative into an array of `u64` digits,
     /// most significant digits first.
-    pub fn as_be_digits(&self) -> [u64; 4] {
+    pub fn to_be_digits(&self) -> [u64; 4] {
         self.0.representative().limbs
     }
 }
