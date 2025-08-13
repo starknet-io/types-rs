@@ -35,7 +35,7 @@ impl fmt::Display for QM31Error {
 pub struct QM31Felt(pub(crate) FieldElement<Stark252PrimeField>);
 
 impl QM31Felt {
-    /// [Felt] constant that's equal to 0.
+    /// [QM31Felt] constant that's equal to 0.
     pub const ZERO: Self = Self(FieldElement::<Stark252PrimeField>::from_hex_unchecked("0"));
 
     /// Reads four u64 coordinates from a single Felt. STWO_PRIME fits in 36 bits, hence each coordinate
