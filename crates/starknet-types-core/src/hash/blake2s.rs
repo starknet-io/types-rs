@@ -45,6 +45,12 @@ impl StarkHash for Blake2Felt252 {
 }
 
 impl Blake2Felt252 {
+    /// Threshold for choosing the encoding strategy of a `Felt`.
+    /// Values below `SMALL_THRESHOLD` are encoded as two `u32`s,
+    /// while values at or above it are encoded as eight `u32`s
+    /// (`SMALL_THRESHOLD` equals `2**63`).
+    pub const SMALL_THRESHOLD: Felt = Felt::from_hex_unchecked("8000000000000000");
+
     /// Encodes each `Felt` into 32-bit words:
     /// - **Small** values `< 2^63` get **2** words: `[ high_32_bits, low_32_bits ]` from the last 8
     ///   bytes of the 256-bit BE representation.
@@ -54,8 +60,6 @@ impl Blake2Felt252 {
     /// # Returns
     /// A flat `Vec<u32>` containing all the unpacked words, in the same order.
     pub fn encode_felts_to_u32s(felts: &[Felt]) -> Vec<u32> {
-        // 2**63.
-        const SMALL_THRESHOLD: Felt = Felt::from_hex_unchecked("8000000000000000");
         // MSB mask for the first u32 in the 8-limb case.
         const BIG_MARKER: u32 = 1 << 31;
         // Number of bytes per u32.
@@ -64,7 +68,7 @@ impl Blake2Felt252 {
         let mut unpacked_u32s = Vec::new();
         for felt in felts {
             let felt_as_be_bytes = felt.to_bytes_be();
-            if *felt < SMALL_THRESHOLD {
+            if *felt < Self::SMALL_THRESHOLD {
                 // small: 2 limbs only, extracts the 8 LSBs.
                 let high = u32::from_be_bytes(felt_as_be_bytes[24..28].try_into().unwrap());
                 let low = u32::from_be_bytes(felt_as_be_bytes[28..32].try_into().unwrap());
