@@ -10,6 +10,7 @@ const MASK_8: u64 = (1 << 8) - 1;
 #[derive(Debug)]
 pub enum QM31Error {
     FeltTooBig(Felt),
+    InvalidInversion,
 }
 
 #[cfg(feature = "std")]
@@ -23,6 +24,7 @@ impl fmt::Display for QM31Error {
                 "Number used as QM31 since it's more than 144 bits long: {}",
                 felt
             ),
+            QM31Error::InvalidInversion => writeln!(f, "Attempt to invert a qm31 equal to zero"),
         }
     }
 }
@@ -35,7 +37,6 @@ impl QM31Felt {
     /// [QM31Felt] constant that's equal to 0.
     pub const ZERO: Self = Self([0, 0, 0, 0]);
 
-    
     pub fn as_raw(&self) -> [u64; 4] {
         self.0
     }
@@ -55,10 +56,10 @@ impl QM31Felt {
         result_bytes[0..9].copy_from_slice(&bytes_part1[0..9]);
         result_bytes[9..18].copy_from_slice(&bytes_part2[0..9]);
 
-        let limbs =  {
+        let limbs = {
             let felt = Felt::from_bytes_le_slice(&result_bytes);
             felt.to_le_digits()
-        }; 
+        };
 
         Self([
             (limbs[0] & MASK_36),
@@ -163,8 +164,10 @@ impl QM31Felt {
     /// Computes the inverse of a QM31 element in reduced form.
     /// # Safety
     /// If the value is zero will panic.
-    pub fn inverse(&self) -> QM31Felt {
-        assert_ne!(*self, Self::ZERO, "Zero is not an invertible number");
+    pub fn inverse(&self) -> Result<QM31Felt, QM31Error> {
+        if *self == Self::ZERO {
+            return Err(QM31Error::InvalidInversion);
+        }
 
         let coordinates = self.as_raw();
 
@@ -188,7 +191,7 @@ impl QM31Felt {
         let denom_inverse_r = (denom_r * denom_norm_inverse_squared) % STWO_PRIME;
         let denom_inverse_i = ((STWO_PRIME - denom_i) * denom_norm_inverse_squared) % STWO_PRIME;
 
-        Self::from_raw([
+        Ok(Self::from_raw([
             coordinates[0] * denom_inverse_r + STWO_PRIME * STWO_PRIME
                 - coordinates[1] * denom_inverse_i,
             coordinates[0] * denom_inverse_i + coordinates[1] * denom_inverse_r,
@@ -197,14 +200,13 @@ impl QM31Felt {
             2 * STWO_PRIME * STWO_PRIME
                 - coordinates[2] * denom_inverse_i
                 - coordinates[3] * denom_inverse_r,
-        ])
+        ]))
     }
 
-    /// Computes the division of two QM31 elements in reduced form.
-    /// # Safety
-    /// Will panic if the rhs value is equal to zero.
+    /// Computes the division of two QM31 elements in reduced form. Returns an error
+    /// if the rhs value is equal to zero.
     pub fn div(&self, rhs: &QM31Felt) -> Result<QM31Felt, QM31Error> {
-        let rhs_inv = rhs.inverse();
+        let rhs_inv = rhs.inverse()?;
         Ok(self.mul(&rhs_inv))
     }
 
@@ -357,19 +359,19 @@ mod test {
     fn test_qm31_packed_reduced_inv() {
         let x_coordinates = [1259921049, 1442249570, 1847759065, 2094551481];
         let x = QM31Felt::from_raw(x_coordinates);
-        let res = x.inverse();
+        let res = x.inverse().unwrap();
         let expected = Felt::from(1).try_into().unwrap();
         assert_eq!(x.mul(&res), expected);
 
         let x_coordinates = [1, 2, 3, 4];
         let x = QM31Felt::from_raw(x_coordinates);
-        let res = x.inverse();
+        let res = x.inverse().unwrap();
         let expected = Felt::from(1).try_into().unwrap();
         assert_eq!(x.mul(&res), expected);
 
         let x_coordinates = [1749652895, 834624081, 1930174752, 2063872165];
         let x = QM31Felt::from_raw(x_coordinates);
-        let res = x.inverse();
+        let res = x.inverse().unwrap();
         let expected = Felt::from(1).try_into().unwrap();
         assert_eq!(x.mul(&res), expected);
     }
@@ -386,7 +388,7 @@ mod test {
                                                             |arr| !arr.iter().all(|x| *x == 0))
         ) {
             let x = QM31Felt::from_raw(x_coordinates);
-            let res = x.inverse();
+            let res = x.inverse().unwrap();
             // Expect 1_felt252
             let expected = QM31Felt::from_raw([1,0,0,0]);
             assert_eq!(x.mul(&res), expected);
@@ -400,7 +402,7 @@ mod test {
                                                             .no_shrink()
         ) {
             let x = QM31Felt::from_raw(x_coordinates);
-            let res = x.inverse();
+            let res = x.inverse().unwrap();
             // Expect 1_felt252
             let expected = QM31Felt::from_raw([1,0,0,0]);
             assert_eq!(x.mul(&res), expected);
