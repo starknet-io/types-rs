@@ -275,6 +275,39 @@ mod test {
     };
 
     #[test]
+    fn from_qm31_to_felt() {
+        let felt_expected = Felt::from(2i128.pow(126));
+        let qm31: QM31Felt = felt_expected.try_into().unwrap();
+        let felt = qm31.into();
+
+        assert_eq!(qm31, felt);
+
+        let felt_expected = Felt::from(2i64.pow(62));
+        let qm31: QM31Felt = felt_expected.try_into().unwrap();
+        let felt = qm31.into();
+
+        assert_eq!(qm31, felt);
+
+        let felt_expected = Felt::from(2i32.pow(30));
+        let qm31: QM31Felt = felt_expected.try_into().unwrap();
+        let felt = qm31.into();
+
+        assert_eq!(qm31, felt);
+
+        let felt_expected = Felt::from(2i8.pow(6));
+        let qm31: QM31Felt = felt_expected.try_into().unwrap();
+        let felt = qm31.into();
+
+        assert_eq!(qm31, felt);
+
+        let felt_expected = Felt::ZERO;
+        let qm31: QM31Felt = felt_expected.try_into().unwrap();
+        let felt = qm31.into();
+
+        assert_eq!(qm31, felt);
+    }
+
+    #[test]
     fn qm31_packed_reduced_coordinates_over_144_bits() {
         let mut felt_bytes = [0u8; 32];
         felt_bytes[18] = 1;
