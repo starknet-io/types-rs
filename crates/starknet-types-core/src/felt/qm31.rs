@@ -1,9 +1,6 @@
 use core::fmt;
 
 use crate::felt::Felt;
-use lambdaworks_math::field::{
-    element::FieldElement, fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
-};
 
 pub const STWO_PRIME: u64 = (1 << 31) - 1;
 const STWO_PRIME_U128: u128 = STWO_PRIME as u128;
@@ -12,7 +9,7 @@ const MASK_8: u64 = (1 << 8) - 1;
 
 #[derive(Debug)]
 pub enum QM31Error {
-    InvalidQM31(Felt),
+    FeltTooBig(Felt),
 }
 
 #[cfg(feature = "std")]
@@ -21,7 +18,7 @@ impl std::error::Error for QM31Error {}
 impl fmt::Display for QM31Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            QM31Error::InvalidQM31(felt) => writeln!(
+            QM31Error::FeltTooBig(felt) => writeln!(
                 f,
                 "Number used as QM31 since it's more than 144 bits long: {}",
                 felt
@@ -32,23 +29,15 @@ impl fmt::Display for QM31Error {
 
 #[repr(transparent)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct QM31Felt(pub(crate) FieldElement<Stark252PrimeField>);
+pub struct QM31Felt([u64; 4]);
 
 impl QM31Felt {
     /// [QM31Felt] constant that's equal to 0.
-    pub const ZERO: Self = Self(FieldElement::<Stark252PrimeField>::from_hex_unchecked("0"));
+    pub const ZERO: Self = Self([0, 0, 0, 0]);
 
-    /// Reads four u64 coordinates from a single Felt. STWO_PRIME fits in 36 bits, hence each coordinate
-    /// can be represented by 36 bits and a QM31 element can be stored in the first 144 bits of a Felt.
+    
     pub fn as_raw(&self) -> [u64; 4] {
-        let limbs = self.as_le_digits();
-
-        [
-            (limbs[0] & MASK_36),
-            ((limbs[0] >> 36) + ((limbs[1] & MASK_8) << 28)),
-            ((limbs[1] >> 8) & MASK_36),
-            ((limbs[1] >> 44) + (limbs[2] << 20)),
-        ]
+        self.0
     }
 
     /// Create a [QM31Felt] from the raw internal representation. Reduces four u64 coordinates and packs them
@@ -61,17 +50,25 @@ impl QM31Felt {
         let bytes_part2 = ((coordinates[2] % STWO_PRIME) as u128
             + (((coordinates[3] % STWO_PRIME) as u128) << 36))
             .to_le_bytes();
-        let mut result_bytes = [0u8; 32];
+        let mut result_bytes = [0; 32];
+
         result_bytes[0..9].copy_from_slice(&bytes_part1[0..9]);
         result_bytes[9..18].copy_from_slice(&bytes_part2[0..9]);
 
-        let value = Felt::from_bytes_le(&result_bytes);
+        let limbs =  {
+            let felt = Felt::from_bytes_le_slice(&result_bytes);
+            felt.to_le_digits()
+        }; 
 
-        Self(value.0)
+        Self([
+            (limbs[0] & MASK_36),
+            ((limbs[0] >> 36) + ((limbs[1] & MASK_8) << 28)),
+            ((limbs[1] >> 8) & MASK_36),
+            ((limbs[1] >> 44) + (limbs[2] << 20)),
+        ])
     }
 
     /// Computes the addition of two QM31 elements in reduced form.
-    /// Returns an error if either operand is not reduced.
     pub fn add(&self, rhs: &QM31Felt) -> QM31Felt {
         let coordinates1 = self.as_raw();
         let coordinates2 = rhs.as_raw();
@@ -85,7 +82,6 @@ impl QM31Felt {
     }
 
     /// Computes the negative of a QM31 element in reduced form.
-    /// Returns an error if the input is not reduced.
     pub fn neg(&self) -> QM31Felt {
         let coordinates = self.as_raw();
         Self::from_raw([
@@ -97,7 +93,6 @@ impl QM31Felt {
     }
 
     /// Computes the subtraction of two QM31 elements in reduced form.
-    /// Returns an error if either operand is not reduced.
     pub fn sub(&self, rhs: &QM31Felt) -> QM31Felt {
         let coordinates1 = self.as_raw();
         let coordinates2 = rhs.as_raw();
@@ -111,7 +106,6 @@ impl QM31Felt {
     }
 
     /// Computes the multiplication of two QM31 elements in reduced form.
-    /// Returns an error if either operand is not reduced.
     pub fn mul(&self, rhs: &QM31Felt) -> QM31Felt {
         let coordinates1_u64 = self.as_raw();
         let coordinates2_u64 = rhs.as_raw();
@@ -147,7 +141,7 @@ impl QM31Felt {
 
     /// Computes the inverse in the M31 field using Fermat's little theorem, i.e., returns
     /// `v^(STWO_PRIME-2) modulo STWO_PRIME`, which is the inverse of v unless v % STWO_PRIME == 0.
-    fn pow2147483645(v: u64) -> u64 {
+    fn m31_inverse(v: u64) -> u64 {
         let t0 = (Self::sqn(v, 2) * v) % STWO_PRIME;
         let t1 = (Self::sqn(t0, 1) * t0) % STWO_PRIME;
         let t2 = (Self::sqn(t1, 3) * t0) % STWO_PRIME;
@@ -167,7 +161,6 @@ impl QM31Felt {
     }
 
     /// Computes the inverse of a QM31 element in reduced form.
-    /// Returns an error if the denominator is zero or either operand is not reduced.
     /// # Safety
     /// If the value is zero will panic.
     pub fn inverse(&self) -> QM31Felt {
@@ -190,7 +183,7 @@ impl QM31Felt {
             (2 * coordinates[0] * coordinates[1] + 3 * STWO_PRIME - 2 * b2_i - b2_r) % STWO_PRIME;
 
         let denom_norm_squared = (denom_r * denom_r + denom_i * denom_i) % STWO_PRIME;
-        let denom_norm_inverse_squared = Self::pow2147483645(denom_norm_squared);
+        let denom_norm_inverse_squared = Self::m31_inverse(denom_norm_squared);
 
         let denom_inverse_r = (denom_r * denom_norm_inverse_squared) % STWO_PRIME;
         let denom_inverse_i = ((STWO_PRIME - denom_i) * denom_norm_inverse_squared) % STWO_PRIME;
@@ -208,7 +201,6 @@ impl QM31Felt {
     }
 
     /// Computes the division of two QM31 elements in reduced form.
-    /// Returns an error if the input is zero.
     /// # Safety
     /// Will panic if the rhs value is equal to zero.
     pub fn div(&self, rhs: &QM31Felt) -> Result<QM31Felt, QM31Error> {
@@ -219,31 +211,17 @@ impl QM31Felt {
     pub fn is_zero(&self) -> bool {
         *self == Self::ZERO
     }
-
-    /// Convert `self`'s representative into an array of `u64` digits,
-    /// least significant digits first.
-    pub fn as_le_digits(&self) -> [u64; 4] {
-        let mut limbs = self.0.representative().limbs;
-        limbs.reverse();
-        limbs
-    }
-
-    /// Convert `self`'s representative into an array of `u64` digits,
-    /// most significant digits first.
-    pub fn as_be_digits(&self) -> [u64; 4] {
-        self.0.representative().limbs
-    }
 }
 
 impl From<&QM31Felt> for Felt {
     fn from(value: &QM31Felt) -> Self {
-        Felt(value.0)
+        Felt::from_raw(value.0)
     }
 }
 
 impl From<QM31Felt> for Felt {
     fn from(value: QM31Felt) -> Self {
-        Felt(value.0)
+        Felt::from_raw(value.0)
     }
 }
 
@@ -257,10 +235,10 @@ impl TryFrom<Felt> for QM31Felt {
         // because we are trying to convert a Felt into a QM31Felt. This
         // Felt should represent a packed QM31 which is at most 144 bits long.
         if limbs[3] != 0 || limbs[2] >= 1 << 16 {
-            return Err(QM31Error::InvalidQM31(value));
+            return Err(QM31Error::FeltTooBig(value));
         }
 
-        Ok(Self(value.0))
+        Ok(Self(limbs))
     }
 }
 
@@ -274,10 +252,10 @@ impl TryFrom<&Felt> for QM31Felt {
         // because we are trying to convert a Felt into a QM31Felt. This
         // Felt should represent a packed QM31 which is at most 144 bits long.
         if limbs[3] != 0 || limbs[2] >= 1 << 16 {
-            return Err(QM31Error::InvalidQM31(*value));
+            return Err(QM31Error::FeltTooBig(*value));
         }
 
-        Ok(Self(value.0))
+        Ok(Self(limbs))
     }
 }
 
@@ -302,7 +280,7 @@ mod test {
         let qm31: Result<QM31Felt, QM31Error> = felt.try_into();
         assert!(matches!(
             qm31,
-            Err(QM31Error::InvalidQM31(bx)) if bx == felt
+            Err(QM31Error::FeltTooBig(bx)) if bx == felt
         ));
     }
 
