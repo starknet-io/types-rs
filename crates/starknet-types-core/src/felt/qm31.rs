@@ -162,8 +162,7 @@ impl QM31Felt {
     }
 
     /// Computes the inverse of a QM31 element in reduced form.
-    /// # Safety
-    /// If the value is zero will panic.
+    /// Returns an error if the operand is equal to zero.
     pub fn inverse(&self) -> Result<QM31Felt, QM31Error> {
         if *self == Self::ZERO {
             return Err(QM31Error::InvalidInversion);
