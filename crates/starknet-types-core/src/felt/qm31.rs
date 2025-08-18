@@ -38,9 +38,7 @@ impl QM31Felt {
         self.0
     }
 
-    /// Create a [QM31Felt] from the raw internal representation. Reduces four u64 coordinates and packs them
-    /// into a single Felt252. STWO_PRIME fits in 36 bits, hence each coordinate can be represented
-    /// by 36 bits and a QM31 element can be stored in the first 144 bits of a Felt252.
+    /// Create a [QM31Felt] from the raw internal representation. Reduces four u64 coordinates so that the fit in 144 bits.
     pub fn from_raw(coordinates: [u64; 4]) -> QM31Felt {
         Self([
             coordinates[0] % STWO_PRIME,
@@ -50,6 +48,7 @@ impl QM31Felt {
         ])
     }
 
+    /// Packs the [QM31Felt] coordinates into a Felt.
     pub fn pack_into_felt(&self) -> Felt {
         let coordinates = self.0;
 
@@ -62,7 +61,7 @@ impl QM31Felt {
         Felt::from_bytes_le(&result_bytes)
     }
 
-    /// Computes the addition of two QM31 elements in reduced form.
+    /// Computes the addition of two [QM31Felt] elements in reduced form.
     pub fn add(&self, rhs: &QM31Felt) -> QM31Felt {
         let coordinates1 = self.as_raw();
         let coordinates2 = rhs.as_raw();
@@ -75,7 +74,7 @@ impl QM31Felt {
         Self::from_raw(result_unreduced_coordinates)
     }
 
-    /// Computes the negative of a QM31 element in reduced form.
+    /// Computes the negative of a [QM31Felt] element in reduced form.
     pub fn neg(&self) -> QM31Felt {
         let coordinates = self.as_raw();
         Self::from_raw([
@@ -86,7 +85,7 @@ impl QM31Felt {
         ])
     }
 
-    /// Computes the subtraction of two QM31 elements in reduced form.
+    /// Computes the subtraction of two [QM31Felt] elements in reduced form.
     pub fn sub(&self, rhs: &QM31Felt) -> QM31Felt {
         let coordinates1 = self.as_raw();
         let coordinates2 = rhs.as_raw();
@@ -99,7 +98,7 @@ impl QM31Felt {
         Self::from_raw(result_unreduced_coordinates)
     }
 
-    /// Computes the multiplication of two QM31 elements in reduced form.
+    /// Computes the multiplication of two [QM31Felt] elements in reduced form.
     pub fn mul(&self, rhs: &QM31Felt) -> QM31Felt {
         let coordinates1_u64 = self.as_raw();
         let coordinates2_u64 = rhs.as_raw();
@@ -154,7 +153,7 @@ impl QM31Felt {
         u
     }
 
-    /// Computes the inverse of a QM31 element in reduced form.
+    /// Computes the inverse of a [QM31Felt] element in reduced form.
     /// Returns an error if the operand is equal to zero.
     pub fn inverse(&self) -> Result<QM31Felt, QM31Error> {
         if *self == Self::ZERO {
@@ -195,7 +194,7 @@ impl QM31Felt {
         ]))
     }
 
-    /// Computes the division of two QM31 elements in reduced form. Returns an error
+    /// Computes the division of two [QM31Felt] elements in reduced form. Returns an error
     /// if the rhs value is equal to zero.
     pub fn div(&self, rhs: &QM31Felt) -> Result<QM31Felt, QM31Error> {
         let rhs_inv = rhs.inverse()?;
