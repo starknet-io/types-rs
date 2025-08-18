@@ -38,7 +38,7 @@ impl QM31Felt {
         self.0
     }
 
-    /// Create a [QM31Felt] from the raw internal representation. Reduces four u64 coordinates so that the fit in 144 bits.
+    /// Create a [QM31Felt] from the raw internal representation. Reduces four u64 coordinates so that they fit in 144 bits.
     pub fn from_raw(coordinates: [u64; 4]) -> QM31Felt {
         Self([
             coordinates[0] % STWO_PRIME,
