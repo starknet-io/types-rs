@@ -21,8 +21,7 @@ impl fmt::Display for QM31Error {
         match self {
             QM31Error::FeltTooBig(felt) => writeln!(
                 f,
-                "Number used as QM31 since it's more than 144 bits long: {}",
-                felt
+                "Number used as QM31 since it's more than 144 bits long: {felt}"
             ),
             QM31Error::InvalidInversion => writeln!(f, "Attempt to invert a qm31 equal to zero"),
         }
@@ -239,7 +238,7 @@ impl TryFrom<Felt> for QM31Felt {
             return Err(QM31Error::FeltTooBig(value));
         }
 
-        Ok(Self(limbs))
+        Ok(Self::from_raw(limbs))
     }
 }
 
@@ -256,7 +255,7 @@ impl TryFrom<&Felt> for QM31Felt {
             return Err(QM31Error::FeltTooBig(*value));
         }
 
-        Ok(Self(limbs))
+        Ok(Self::from_raw(limbs))
     }
 }
 
@@ -274,8 +273,9 @@ mod test {
     };
 
     #[test]
-    fn from_qm31_to_felt() {
+    fn from_positive_felt_to_qm31_to_felt() {
         let felt_expected = Felt::from(2i128.pow(126));
+
         let qm31: QM31Felt = felt_expected.try_into().unwrap();
         let felt = qm31.into();
 
