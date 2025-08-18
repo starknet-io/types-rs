@@ -4,9 +4,12 @@ use crate::felt::Felt;
 
 pub const STWO_PRIME: u64 = (1 << 31) - 1;
 const STWO_PRIME_U128: u128 = STWO_PRIME as u128;
+const MASK_36: u64 = (1 << 36) - 1;
+const MASK_8: u64 = (1 << 8) - 1;
 
 #[derive(Debug)]
 pub enum QM31Error {
+    UnreducedFelt(Felt),
     FeltTooBig(Felt),
     InvalidInversion,
 }
@@ -17,6 +20,10 @@ impl std::error::Error for QM31Error {}
 impl fmt::Display for QM31Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            QM31Error::UnreducedFelt(felt) => writeln!(
+                f,
+                "Number is not a packing of a QM31 in reduced form: {felt})"
+            ),
             QM31Error::FeltTooBig(felt) => writeln!(
                 f,
                 "Number used as QM31 since it's more than 144 bits long: {felt}"
@@ -231,7 +238,21 @@ impl TryFrom<Felt> for QM31Felt {
             return Err(QM31Error::FeltTooBig(value));
         }
 
-        Ok(Self::from_raw(limbs))
+        let coordinates = [
+            (limbs[0] & MASK_36),
+            ((limbs[0] >> 36) + ((limbs[1] & MASK_8) << 28)),
+            ((limbs[1] >> 8) & MASK_36),
+            ((limbs[1] >> 44) + (limbs[2] << 20)),
+        ];
+
+        // Check if the coordinates were reduced before.
+        for x in coordinates.iter() {
+            if *x >= STWO_PRIME {
+                return Err(QM31Error::UnreducedFelt(value));
+            }
+        }
+
+        Ok(Self(coordinates))
     }
 }
 
@@ -248,13 +269,27 @@ impl TryFrom<&Felt> for QM31Felt {
             return Err(QM31Error::FeltTooBig(*value));
         }
 
-        Ok(Self::from_raw(limbs))
+        // Check if the coordinates were reduced before.
+        let coordinates = [
+            (limbs[0] & MASK_36),
+            ((limbs[0] >> 36) + ((limbs[1] & MASK_8) << 28)),
+            ((limbs[1] >> 8) & MASK_36),
+            ((limbs[1] >> 44) + (limbs[2] << 20)),
+        ];
+
+        for x in coordinates.iter() {
+            if *x >= STWO_PRIME {
+                return Err(QM31Error::UnreducedFelt(*value));
+            }
+        }
+
+        Ok(Self(coordinates))
     }
 }
 
 #[cfg(test)]
 mod test {
-    use core::{u128, u16, u8};
+    use core::u64;
 
     use proptest::{
         array::uniform4,
@@ -268,47 +303,35 @@ mod test {
     };
 
     #[test]
-    fn qm31_to_felt_packed() {
-        let u64_max_reduced = u64::MAX % STWO_PRIME;
+    fn qm31_to_felt() {
+        let coordinates = QM31Felt::from_raw([1, 2, 3, 4]);
+        let packed_coordinates = Felt::from(coordinates);
+        let unpacked_coordinates = QM31Felt::try_from(packed_coordinates).unwrap();
+        assert_eq!(coordinates, unpacked_coordinates);
 
-        let value = u8::MAX;
-        let felt = Felt::from(value);
-        let qm31: QM31Felt = felt.try_into().unwrap();
-        let qm31_to_felt = qm31.pack_into_felt();
+        let qm31 = QM31Felt::from_raw([u64::MAX, 0, 0, 0]);
+        let felt: Felt = qm31.try_into().unwrap();
+        let felt_to_qm31 = QM31Felt::try_from(felt).unwrap();
 
-        assert_eq!(qm31_to_felt, Felt::from(value));
+        assert_eq!(felt_to_qm31, qm31);
 
-        let value = u16::MAX;
-        let felt = Felt::from(value);
-        let qm31: QM31Felt = felt.try_into().unwrap();
-        let qm31_to_felt = qm31.pack_into_felt();
+        let qm31 = QM31Felt::from_raw([u64::MAX, u64::MAX, 0, 0]);
+        let felt: Felt = qm31.try_into().unwrap();
+        let felt_to_qm31 = QM31Felt::try_from(felt).unwrap();
 
-        assert_eq!(qm31_to_felt, Felt::from(value));
+        assert_eq!(felt_to_qm31, qm31);
 
-        let value = u32::MAX;
-        let felt = Felt::from(value);
-        let qm31: QM31Felt = felt.try_into().unwrap();
-        let qm31_to_felt = qm31.pack_into_felt();
+        let qm31 = QM31Felt::from_raw([u64::MAX, u64::MAX, u64::MAX, 0]);
+        let felt: Felt = qm31.try_into().unwrap();
+        let felt_to_qm31 = QM31Felt::try_from(felt).unwrap();
 
-        assert_eq!(qm31_to_felt, Felt::from(value as u64 % STWO_PRIME));
+        assert_eq!(felt_to_qm31, qm31);
 
-        let felt = Felt::from(u64::MAX);
-        let qm31: QM31Felt = felt.try_into().unwrap();
-        let qm31_to_felt = qm31.pack_into_felt();
-        dbg!(felt.to_le_digits());
+        let qm31 = QM31Felt::from_raw([u64::MAX, u64::MAX, u64::MAX, u64::MAX]);
+        let felt: Felt = qm31.try_into().unwrap();
+        let felt_to_qm31 = QM31Felt::try_from(felt).unwrap();
 
-        assert_eq!(qm31_to_felt, Felt::from(u64_max_reduced));
-
-        let felt = Felt::from(u128::MAX);
-        let qm31: QM31Felt = felt.try_into().unwrap();
-        let qm31_to_felt = qm31.pack_into_felt();
-
-        let mut bytes = [0u8; 32];
-        let bytes_part1 =
-            ((u64_max_reduced) as u128 + (((u64_max_reduced) as u128) << 36)).to_le_bytes();
-        bytes[0..9].copy_from_slice(&bytes_part1[0..9]);
-
-        assert_eq!(qm31_to_felt, Felt::from_bytes_le(&bytes));
+        assert_eq!(felt_to_qm31, qm31);
     }
 
     #[test]
