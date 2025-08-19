@@ -22,19 +22,20 @@ impl fmt::Display for QM31Error {
         match self {
             QM31Error::UnreducedFelt(felt) => write!(
                 f,
-                "Number is not a packing of a QM31 in reduced form: {felt})"
+                "number is not a packing of a QM31 in reduced form: {felt})"
             ),
             QM31Error::FeltTooBig(felt) => write!(
                 f,
-                "Number used as QM31 since it's more than 144 bits long: {felt}"
+                "number used as QM31 since it's more than 144 bits long: {felt}"
             ),
-            QM31Error::InvalidInversion => write!(f, "Attempt to invert a qm31 equal to zero"),
+            QM31Error::InvalidInversion => write!(f, "attempt to invert a qm31 equal to zero"),
         }
     }
 }
 
-/// Definition of a Quad M31 in its reduced form. The internal representation
-/// is composed by the coordinates of the QM31, following a little endian ordering.
+/// Definition of a Quad M31 in its reduced form.
+///
+/// The internal representation is composed of the coordinates of the QM31, following a little-endian ordering.
 #[repr(transparent)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct QM31([u64; 4]);
@@ -141,8 +142,9 @@ impl QM31 {
         Self::from_coordinates(result_coordinates)
     }
 
-    /// Computes the inverse in the M31 field using Fermat's little theorem, i.e., returns
-    /// `v^(STWO_PRIME-2) modulo STWO_PRIME`, which is the inverse of v unless v % STWO_PRIME == 0.
+    /// Computes the inverse in the M31 field using Fermat's little theorem.
+    /// 
+    /// Returns `v^(STWO_PRIME-2) modulo STWO_PRIME`, which is the inverse of v unless v % STWO_PRIME == 0.
     fn m31_inverse(v: u64) -> u64 {
         let t0 = (Self::sqn(v, 2) * v) % STWO_PRIME;
         let t1 = (Self::sqn(t0, 1) * t0) % STWO_PRIME;
