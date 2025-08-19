@@ -33,6 +33,8 @@ impl fmt::Display for QM31Error {
     }
 }
 
+/// Definition of a Quad M31 in its reduced form. The internal representation 
+/// is composed by the coordinates of the QM31, following a little endian ordering.
 #[repr(transparent)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct QM31([u64; 4]);
@@ -41,12 +43,12 @@ impl QM31 {
     /// [QM31] constant that's equal to 0.
     pub const ZERO: Self = Self([0, 0, 0, 0]);
 
-    pub fn as_raw(&self) -> [u64; 4] {
+    pub fn inner(&self) -> [u64; 4] {
         self.0
     }
 
-    /// Create a [QM31] from the raw internal representation. Reduces four u64 coordinates so that they fit in 144 bits.
-    pub fn from_raw(coordinates: [u64; 4]) -> QM31 {
+    /// Create a [QM31] in its reduced form from the given four u64 coordinates.
+    pub fn from_coordinates(coordinates: [u64; 4]) -> QM31 {
         Self([
             coordinates[0] % STWO_PRIME,
             coordinates[1] % STWO_PRIME,
@@ -70,21 +72,21 @@ impl QM31 {
 
     /// Computes the addition of two [QM31] elements in reduced form.
     pub fn add(&self, rhs: &QM31) -> QM31 {
-        let coordinates1 = self.as_raw();
-        let coordinates2 = rhs.as_raw();
+        let coordinates1 = self.inner();
+        let coordinates2 = rhs.inner();
         let result_unreduced_coordinates = [
             coordinates1[0] + coordinates2[0],
             coordinates1[1] + coordinates2[1],
             coordinates1[2] + coordinates2[2],
             coordinates1[3] + coordinates2[3],
         ];
-        Self::from_raw(result_unreduced_coordinates)
+        Self::from_coordinates(result_unreduced_coordinates)
     }
 
     /// Computes the negative of a [QM31] element in reduced form.
     pub fn neg(&self) -> QM31 {
-        let coordinates = self.as_raw();
-        Self::from_raw([
+        let coordinates = self.inner();
+        Self::from_coordinates([
             STWO_PRIME - coordinates[0],
             STWO_PRIME - coordinates[1],
             STWO_PRIME - coordinates[2],
@@ -94,21 +96,21 @@ impl QM31 {
 
     /// Computes the subtraction of two [QM31] elements in reduced form.
     pub fn sub(&self, rhs: &QM31) -> QM31 {
-        let coordinates1 = self.as_raw();
-        let coordinates2 = rhs.as_raw();
+        let coordinates1 = self.inner();
+        let coordinates2 = rhs.inner();
         let result_unreduced_coordinates = [
             STWO_PRIME + coordinates1[0] - coordinates2[0],
             STWO_PRIME + coordinates1[1] - coordinates2[1],
             STWO_PRIME + coordinates1[2] - coordinates2[2],
             STWO_PRIME + coordinates1[3] - coordinates2[3],
         ];
-        Self::from_raw(result_unreduced_coordinates)
+        Self::from_coordinates(result_unreduced_coordinates)
     }
 
     /// Computes the multiplication of two [QM31] elements in reduced form.
     pub fn mul(&self, rhs: &QM31) -> QM31 {
-        let coordinates1_u64 = self.as_raw();
-        let coordinates2_u64 = rhs.as_raw();
+        let coordinates1_u64 = self.inner();
+        let coordinates2_u64 = rhs.inner();
         let coordinates1 = coordinates1_u64.map(u128::from);
         let coordinates2 = coordinates2_u64.map(u128::from);
 
@@ -136,7 +138,7 @@ impl QM31 {
                 + coordinates1_u64[2] * coordinates2_u64[1]
                 + coordinates1_u64[3] * coordinates2_u64[0],
         ];
-        Self::from_raw(result_coordinates)
+        Self::from_coordinates(result_coordinates)
     }
 
     /// Computes the inverse in the M31 field using Fermat's little theorem, i.e., returns
@@ -167,7 +169,7 @@ impl QM31 {
             return Err(QM31Error::InvalidInversion);
         }
 
-        let coordinates = self.as_raw();
+        let coordinates = self.inner();
 
         let b2_r = (coordinates[2] * coordinates[2] + STWO_PRIME * STWO_PRIME
             - coordinates[3] * coordinates[3])
@@ -189,7 +191,7 @@ impl QM31 {
         let denom_inverse_r = (denom_r * denom_norm_inverse_squared) % STWO_PRIME;
         let denom_inverse_i = ((STWO_PRIME - denom_i) * denom_norm_inverse_squared) % STWO_PRIME;
 
-        Ok(Self::from_raw([
+        Ok(Self::from_coordinates([
             coordinates[0] * denom_inverse_r + STWO_PRIME * STWO_PRIME
                 - coordinates[1] * denom_inverse_i,
             coordinates[0] * denom_inverse_i + coordinates[1] * denom_inverse_r,
@@ -304,30 +306,30 @@ mod test {
 
     #[test]
     fn qm31_to_felt() {
-        let coordinates = QM31::from_raw([1, 2, 3, 4]);
+        let coordinates = QM31::from_coordinates([1, 2, 3, 4]);
         let packed_coordinates = Felt::from(coordinates);
         let unpacked_coordinates = QM31::try_from(packed_coordinates).unwrap();
         assert_eq!(coordinates, unpacked_coordinates);
 
-        let qm31 = QM31::from_raw([u64::MAX, 0, 0, 0]);
+        let qm31 = QM31::from_coordinates([u64::MAX, 0, 0, 0]);
         let felt: Felt = qm31.try_into().unwrap();
         let felt_to_qm31 = QM31::try_from(felt).unwrap();
 
         assert_eq!(felt_to_qm31, qm31);
 
-        let qm31 = QM31::from_raw([u64::MAX, u64::MAX, 0, 0]);
+        let qm31 = QM31::from_coordinates([u64::MAX, u64::MAX, 0, 0]);
         let felt: Felt = qm31.try_into().unwrap();
         let felt_to_qm31 = QM31::try_from(felt).unwrap();
 
         assert_eq!(felt_to_qm31, qm31);
 
-        let qm31 = QM31::from_raw([u64::MAX, u64::MAX, u64::MAX, 0]);
+        let qm31 = QM31::from_coordinates([u64::MAX, u64::MAX, u64::MAX, 0]);
         let felt: Felt = qm31.try_into().unwrap();
         let felt_to_qm31 = QM31::try_from(felt).unwrap();
 
         assert_eq!(felt_to_qm31, qm31);
 
-        let qm31 = QM31::from_raw([u64::MAX, u64::MAX, u64::MAX, u64::MAX]);
+        let qm31 = QM31::from_coordinates([u64::MAX, u64::MAX, u64::MAX, u64::MAX]);
         let felt: Felt = qm31.try_into().unwrap();
         let felt_to_qm31 = QM31::try_from(felt).unwrap();
 
@@ -350,10 +352,10 @@ mod test {
     fn test_qm31_packed_reduced_add() {
         let x_coordinates = [1414213562, 1732050807, 1618033988, 1234567890];
         let y_coordinates = [1234567890, 1414213562, 1732050807, 1618033988];
-        let x = QM31::from_raw(x_coordinates);
-        let y = QM31::from_raw(y_coordinates);
+        let x = QM31::from_coordinates(x_coordinates);
+        let y = QM31::from_coordinates(y_coordinates);
         let res = x.add(&y);
-        let res_coordinates = res.as_raw();
+        let res_coordinates = res.inner();
         assert_eq!(
             res_coordinates,
             [
@@ -368,9 +370,9 @@ mod test {
     #[test]
     fn test_qm31_packed_reduced_neg() {
         let x_coordinates = [1749652895, 834624081, 1930174752, 2063872165];
-        let x = QM31::from_raw(x_coordinates);
+        let x = QM31::from_coordinates(x_coordinates);
         let res = x.neg();
-        let res_coordinates = res.as_raw();
+        let res_coordinates = res.inner();
         assert_eq!(
             res_coordinates,
             [
@@ -391,10 +393,10 @@ mod test {
             (1234567890 + 1618033988) % STWO_PRIME,
         ];
         let y_coordinates = [1414213562, 1732050807, 1618033988, 1234567890];
-        let x = QM31::from_raw(x_coordinates);
-        let y = QM31::from_raw(y_coordinates);
+        let x = QM31::from_coordinates(x_coordinates);
+        let y = QM31::from_coordinates(y_coordinates);
         let res = x.sub(&y);
-        let res_coordinates = res.as_raw();
+        let res_coordinates = res.inner();
         assert_eq!(
             res_coordinates,
             [1234567890, 1414213562, 1732050807, 1618033988]
@@ -405,10 +407,10 @@ mod test {
     fn test_qm31_packed_reduced_mul() {
         let x_coordinates = [1414213562, 1732050807, 1618033988, 1234567890];
         let y_coordinates = [1259921049, 1442249570, 1847759065, 2094551481];
-        let x = QM31::from_raw(x_coordinates);
-        let y = QM31::from_raw(y_coordinates);
+        let x = QM31::from_coordinates(x_coordinates);
+        let y = QM31::from_coordinates(y_coordinates);
         let res = x.mul(&y);
-        let res_coordinates = res.as_raw();
+        let res_coordinates = res.inner();
         assert_eq!(
             res_coordinates,
             [947980980, 1510986506, 623360030, 1260310989]
@@ -418,19 +420,19 @@ mod test {
     #[test]
     fn test_qm31_packed_reduced_inv() {
         let x_coordinates = [1259921049, 1442249570, 1847759065, 2094551481];
-        let x = QM31::from_raw(x_coordinates);
+        let x = QM31::from_coordinates(x_coordinates);
         let res = x.inverse().unwrap();
         let expected = Felt::from(1).try_into().unwrap();
         assert_eq!(x.mul(&res), expected);
 
         let x_coordinates = [1, 2, 3, 4];
-        let x = QM31::from_raw(x_coordinates);
+        let x = QM31::from_coordinates(x_coordinates);
         let res = x.inverse().unwrap();
         let expected = Felt::from(1).try_into().unwrap();
         assert_eq!(x.mul(&res), expected);
 
         let x_coordinates = [1749652895, 834624081, 1930174752, 2063872165];
-        let x = QM31::from_raw(x_coordinates);
+        let x = QM31::from_coordinates(x_coordinates);
         let res = x.inverse().unwrap();
         let expected = Felt::from(1).try_into().unwrap();
         assert_eq!(x.mul(&res), expected);
@@ -447,10 +449,10 @@ mod test {
                                                             .prop_filter("All configs cant be 0",
                                                             |arr| !arr.iter().all(|x| *x == 0))
         ) {
-            let x = QM31::from_raw(x_coordinates);
+            let x = QM31::from_coordinates(x_coordinates);
             let res = x.inverse().unwrap();
             // Expect 1_felt252
-            let expected = QM31::from_raw([1,0,0,0]);
+            let expected = QM31::from_coordinates([1,0,0,0]);
             assert_eq!(x.mul(&res), expected);
         }
 
@@ -461,10 +463,10 @@ mod test {
                                                             |arr| !arr.iter().all(|x| *x == 0))
                                                             .no_shrink()
         ) {
-            let x = QM31::from_raw(x_coordinates);
+            let x = QM31::from_coordinates(x_coordinates);
             let res = x.inverse().unwrap();
             // Expect 1_felt252
-            let expected = QM31::from_raw([1,0,0,0]);
+            let expected = QM31::from_coordinates([1,0,0,0]);
             assert_eq!(x.mul(&res), expected);
         }
     }
@@ -474,9 +476,9 @@ mod test {
         let x_coordinates = [1259921049, 1442249570, 1847759065, 2094551481];
         let y_coordinates = [1414213562, 1732050807, 1618033988, 1234567890];
         let xy_coordinates = [947980980, 1510986506, 623360030, 1260310989];
-        let x = QM31::from_raw(x_coordinates);
-        let y = QM31::from_raw(y_coordinates);
-        let xy = QM31::from_raw(xy_coordinates);
+        let x = QM31::from_coordinates(x_coordinates);
+        let y = QM31::from_coordinates(y_coordinates);
+        let xy = QM31::from_coordinates(xy_coordinates);
 
         let res = xy.div(&y).unwrap();
         assert_eq!(res, x);
