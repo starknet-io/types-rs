@@ -61,8 +61,8 @@ impl QM31 {
 
     /// Packs the [QM31] coordinates into a Felt.
     ///
-    /// A QM31 is composed of 4 coordinates each of which can be represented with 36 bits, meaing
-    /// it can be store in a Felt252. This method packs a given QM31 and stores in the first 144 bits of a Felt252.
+    /// A QM31 is composed of 4 coordinates each of which can be represented with 36 bits, meaning
+    /// it can be store in a Felt252. This method packs a given QM31 and stores it in the first 144 bits of a Felt252.
     fn pack_into_felt(&self) -> Felt {
         let coordinates = self.0;
 
@@ -73,6 +73,34 @@ impl QM31 {
         result_bytes[9..18].copy_from_slice(&bytes_part2[0..9]);
 
         Felt::from_bytes_le(&result_bytes)
+    }
+
+    /// Unpacks the reduced coordinates stored in [Felt] and creates a [QM31].
+    fn unpack_from_felt(felt: &Felt) -> Result<QM31, QM31Error> {
+        let limbs = felt.to_le_digits();
+
+        // Check value fits in 144 bits. This check is only done here
+        // because we are trying to convert a Felt into a QM31. This
+        // Felt should represent a packed QM31 which is at most 144 bits long.
+        if limbs[3] != 0 || limbs[2] >= 1 << 16 {
+            return Err(QM31Error::FeltTooBig(*felt));
+        }
+
+        // Check if the coordinates were reduced before.
+        let coordinates = [
+            (limbs[0] & MASK_36),
+            ((limbs[0] >> 36) + ((limbs[1] & MASK_8) << 28)),
+            ((limbs[1] >> 8) & MASK_36),
+            ((limbs[1] >> 44) + (limbs[2] << 20)),
+        ];
+
+        for x in coordinates.iter() {
+            if *x >= STWO_PRIME {
+                return Err(QM31Error::UnreducedFelt(*felt));
+            }
+        }
+
+        Ok(QM31(coordinates))
     }
 
     /// Computes the addition of two [QM31] elements in reduced form.
@@ -239,30 +267,7 @@ impl TryFrom<Felt> for QM31 {
     type Error = QM31Error;
 
     fn try_from(value: Felt) -> Result<Self, Self::Error> {
-        let limbs = value.to_le_digits();
-
-        // Check value fits in 144 bits. This check is only done here
-        // because we are trying to convert a Felt into a QM31. This
-        // Felt should represent a packed QM31 which is at most 144 bits long.
-        if limbs[3] != 0 || limbs[2] >= 1 << 16 {
-            return Err(QM31Error::FeltTooBig(value));
-        }
-
-        let coordinates = [
-            (limbs[0] & MASK_36),
-            ((limbs[0] >> 36) + ((limbs[1] & MASK_8) << 28)),
-            ((limbs[1] >> 8) & MASK_36),
-            ((limbs[1] >> 44) + (limbs[2] << 20)),
-        ];
-
-        // Check if the coordinates were reduced before.
-        for x in coordinates.iter() {
-            if *x >= STWO_PRIME {
-                return Err(QM31Error::UnreducedFelt(value));
-            }
-        }
-
-        Ok(Self(coordinates))
+        Self::unpack_from_felt(&value)
     }
 }
 
@@ -270,30 +275,7 @@ impl TryFrom<&Felt> for QM31 {
     type Error = QM31Error;
 
     fn try_from(value: &Felt) -> Result<Self, Self::Error> {
-        let limbs = value.to_le_digits();
-
-        // Check value fits in 144 bits. This check is only done here
-        // because we are trying to convert a Felt into a QM31. This
-        // Felt should represent a packed QM31 which is at most 144 bits long.
-        if limbs[3] != 0 || limbs[2] >= 1 << 16 {
-            return Err(QM31Error::FeltTooBig(*value));
-        }
-
-        // Check if the coordinates were reduced before.
-        let coordinates = [
-            (limbs[0] & MASK_36),
-            ((limbs[0] >> 36) + ((limbs[1] & MASK_8) << 28)),
-            ((limbs[1] >> 8) & MASK_36),
-            ((limbs[1] >> 44) + (limbs[2] << 20)),
-        ];
-
-        for x in coordinates.iter() {
-            if *x >= STWO_PRIME {
-                return Err(QM31Error::UnreducedFelt(*value));
-            }
-        }
-
-        Ok(Self(coordinates))
+        Self::unpack_from_felt(value)
     }
 }
 
