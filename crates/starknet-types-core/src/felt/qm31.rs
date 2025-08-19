@@ -33,7 +33,7 @@ impl fmt::Display for QM31Error {
     }
 }
 
-/// Definition of a Quad M31 in its reduced form. The internal representation 
+/// Definition of a Quad M31 in its reduced form. The internal representation
 /// is composed by the coordinates of the QM31, following a little endian ordering.
 #[repr(transparent)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -47,7 +47,7 @@ impl QM31 {
         self.0
     }
 
-    /// Create a [QM31] in its reduced form from the given four u64 coordinates.
+    /// Creates a [QM31] in its reduced form from four u64 coordinates.
     pub fn from_coordinates(coordinates: [u64; 4]) -> QM31 {
         Self([
             coordinates[0] % STWO_PRIME,
