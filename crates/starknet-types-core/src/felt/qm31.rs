@@ -7,7 +7,7 @@ const STWO_PRIME_U128: u128 = STWO_PRIME as u128;
 const MASK_36: u64 = (1 << 36) - 1;
 const MASK_8: u64 = (1 << 8) - 1;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum QM31Error {
     UnreducedFelt(Felt),
     FeltTooBig(Felt),
@@ -33,9 +33,10 @@ impl fmt::Display for QM31Error {
     }
 }
 
-/// Definition of a Quad M31 in its reduced form.
+/// Definition of a Quadruple Merseene 31 in its reduced form.
 ///
-/// The internal representation is composed of the coordinates of the QM31, following a little-endian ordering.
+/// The internal representation is composed of 4 coordinates, following a little-endian ordering.
+/// Each coordinate can be represented by 36 bits.
 #[repr(transparent)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct QM31([u64; 4]);
@@ -59,6 +60,9 @@ impl QM31 {
     }
 
     /// Packs the [QM31] coordinates into a Felt.
+    ///
+    /// A QM31 is composed of 4 coordinates each of which can be represented with 36 bits, meaing
+    /// it can be store in a Felt252. This method packs a given QM31 and stores in the first 144 bits of a Felt252.
     fn pack_into_felt(&self) -> Felt {
         let coordinates = self.0;
 
@@ -143,7 +147,7 @@ impl QM31 {
     }
 
     /// Computes the inverse in the M31 field using Fermat's little theorem.
-    /// 
+    ///
     /// Returns `v^(STWO_PRIME-2) modulo STWO_PRIME`, which is the inverse of v unless v % STWO_PRIME == 0.
     fn m31_inverse(v: u64) -> u64 {
         let t0 = (Self::sqn(v, 2) * v) % STWO_PRIME;
@@ -165,6 +169,7 @@ impl QM31 {
     }
 
     /// Computes the inverse of a [QM31] element in reduced form.
+    ///
     /// Returns an error if the operand is equal to zero.
     pub fn inverse(&self) -> Result<QM31, QM31Error> {
         if *self == Self::ZERO {
@@ -205,8 +210,9 @@ impl QM31 {
         ]))
     }
 
-    /// Computes the division of two [QM31] elements in reduced form. Returns an error
-    /// if the rhs value is equal to zero.
+    /// Computes the division of two [QM31] elements in reduced form.
+    ///  
+    /// Returns an error if the rhs value is equal to zero.
     pub fn div(&self, rhs: &QM31) -> Result<QM31, QM31Error> {
         let rhs_inv = rhs.inverse()?;
         Ok(self.mul(&rhs_inv))
