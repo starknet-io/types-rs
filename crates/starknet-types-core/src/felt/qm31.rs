@@ -20,33 +20,33 @@ impl std::error::Error for QM31Error {}
 impl fmt::Display for QM31Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            QM31Error::UnreducedFelt(felt) => writeln!(
+            QM31Error::UnreducedFelt(felt) => write!(
                 f,
                 "Number is not a packing of a QM31 in reduced form: {felt})"
             ),
-            QM31Error::FeltTooBig(felt) => writeln!(
+            QM31Error::FeltTooBig(felt) => write!(
                 f,
                 "Number used as QM31 since it's more than 144 bits long: {felt}"
             ),
-            QM31Error::InvalidInversion => writeln!(f, "Attempt to invert a qm31 equal to zero"),
+            QM31Error::InvalidInversion => write!(f, "Attempt to invert a qm31 equal to zero"),
         }
     }
 }
 
 #[repr(transparent)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct QM31Felt([u64; 4]);
+pub struct QM31([u64; 4]);
 
-impl QM31Felt {
-    /// [QM31Felt] constant that's equal to 0.
+impl QM31 {
+    /// [QM31] constant that's equal to 0.
     pub const ZERO: Self = Self([0, 0, 0, 0]);
 
     pub fn as_raw(&self) -> [u64; 4] {
         self.0
     }
 
-    /// Create a [QM31Felt] from the raw internal representation. Reduces four u64 coordinates so that they fit in 144 bits.
-    pub fn from_raw(coordinates: [u64; 4]) -> QM31Felt {
+    /// Create a [QM31] from the raw internal representation. Reduces four u64 coordinates so that they fit in 144 bits.
+    pub fn from_raw(coordinates: [u64; 4]) -> QM31 {
         Self([
             coordinates[0] % STWO_PRIME,
             coordinates[1] % STWO_PRIME,
@@ -55,8 +55,8 @@ impl QM31Felt {
         ])
     }
 
-    /// Packs the [QM31Felt] coordinates into a Felt.
-    pub fn pack_into_felt(&self) -> Felt {
+    /// Packs the [QM31] coordinates into a Felt.
+    fn pack_into_felt(&self) -> Felt {
         let coordinates = self.0;
 
         let bytes_part1 = (coordinates[0] as u128 + ((coordinates[1] as u128) << 36)).to_le_bytes();
@@ -68,8 +68,8 @@ impl QM31Felt {
         Felt::from_bytes_le(&result_bytes)
     }
 
-    /// Computes the addition of two [QM31Felt] elements in reduced form.
-    pub fn add(&self, rhs: &QM31Felt) -> QM31Felt {
+    /// Computes the addition of two [QM31] elements in reduced form.
+    pub fn add(&self, rhs: &QM31) -> QM31 {
         let coordinates1 = self.as_raw();
         let coordinates2 = rhs.as_raw();
         let result_unreduced_coordinates = [
@@ -81,8 +81,8 @@ impl QM31Felt {
         Self::from_raw(result_unreduced_coordinates)
     }
 
-    /// Computes the negative of a [QM31Felt] element in reduced form.
-    pub fn neg(&self) -> QM31Felt {
+    /// Computes the negative of a [QM31] element in reduced form.
+    pub fn neg(&self) -> QM31 {
         let coordinates = self.as_raw();
         Self::from_raw([
             STWO_PRIME - coordinates[0],
@@ -92,8 +92,8 @@ impl QM31Felt {
         ])
     }
 
-    /// Computes the subtraction of two [QM31Felt] elements in reduced form.
-    pub fn sub(&self, rhs: &QM31Felt) -> QM31Felt {
+    /// Computes the subtraction of two [QM31] elements in reduced form.
+    pub fn sub(&self, rhs: &QM31) -> QM31 {
         let coordinates1 = self.as_raw();
         let coordinates2 = rhs.as_raw();
         let result_unreduced_coordinates = [
@@ -105,8 +105,8 @@ impl QM31Felt {
         Self::from_raw(result_unreduced_coordinates)
     }
 
-    /// Computes the multiplication of two [QM31Felt] elements in reduced form.
-    pub fn mul(&self, rhs: &QM31Felt) -> QM31Felt {
+    /// Computes the multiplication of two [QM31] elements in reduced form.
+    pub fn mul(&self, rhs: &QM31) -> QM31 {
         let coordinates1_u64 = self.as_raw();
         let coordinates2_u64 = rhs.as_raw();
         let coordinates1 = coordinates1_u64.map(u128::from);
@@ -160,9 +160,9 @@ impl QM31Felt {
         u
     }
 
-    /// Computes the inverse of a [QM31Felt] element in reduced form.
+    /// Computes the inverse of a [QM31] element in reduced form.
     /// Returns an error if the operand is equal to zero.
-    pub fn inverse(&self) -> Result<QM31Felt, QM31Error> {
+    pub fn inverse(&self) -> Result<QM31, QM31Error> {
         if *self == Self::ZERO {
             return Err(QM31Error::InvalidInversion);
         }
@@ -201,9 +201,9 @@ impl QM31Felt {
         ]))
     }
 
-    /// Computes the division of two [QM31Felt] elements in reduced form. Returns an error
+    /// Computes the division of two [QM31] elements in reduced form. Returns an error
     /// if the rhs value is equal to zero.
-    pub fn div(&self, rhs: &QM31Felt) -> Result<QM31Felt, QM31Error> {
+    pub fn div(&self, rhs: &QM31) -> Result<QM31, QM31Error> {
         let rhs_inv = rhs.inverse()?;
         Ok(self.mul(&rhs_inv))
     }
@@ -213,26 +213,26 @@ impl QM31Felt {
     }
 }
 
-impl From<&QM31Felt> for Felt {
-    fn from(value: &QM31Felt) -> Self {
+impl From<&QM31> for Felt {
+    fn from(value: &QM31) -> Self {
         value.pack_into_felt()
     }
 }
 
-impl From<QM31Felt> for Felt {
-    fn from(value: QM31Felt) -> Self {
+impl From<QM31> for Felt {
+    fn from(value: QM31) -> Self {
         value.pack_into_felt()
     }
 }
 
-impl TryFrom<Felt> for QM31Felt {
+impl TryFrom<Felt> for QM31 {
     type Error = QM31Error;
 
     fn try_from(value: Felt) -> Result<Self, Self::Error> {
         let limbs = value.to_le_digits();
 
         // Check value fits in 144 bits. This check is only done here
-        // because we are trying to convert a Felt into a QM31Felt. This
+        // because we are trying to convert a Felt into a QM31. This
         // Felt should represent a packed QM31 which is at most 144 bits long.
         if limbs[3] != 0 || limbs[2] >= 1 << 16 {
             return Err(QM31Error::FeltTooBig(value));
@@ -256,14 +256,14 @@ impl TryFrom<Felt> for QM31Felt {
     }
 }
 
-impl TryFrom<&Felt> for QM31Felt {
+impl TryFrom<&Felt> for QM31 {
     type Error = QM31Error;
 
     fn try_from(value: &Felt) -> Result<Self, Self::Error> {
         let limbs = value.to_le_digits();
 
         // Check value fits in 144 bits. This check is only done here
-        // because we are trying to convert a Felt into a QM31Felt. This
+        // because we are trying to convert a Felt into a QM31. This
         // Felt should represent a packed QM31 which is at most 144 bits long.
         if limbs[3] != 0 || limbs[2] >= 1 << 16 {
             return Err(QM31Error::FeltTooBig(*value));
@@ -298,38 +298,38 @@ mod test {
     };
 
     use crate::felt::{
-        qm31::{QM31Error, QM31Felt, STWO_PRIME},
+        qm31::{QM31Error, QM31, STWO_PRIME},
         Felt,
     };
 
     #[test]
     fn qm31_to_felt() {
-        let coordinates = QM31Felt::from_raw([1, 2, 3, 4]);
+        let coordinates = QM31::from_raw([1, 2, 3, 4]);
         let packed_coordinates = Felt::from(coordinates);
-        let unpacked_coordinates = QM31Felt::try_from(packed_coordinates).unwrap();
+        let unpacked_coordinates = QM31::try_from(packed_coordinates).unwrap();
         assert_eq!(coordinates, unpacked_coordinates);
 
-        let qm31 = QM31Felt::from_raw([u64::MAX, 0, 0, 0]);
+        let qm31 = QM31::from_raw([u64::MAX, 0, 0, 0]);
         let felt: Felt = qm31.try_into().unwrap();
-        let felt_to_qm31 = QM31Felt::try_from(felt).unwrap();
+        let felt_to_qm31 = QM31::try_from(felt).unwrap();
 
         assert_eq!(felt_to_qm31, qm31);
 
-        let qm31 = QM31Felt::from_raw([u64::MAX, u64::MAX, 0, 0]);
+        let qm31 = QM31::from_raw([u64::MAX, u64::MAX, 0, 0]);
         let felt: Felt = qm31.try_into().unwrap();
-        let felt_to_qm31 = QM31Felt::try_from(felt).unwrap();
+        let felt_to_qm31 = QM31::try_from(felt).unwrap();
 
         assert_eq!(felt_to_qm31, qm31);
 
-        let qm31 = QM31Felt::from_raw([u64::MAX, u64::MAX, u64::MAX, 0]);
+        let qm31 = QM31::from_raw([u64::MAX, u64::MAX, u64::MAX, 0]);
         let felt: Felt = qm31.try_into().unwrap();
-        let felt_to_qm31 = QM31Felt::try_from(felt).unwrap();
+        let felt_to_qm31 = QM31::try_from(felt).unwrap();
 
         assert_eq!(felt_to_qm31, qm31);
 
-        let qm31 = QM31Felt::from_raw([u64::MAX, u64::MAX, u64::MAX, u64::MAX]);
+        let qm31 = QM31::from_raw([u64::MAX, u64::MAX, u64::MAX, u64::MAX]);
         let felt: Felt = qm31.try_into().unwrap();
-        let felt_to_qm31 = QM31Felt::try_from(felt).unwrap();
+        let felt_to_qm31 = QM31::try_from(felt).unwrap();
 
         assert_eq!(felt_to_qm31, qm31);
     }
@@ -339,7 +339,7 @@ mod test {
         let mut felt_bytes = [0u8; 32];
         felt_bytes[18] = 1;
         let felt = Felt::from_bytes_le(&felt_bytes);
-        let qm31: Result<QM31Felt, QM31Error> = felt.try_into();
+        let qm31: Result<QM31, QM31Error> = felt.try_into();
         assert!(matches!(
             qm31,
             Err(QM31Error::FeltTooBig(bx)) if bx == felt
@@ -350,8 +350,8 @@ mod test {
     fn test_qm31_packed_reduced_add() {
         let x_coordinates = [1414213562, 1732050807, 1618033988, 1234567890];
         let y_coordinates = [1234567890, 1414213562, 1732050807, 1618033988];
-        let x = QM31Felt::from_raw(x_coordinates);
-        let y = QM31Felt::from_raw(y_coordinates);
+        let x = QM31::from_raw(x_coordinates);
+        let y = QM31::from_raw(y_coordinates);
         let res = x.add(&y);
         let res_coordinates = res.as_raw();
         assert_eq!(
@@ -368,7 +368,7 @@ mod test {
     #[test]
     fn test_qm31_packed_reduced_neg() {
         let x_coordinates = [1749652895, 834624081, 1930174752, 2063872165];
-        let x = QM31Felt::from_raw(x_coordinates);
+        let x = QM31::from_raw(x_coordinates);
         let res = x.neg();
         let res_coordinates = res.as_raw();
         assert_eq!(
@@ -391,8 +391,8 @@ mod test {
             (1234567890 + 1618033988) % STWO_PRIME,
         ];
         let y_coordinates = [1414213562, 1732050807, 1618033988, 1234567890];
-        let x = QM31Felt::from_raw(x_coordinates);
-        let y = QM31Felt::from_raw(y_coordinates);
+        let x = QM31::from_raw(x_coordinates);
+        let y = QM31::from_raw(y_coordinates);
         let res = x.sub(&y);
         let res_coordinates = res.as_raw();
         assert_eq!(
@@ -405,8 +405,8 @@ mod test {
     fn test_qm31_packed_reduced_mul() {
         let x_coordinates = [1414213562, 1732050807, 1618033988, 1234567890];
         let y_coordinates = [1259921049, 1442249570, 1847759065, 2094551481];
-        let x = QM31Felt::from_raw(x_coordinates);
-        let y = QM31Felt::from_raw(y_coordinates);
+        let x = QM31::from_raw(x_coordinates);
+        let y = QM31::from_raw(y_coordinates);
         let res = x.mul(&y);
         let res_coordinates = res.as_raw();
         assert_eq!(
@@ -418,19 +418,19 @@ mod test {
     #[test]
     fn test_qm31_packed_reduced_inv() {
         let x_coordinates = [1259921049, 1442249570, 1847759065, 2094551481];
-        let x = QM31Felt::from_raw(x_coordinates);
+        let x = QM31::from_raw(x_coordinates);
         let res = x.inverse().unwrap();
         let expected = Felt::from(1).try_into().unwrap();
         assert_eq!(x.mul(&res), expected);
 
         let x_coordinates = [1, 2, 3, 4];
-        let x = QM31Felt::from_raw(x_coordinates);
+        let x = QM31::from_raw(x_coordinates);
         let res = x.inverse().unwrap();
         let expected = Felt::from(1).try_into().unwrap();
         assert_eq!(x.mul(&res), expected);
 
         let x_coordinates = [1749652895, 834624081, 1930174752, 2063872165];
-        let x = QM31Felt::from_raw(x_coordinates);
+        let x = QM31::from_raw(x_coordinates);
         let res = x.inverse().unwrap();
         let expected = Felt::from(1).try_into().unwrap();
         assert_eq!(x.mul(&res), expected);
@@ -447,10 +447,10 @@ mod test {
                                                             .prop_filter("All configs cant be 0",
                                                             |arr| !arr.iter().all(|x| *x == 0))
         ) {
-            let x = QM31Felt::from_raw(x_coordinates);
+            let x = QM31::from_raw(x_coordinates);
             let res = x.inverse().unwrap();
             // Expect 1_felt252
-            let expected = QM31Felt::from_raw([1,0,0,0]);
+            let expected = QM31::from_raw([1,0,0,0]);
             assert_eq!(x.mul(&res), expected);
         }
 
@@ -461,10 +461,10 @@ mod test {
                                                             |arr| !arr.iter().all(|x| *x == 0))
                                                             .no_shrink()
         ) {
-            let x = QM31Felt::from_raw(x_coordinates);
+            let x = QM31::from_raw(x_coordinates);
             let res = x.inverse().unwrap();
             // Expect 1_felt252
-            let expected = QM31Felt::from_raw([1,0,0,0]);
+            let expected = QM31::from_raw([1,0,0,0]);
             assert_eq!(x.mul(&res), expected);
         }
     }
@@ -474,9 +474,9 @@ mod test {
         let x_coordinates = [1259921049, 1442249570, 1847759065, 2094551481];
         let y_coordinates = [1414213562, 1732050807, 1618033988, 1234567890];
         let xy_coordinates = [947980980, 1510986506, 623360030, 1260310989];
-        let x = QM31Felt::from_raw(x_coordinates);
-        let y = QM31Felt::from_raw(y_coordinates);
-        let xy = QM31Felt::from_raw(xy_coordinates);
+        let x = QM31::from_raw(x_coordinates);
+        let y = QM31::from_raw(y_coordinates);
+        let xy = QM31::from_raw(xy_coordinates);
 
         let res = xy.div(&y).unwrap();
         assert_eq!(res, x);
