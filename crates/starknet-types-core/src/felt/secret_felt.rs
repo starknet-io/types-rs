@@ -34,8 +34,9 @@ impl SecretFelt {
     ///
     /// # Warning
     ///
-    /// Avoid moving the secret [Felt] in the memory and initialize the [SecretFelt]
-    /// as soon as possible in order to not let any copy of the value in memory
+    /// Avoid moving the secret [Felt] in memory and avoid intermediate 
+    /// operations between the [Felt] creation and the [SecretFelt] initialization
+    /// in order to not leave any copies of the value in memory
     ///
     /// # Example
     ///
