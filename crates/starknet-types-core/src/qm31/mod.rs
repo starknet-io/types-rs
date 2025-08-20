@@ -35,8 +35,8 @@ impl fmt::Display for QM31Error {
 
 /// Definition of a Quadruple Merseene 31.
 ///
-/// The internal representation is composed of 4 coordinates, following a big-endian ordering.
-/// Each coordinate can be represented by 36 bits.
+/// The internal representation is composed of 4 limbs, following a big-endian ordering.
+/// Each of this limbs can be represented by 36 bits.
 #[repr(transparent)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct QM31([u64; 4]);
@@ -50,6 +50,8 @@ impl QM31 {
     }
 
     /// Creates a [QM31] in its reduced form from four u64 coordinates.
+    /// 
+    /// A coordinate refers to a value in the M31 field.
     pub fn from_coordinates(coordinates: [u64; 4]) -> QM31 {
         Self([
             coordinates[0] % STWO_PRIME,
