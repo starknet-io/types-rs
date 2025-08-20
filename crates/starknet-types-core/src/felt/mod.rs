@@ -14,7 +14,6 @@ mod parity_scale_codec;
 #[cfg(feature = "prime-bigint")]
 mod prime_bigint;
 mod primitive_conversions;
-mod qm31;
 #[cfg(feature = "serde")]
 mod serde;
 #[cfg(feature = "zeroize")]

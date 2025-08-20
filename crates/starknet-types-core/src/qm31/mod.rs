@@ -289,9 +289,9 @@ mod test {
         prop_oneof, proptest,
     };
 
-    use crate::felt::{
+    use crate::{
+        felt::Felt,
         qm31::{QM31Error, QM31, STWO_PRIME},
-        Felt,
     };
 
     #[test]
