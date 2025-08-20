@@ -1,4 +1,6 @@
 #[cfg(feature = "alloc")]
+pub extern crate alloc;
+#[cfg(feature = "alloc")]
 mod alloc_impls;
 #[cfg(feature = "arbitrary")]
 mod arbitrary;
@@ -14,10 +16,10 @@ mod parity_scale_codec;
 #[cfg(feature = "prime-bigint")]
 mod prime_bigint;
 mod primitive_conversions;
+#[cfg(feature = "secret-felt")]
+pub mod secret_felt;
 #[cfg(feature = "serde")]
 mod serde;
-#[cfg(feature = "zeroize")]
-mod zeroize;
 
 use lambdaworks_math::errors::CreationError;
 pub use non_zero::{FeltIsZeroError, NonZeroFelt};
@@ -32,9 +34,6 @@ use num_bigint::{BigInt, BigUint, Sign};
 use num_integer::Integer;
 use num_traits::{One, Zero};
 pub use primitive_conversions::PrimitiveFromFeltError;
-
-#[cfg(feature = "alloc")]
-pub extern crate alloc;
 
 use lambdaworks_math::{
     field::{
@@ -742,7 +741,6 @@ mod arithmetic {
 }
 
 mod formatting {
-
     use core::fmt;
 
     use super::*;
