@@ -42,7 +42,7 @@ impl SecretFelt {
     /// ```
     /// use starknet_types_core::felt::{Felt, secret_felt::SecretFelt};
     ///
-    /// let mut private_key = Felt::from_hex_unchecked("0x123...");
+    /// let mut private_key = Felt::from_hex_unchecked("0x2d39148a92f479fb077389d");
     /// let secret_felt = SecretFelt::from_felt(&mut private_key);
     /// // private_key is now zeroized (set to Felt::ZERO)
     /// ```
@@ -54,15 +54,19 @@ impl SecretFelt {
 
     /// Creates a new [SecretFelt] from a hex String and zeroized the original String.
     ///
+    ///
+    /// # Warning
+    /// Make sure the String is initialized in a secure way.
+    /// e.g. read from a file.
+    ///
     /// # Example
     /// ```
     /// use std::fs;
     /// use starknet_types_core::felt::secret_felt::SecretFelt;
     /// use std::str::FromStr;
     ///
-    /// // make sure the String is initialized in a secure way
-    /// let mut private_key = fs::read_to_string("path/to/secret_value").unwrap();
-    /// let secret_felt = SecretFelt::from_hex_string(&mut private_key);
+    /// let mut private_key = String::from_str("0x2d39148a92f479fb077389d").unwrap();
+    /// let secret_felt = SecretFelt::from_hex_string(&mut private_key).unwrap();
     /// ```
     pub fn from_hex_string(hex: &mut String) -> Result<Self, FromStrError> {
         let secret_felt = Felt::from_hex(hex)?;
