@@ -142,6 +142,8 @@ impl PartialEq for SecretFelt {
     }
 }
 
+impl Eq for SecretFelt {}
+
 #[cfg(test)]
 mod test {
     use crate::felt::{secret_felt::SecretFelt, Felt};
