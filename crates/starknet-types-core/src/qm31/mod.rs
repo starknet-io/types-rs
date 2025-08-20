@@ -33,9 +33,9 @@ impl fmt::Display for QM31Error {
     }
 }
 
-/// Definition of a Quadruple Merseene 31 in its reduced form.
+/// Definition of a Quadruple Merseene 31.
 ///
-/// The internal representation is composed of 4 coordinates, following a little-endian ordering.
+/// The internal representation is composed of 4 coordinates, following a big-endian ordering.
 /// Each coordinate can be represented by 36 bits.
 #[repr(transparent)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
