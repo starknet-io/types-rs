@@ -10,6 +10,7 @@ use super::alloc::{boxed::Box, string::String, vec::Vec};
 ///
 /// This type provides secure handling of sensitive [Felt] values (like private keys)
 /// by ensuring that the memory is properly cleared when the value is no longer needed.
+#[derive(Eq)]
 pub struct SecretFelt(Box<Felt>);
 
 impl zeroize::DefaultIsZeroes for Felt {}
@@ -34,7 +35,7 @@ impl SecretFelt {
     ///
     /// # Warning
     ///
-    /// Avoid moving the secret [Felt] in memory and avoid intermediate 
+    /// Avoid moving the secret [Felt] in memory and avoid intermediate
     /// operations between the [Felt] creation and the [SecretFelt] initialization
     /// in order to not leave any copies of the value in memory
     ///
@@ -142,8 +143,6 @@ impl PartialEq for SecretFelt {
         is_eq
     }
 }
-
-impl Eq for SecretFelt {}
 
 #[cfg(test)]
 mod test {
