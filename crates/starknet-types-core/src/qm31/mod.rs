@@ -33,7 +33,7 @@ impl fmt::Display for QM31Error {
     }
 }
 
-/// Definition of a Quadruple Merseene 31.
+/// Definition of a Quadruple Mersenne 31.
 ///
 /// The internal representation is composed of 4 limbs, following a big-endian ordering.
 /// Each of this limbs can be represented by 36 bits.
@@ -50,7 +50,7 @@ impl QM31 {
     }
 
     /// Creates a [QM31] in its reduced form from four u64 coordinates.
-    /// 
+    ///
     /// A coordinate refers to a value in the M31 field.
     pub fn from_coordinates(coordinates: [u64; 4]) -> QM31 {
         Self([
@@ -106,6 +106,11 @@ impl QM31 {
     }
 
     /// Computes the addition of two [QM31] elements in reduced form.
+    ///
+    /// In reduced form, a QM31 is composed of 4 limbs, each represented a value from the Mersenne 31 field.
+    ///
+    /// The algorithm was taken from the following papper: https://github.com/ingonyama-zk/papers/blob/main/Mersenne31_polynomial_arithmetic.pdf
+    /// Section 1.1.2.
     pub fn add(&self, rhs: &QM31) -> QM31 {
         let coordinates1 = self.inner();
         let coordinates2 = rhs.inner();
@@ -119,6 +124,11 @@ impl QM31 {
     }
 
     /// Computes the negative of a [QM31] element in reduced form.
+    ///
+    /// In reduced form, a QM31 is composed of 4 limbs, each represented a value from the Mersenne 31 field.
+    ///
+    /// The algorithm was taken from the following papper: https://github.com/ingonyama-zk/papers/blob/main/Mersenne31_polynomial_arithmetic.pdf
+    /// Section 1.1.2.
     pub fn neg(&self) -> QM31 {
         let coordinates = self.inner();
         Self::from_coordinates([
@@ -130,6 +140,11 @@ impl QM31 {
     }
 
     /// Computes the subtraction of two [QM31] elements in reduced form.
+    ///
+    /// In reduced form, a QM31 is composed of 4 limbs, each represented a value from the Mersenne 31 field.
+    ///
+    /// The algorithm was taken from the following papper: https://github.com/ingonyama-zk/papers/blob/main/Mersenne31_polynomial_arithmetic.pdf
+    /// Section 1.1.2.
     pub fn sub(&self, rhs: &QM31) -> QM31 {
         let coordinates1 = self.inner();
         let coordinates2 = rhs.inner();
@@ -143,6 +158,8 @@ impl QM31 {
     }
 
     /// Computes the multiplication of two [QM31] elements in reduced form.
+    ///
+    /// In reduced form, a QM31 is composed of 4 limbs, each represented a value from the Mersenne 31 field.
     pub fn mul(&self, rhs: &QM31) -> QM31 {
         let coordinates1_u64 = self.inner();
         let coordinates2_u64 = rhs.inner();
@@ -190,6 +207,11 @@ impl QM31 {
     }
 
     /// Computes `v^(2^n) modulo STWO_PRIME`.
+    ///
+    /// In reduced form, a QM31 is composed of 4 limbs, each represented a value from the Mersenne 31 field.
+    ///
+    /// The algorithm was taken from the following papper: https://github.com/ingonyama-zk/papers/blob/main/Mersenne31_polynomial_arithmetic.pdf
+    /// Section 1.1.3.
     fn sqn(v: u64, n: usize) -> u64 {
         let mut u = v;
         for _ in 0..n {
@@ -199,6 +221,8 @@ impl QM31 {
     }
 
     /// Computes the inverse of a [QM31] element in reduced form.
+    ///
+    /// In reduced form, a QM31 is composed of 4 limbs, each represented a value from the Mersenne 31 field.
     ///
     /// Returns an error if the operand is equal to zero.
     pub fn inverse(&self) -> Result<QM31, QM31Error> {
