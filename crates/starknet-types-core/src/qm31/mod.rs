@@ -109,7 +109,7 @@ impl QM31 {
     ///
     /// In reduced form, a QM31 is composed of 4 limbs, each represented a value from the Mersenne 31 field.
     ///
-    /// The algorithm was taken from the following papper: https://github.com/ingonyama-zk/papers/blob/main/Mersenne31_polynomial_arithmetic.pdf
+    /// The algorithm was taken from the following papper: [Link](https://github.com/ingonyama-zk/papers/blob/main/Mersenne31_polynomial_arithmetic.pdf)
     /// Section 1.1.2.
     pub fn add(&self, rhs: &QM31) -> QM31 {
         let coordinates1 = self.inner();
@@ -127,7 +127,7 @@ impl QM31 {
     ///
     /// In reduced form, a QM31 is composed of 4 limbs, each represented a value from the Mersenne 31 field.
     ///
-    /// The algorithm was taken from the following papper: https://github.com/ingonyama-zk/papers/blob/main/Mersenne31_polynomial_arithmetic.pdf
+    /// The algorithm was taken from the following papper: [Link](https://github.com/ingonyama-zk/papers/blob/main/Mersenne31_polynomial_arithmetic.pdf)
     /// Section 1.1.2.
     pub fn neg(&self) -> QM31 {
         let coordinates = self.inner();
@@ -143,7 +143,7 @@ impl QM31 {
     ///
     /// In reduced form, a QM31 is composed of 4 limbs, each represented a value from the Mersenne 31 field.
     ///
-    /// The algorithm was taken from the following papper: https://github.com/ingonyama-zk/papers/blob/main/Mersenne31_polynomial_arithmetic.pdf
+    /// The algorithm was taken from the following papper: [Link](https://github.com/ingonyama-zk/papers/blob/main/Mersenne31_polynomial_arithmetic.pdf)
     /// Section 1.1.2.
     pub fn sub(&self, rhs: &QM31) -> QM31 {
         let coordinates1 = self.inner();
@@ -160,6 +160,16 @@ impl QM31 {
     /// Computes the multiplication of two [QM31] elements in reduced form.
     ///
     /// In reduced form, a QM31 is composed of 4 limbs, each represented a value from the Mersenne 31 field.
+    /// 
+    /// The algorithm can be deduced from the implementation of the QM31 multiplication from the Stwo prover:
+    /// [Link](https://github.com/starkware-libs/stwo/blob/d9176e6e22319370a8501f799829b920c0db2eac/crates/stwo/src/core/fields/qm31.rs#L81).
+    /// Which multiplies 2 complex extension fields of M31: 
+    /// [Link](https://github.com/starkware-libs/stwo/blob/d9176e6e22319370a8501f799829b920c0db2eac/crates/stwo/src/core/fields/cm31.rs#L47).
+    /// Whose real and imaginary components result from the M31 multiplication: 
+    /// [Link](https://github.com/starkware-libs/stwo/blob/d9176e6e22319370a8501f799829b920c0db2eac/crates/stwo/src/core/fields/m31.rs#L105).
+    /// 
+    /// The implementation of the QM31 multiplication is based on the following paper: [Link](https://github.com/ingonyama-zk/papers/blob/main/Mersenne31_polynomial_arithmetic.pdf)
+    /// Section 1.3, Ecuation 1.20.
     pub fn mul(&self, rhs: &QM31) -> QM31 {
         let coordinates1_u64 = self.inner();
         let coordinates2_u64 = rhs.inner();
@@ -210,7 +220,7 @@ impl QM31 {
     ///
     /// In reduced form, a QM31 is composed of 4 limbs, each represented a value from the Mersenne 31 field.
     ///
-    /// The algorithm was taken from the following papper: https://github.com/ingonyama-zk/papers/blob/main/Mersenne31_polynomial_arithmetic.pdf
+    /// The algorithm was taken from the following papper: [Link](https://github.com/ingonyama-zk/papers/blob/main/Mersenne31_polynomial_arithmetic.pdf)
     /// Section 1.1.3.
     fn sqn(v: u64, n: usize) -> u64 {
         let mut u = v;
@@ -223,6 +233,19 @@ impl QM31 {
     /// Computes the inverse of a [QM31] element in reduced form.
     ///
     /// In reduced form, a QM31 is composed of 4 limbs, each represented a value from the Mersenne 31 field.
+    /// 
+    /// The algorithm can be deduced from the implementation of the inverse of a QM31 from the Stwo prover:
+    /// [Link](https://github.com/starkware-libs/stwo/blob/d9176e6e22319370a8501f799829b920c0db2eac/crates/stwo/src/core/fields/qm31.rs#L120).
+    /// 
+    /// Having the following inverse operation: `(a + bu)^-1 = (a - bu) / (a^2 - (2+i)b^2)`, the algorithm computes the denominator by computing 
+    /// `(a^2 - (2+i)b^2)` first and then inverting it. The denominator's value inverse is computed as the inverse of a complex extension 
+    /// field of M31:
+    /// [Link](https://github.com/starkware-libs/stwo/blob/d9176e6e22319370a8501f799829b920c0db2eac/crates/stwo/src/core/fields/cm31.rs#L68).
+    /// Finally, the inverse of the QM31 is computed:
+    /// [Link](https://github.com/starkware-libs/stwo/blob/d9176e6e22319370a8501f799829b920c0db2eac/crates/stwo/src/core/fields/qm31.rs#L127).
+    /// 
+    /// The implementation of the QM31 inversion is based on the following papper: [Link](https://github.com/ingonyama-zk/papers/blob/main/Mersenne31_polynomial_arithmetic.pdf)
+    /// Section 1.3, Ecuation 1.23.
     ///
     /// Returns an error if the operand is equal to zero.
     pub fn inverse(&self) -> Result<QM31, QM31Error> {
