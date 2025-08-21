@@ -120,7 +120,7 @@ impl QM31 {
 
         // Check value fits in 144 bits. This check is only done here
         // because we are trying to convert a Felt into a QM31. This
-        // Felt should represent a packed QM31 and should at most 144 bits long.
+        // Felt should represent a packed QM31 and should be at most 144 bits long.
         if limbs[3] != 0 || limbs[2] >= 1 << 16 {
             return Err(QM31Error::FeltTooBig(*felt));
         }
