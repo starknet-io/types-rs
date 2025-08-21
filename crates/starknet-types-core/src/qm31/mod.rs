@@ -2,7 +2,8 @@ use core::fmt;
 
 use crate::felt::Felt;
 
-pub const STWO_PRIME: u64 = (1 << 31) - 1;
+pub const STWO_PRIME: u32 = (1 << 31) - 1;
+const STWO_PRIME_U64: u64 = STWO_PRIME as u64;
 const STWO_PRIME_U128: u128 = STWO_PRIME as u128;
 const MASK_36: u64 = (1 << 36) - 1;
 const MASK_8: u64 = (1 << 8) - 1;
@@ -26,7 +27,7 @@ impl fmt::Display for QM31Error {
             ),
             QM31Error::FeltTooBig(felt) => write!(
                 f,
-                "number used as QM31 since it's more than 144 bits long: {felt}"
+                "number can't used as QM31 since it's more than 144 bits long: {felt}"
             ),
             QM31Error::InvalidInversion => write!(f, "attempt to invert a qm31 equal to zero"),
         }
@@ -36,23 +37,40 @@ impl fmt::Display for QM31Error {
 /// Definition of a Quadruple Mersenne 31.
 ///
 /// The internal representation is composed of 4 limbs, following a big-endian ordering.
-/// Each of this limbs can be represented by 36 bits.
+/// Each of this limbs can be represented by 31 bits.
 #[repr(transparent)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct QM31([u64; 4]);
+pub struct QM31([u32; 4]);
 
 impl QM31 {
     /// [QM31] constant that's equal to 0.
     pub const ZERO: Self = Self([0, 0, 0, 0]);
 
-    pub fn inner(&self) -> [u64; 4] {
+    pub fn inner(&self) -> [u32; 4] {
         self.0
     }
 
-    /// Creates a [QM31] in its reduced form from four u64 coordinates.
+    /// Utility method to return the coordinates of a [QM31] as 64 values.
+    ///
+    /// This method is convinient for performing multications and inversions,
+    /// in which operating with the coordinates could result in overflows if
+    /// the 32 bit representation was used.
+    fn inner_u64(&self) -> [u64; 4] {
+        self.0.map(u64::from)
+    }
+
+    /// Creates a [QM31] in its reduced form from four u32 coordinates.
     ///
     /// A coordinate refers to a value in the M31 field.
-    pub fn from_coordinates(coordinates: [u64; 4]) -> QM31 {
+    pub fn from_coordinates(coordinates: [u32; 4]) -> QM31 {
+        Self::reduce(coordinates)
+    }
+
+    /// Applies the reduction operation in the Mersenne 31 field to each of the QM31 coordinates.
+    ///
+    /// The algorithm was taken from the following papper: [Link](https://github.com/ingonyama-zk/papers/blob/main/Mersenne31_polynomial_arithmetic.pdf)
+    /// Section 1.1.2.
+    fn reduce(coordinates: [u32; 4]) -> QM31 {
         Self([
             coordinates[0] % STWO_PRIME,
             coordinates[1] % STWO_PRIME,
@@ -61,12 +79,29 @@ impl QM31 {
         ])
     }
 
+    /// Applies the reduction operation in the Mersenne 31 field to each of the QM31 coordinates.
+    ///
+    /// This is an utility method to support coordinates which would overflow in 32 bit representation.
+    ///
+    /// The algorithm was taken from the following papper: [Link](https://github.com/ingonyama-zk/papers/blob/main/Mersenne31_polynomial_arithmetic.pdf)
+    /// Section 1.1.2.
+    fn reduce_u64(coordinates: [u64; 4]) -> QM31 {
+        Self([
+            (coordinates[0] % STWO_PRIME_U64) as u32,
+            (coordinates[1] % STWO_PRIME_U64) as u32,
+            (coordinates[2] % STWO_PRIME_U64) as u32,
+            (coordinates[3] % STWO_PRIME_U64) as u32,
+        ])
+    }
+
     /// Packs the [QM31] coordinates into a [Felt].
     ///
-    /// A QM31 is composed of 4 coordinates each of which can be represented with 36 bits, meaning
-    /// it can be store in a Felt. This method packs a given QM31 and stores it in the first 144 bits of a Felt.
+    /// This method packs a given QM31 and stores it in the first 144 bits of a Felt.
     /// Having coordinates \[C0, C1, C2, C3\], the resulting Felt is computed with the following ecuation:
-    /// `felt = C0 + C1 << 36 + C2 << 72 + C3 << 108``.
+    /// `felt = C0 + C1 << 36 + C2 << 72 + C3 << 108`
+    ///
+    /// A QM31 is composed of 4 coordinates each represented with 31 bits which, for efficiency reasons,
+    /// are packed as 36 bit values.
     pub fn pack_into_felt(&self) -> Felt {
         let coordinates = self.0;
 
@@ -85,12 +120,11 @@ impl QM31 {
 
         // Check value fits in 144 bits. This check is only done here
         // because we are trying to convert a Felt into a QM31. This
-        // Felt should represent a packed QM31 which is at most 144 bits long.
+        // Felt should represent a packed QM31 and should at most 144 bits long.
         if limbs[3] != 0 || limbs[2] >= 1 << 16 {
             return Err(QM31Error::FeltTooBig(*felt));
         }
 
-        // Check if the coordinates were reduced before.
         let coordinates = [
             (limbs[0] & MASK_36),
             ((limbs[0] >> 36) + ((limbs[1] & MASK_8) << 28)),
@@ -98,18 +132,26 @@ impl QM31 {
             ((limbs[1] >> 44) + (limbs[2] << 20)),
         ];
 
+        // Check if the coordinates were reduced before.
         for x in coordinates.iter() {
-            if *x >= STWO_PRIME {
+            if *x >= STWO_PRIME_U64 {
                 return Err(QM31Error::UnreducedFelt(*felt));
             }
         }
 
-        Ok(QM31(coordinates))
+        // This conversion is safe because we've already checked that
+        // every coordinate < prime
+        Ok(QM31([
+            coordinates[0] as u32,
+            coordinates[1] as u32,
+            coordinates[2] as u32,
+            coordinates[3] as u32,
+        ]))
     }
 
     /// Computes the addition of two [QM31] elements in reduced form.
     ///
-    /// In reduced form, a QM31 is composed of 4 limbs, each represented a value from the Mersenne 31 field.
+    /// In reduced form, a QM31 is composed of 4 limbs, each representes a value from the Mersenne 31 field.
     ///
     /// The algorithm was taken from the following papper: [Link](https://github.com/ingonyama-zk/papers/blob/main/Mersenne31_polynomial_arithmetic.pdf)
     /// Section 1.1.2.
@@ -122,18 +164,18 @@ impl QM31 {
             coordinates1[2] + coordinates2[2],
             coordinates1[3] + coordinates2[3],
         ];
-        Self::from_coordinates(result_unreduced_coordinates)
+        Self::reduce(result_unreduced_coordinates)
     }
 
     /// Computes the negative of a [QM31] element in reduced form.
     ///
-    /// In reduced form, a QM31 is composed of 4 limbs, each represented a value from the Mersenne 31 field.
+    /// In reduced form, a QM31 is composed of 4 limbs, each represents a value from the Mersenne 31 field.
     ///
     /// The algorithm was taken from the following papper: [Link](https://github.com/ingonyama-zk/papers/blob/main/Mersenne31_polynomial_arithmetic.pdf)
     /// Section 1.1.2.
     pub fn neg(&self) -> QM31 {
         let coordinates = self.inner();
-        Self::from_coordinates([
+        Self::reduce([
             STWO_PRIME - coordinates[0],
             STWO_PRIME - coordinates[1],
             STWO_PRIME - coordinates[2],
@@ -143,7 +185,7 @@ impl QM31 {
 
     /// Computes the subtraction of two [QM31] elements in reduced form.
     ///
-    /// In reduced form, a QM31 is composed of 4 limbs, each represented a value from the Mersenne 31 field.
+    /// In reduced form, a QM31 is composed of 4 limbs, each represents a value from the Mersenne 31 field.
     ///
     /// The algorithm was taken from the following papper: [Link](https://github.com/ingonyama-zk/papers/blob/main/Mersenne31_polynomial_arithmetic.pdf)
     /// Section 1.1.2.
@@ -156,12 +198,12 @@ impl QM31 {
             STWO_PRIME + coordinates1[2] - coordinates2[2],
             STWO_PRIME + coordinates1[3] - coordinates2[3],
         ];
-        Self::from_coordinates(result_unreduced_coordinates)
+        Self::reduce(result_unreduced_coordinates)
     }
 
     /// Computes the multiplication of two [QM31] elements in reduced form.
     ///
-    /// In reduced form, a QM31 is composed of 4 limbs, each represented a value from the Mersenne 31 field.
+    /// In reduced form, a QM31 is composed of 4 limbs, each represents a value from the Mersenne 31 field.
     ///
     /// The algorithm can be deduced from the implementation of the QM31 multiplication from the Stwo prover:
     /// [Link](https://github.com/starkware-libs/stwo/blob/d9176e6e22319370a8501f799829b920c0db2eac/crates/stwo/src/core/fields/qm31.rs#L81).
@@ -173,8 +215,8 @@ impl QM31 {
     /// The implementation of the QM31 multiplication is based on the following paper: [Link](https://github.com/ingonyama-zk/papers/blob/main/Mersenne31_polynomial_arithmetic.pdf)
     /// Section 1.3, Ecuation 1.20.
     pub fn mul(&self, rhs: &QM31) -> QM31 {
-        let coordinates1_u64 = self.inner();
-        let coordinates2_u64 = rhs.inner();
+        let coordinates1_u64 = self.inner_u64();
+        let coordinates2_u64 = rhs.inner_u64();
         let coordinates1 = coordinates1_u64.map(u128::from);
         let coordinates2 = coordinates2_u64.map(u128::from);
 
@@ -193,7 +235,7 @@ impl QM31 {
                 + coordinates1[2] * coordinates2[2]
                 - coordinates1[3] * coordinates2[3])
                 % STWO_PRIME_U128) as u64,
-            2 * STWO_PRIME * STWO_PRIME + coordinates1_u64[0] * coordinates2_u64[2]
+            2 * STWO_PRIME_U64 * STWO_PRIME_U64 + coordinates1_u64[0] * coordinates2_u64[2]
                 - coordinates1_u64[1] * coordinates2_u64[3]
                 + coordinates1_u64[2] * coordinates2_u64[0]
                 - coordinates1_u64[3] * coordinates2_u64[1],
@@ -202,20 +244,20 @@ impl QM31 {
                 + coordinates1_u64[2] * coordinates2_u64[1]
                 + coordinates1_u64[3] * coordinates2_u64[0],
         ];
-        Self::from_coordinates(result_coordinates)
+        Self::reduce_u64(result_coordinates)
     }
 
     /// Computes the inverse in the M31 field using Fermat's little theorem.
     ///
     /// Returns `v^(STWO_PRIME-2) modulo STWO_PRIME`, which is the inverse of v unless v % STWO_PRIME == 0.
     fn m31_inverse(v: u64) -> u64 {
-        let t0 = (Self::sqn(v, 2) * v) % STWO_PRIME;
-        let t1 = (Self::sqn(t0, 1) * t0) % STWO_PRIME;
-        let t2 = (Self::sqn(t1, 3) * t0) % STWO_PRIME;
-        let t3 = (Self::sqn(t2, 1) * t0) % STWO_PRIME;
-        let t4 = (Self::sqn(t3, 8) * t3) % STWO_PRIME;
-        let t5 = (Self::sqn(t4, 8) * t3) % STWO_PRIME;
-        (Self::sqn(t5, 7) * t2) % STWO_PRIME
+        let t0 = (Self::sqn(v, 2) * v) % STWO_PRIME_U64;
+        let t1 = (Self::sqn(t0, 1) * t0) % STWO_PRIME_U64;
+        let t2 = (Self::sqn(t1, 3) * t0) % STWO_PRIME_U64;
+        let t3 = (Self::sqn(t2, 1) * t0) % STWO_PRIME_U64;
+        let t4 = (Self::sqn(t3, 8) * t3) % STWO_PRIME_U64;
+        let t5 = (Self::sqn(t4, 8) * t3) % STWO_PRIME_U64;
+        (Self::sqn(t5, 7) * t2) % STWO_PRIME_U64
     }
 
     /// Computes `v^(2^n) modulo STWO_PRIME`.
@@ -227,14 +269,14 @@ impl QM31 {
     fn sqn(v: u64, n: usize) -> u64 {
         let mut u = v;
         for _ in 0..n {
-            u = (u * u) % STWO_PRIME;
+            u = (u * u) % STWO_PRIME_U64;
         }
         u
     }
 
     /// Computes the inverse of a [QM31] element in reduced form.
     ///
-    /// In reduced form, a QM31 is composed of 4 limbs, each represented a value from the Mersenne 31 field.
+    /// In reduced form, a QM31 is composed of 4 limbs, each representes a value from the Mersenne 31 field.
     ///
     /// The algorithm can be deduced from the implementation of the inverse of a QM31 from the Stwo prover:
     /// [Link](https://github.com/starkware-libs/stwo/blob/d9176e6e22319370a8501f799829b920c0db2eac/crates/stwo/src/core/fields/qm31.rs#L120).
@@ -255,35 +297,36 @@ impl QM31 {
             return Err(QM31Error::InvalidInversion);
         }
 
-        let coordinates = self.inner();
+        let coordinates = self.inner_u64();
 
-        let b2_r = (coordinates[2] * coordinates[2] + STWO_PRIME * STWO_PRIME
+        let b2_r = (coordinates[2] * coordinates[2] + STWO_PRIME_U64 * STWO_PRIME_U64
             - coordinates[3] * coordinates[3])
-            % STWO_PRIME;
-        let b2_i = (2 * coordinates[2] * coordinates[3]) % STWO_PRIME;
+            % STWO_PRIME_U64;
+        let b2_i = (2 * coordinates[2] * coordinates[3]) % STWO_PRIME_U64;
 
-        let denom_r = (coordinates[0] * coordinates[0] + STWO_PRIME * STWO_PRIME
+        let denom_r = (coordinates[0] * coordinates[0] + STWO_PRIME_U64 * STWO_PRIME_U64
             - coordinates[1] * coordinates[1]
-            + 2 * STWO_PRIME
+            + 2 * STWO_PRIME_U64
             - 2 * b2_r
             + b2_i)
-            % STWO_PRIME;
-        let denom_i =
-            (2 * coordinates[0] * coordinates[1] + 3 * STWO_PRIME - 2 * b2_i - b2_r) % STWO_PRIME;
+            % STWO_PRIME_U64;
+        let denom_i = (2 * coordinates[0] * coordinates[1] + 3 * STWO_PRIME_U64 - 2 * b2_i - b2_r)
+            % STWO_PRIME_U64;
 
-        let denom_norm_squared = (denom_r * denom_r + denom_i * denom_i) % STWO_PRIME;
+        let denom_norm_squared = (denom_r * denom_r + denom_i * denom_i) % STWO_PRIME_U64;
         let denom_norm_inverse_squared = Self::m31_inverse(denom_norm_squared);
 
-        let denom_inverse_r = (denom_r * denom_norm_inverse_squared) % STWO_PRIME;
-        let denom_inverse_i = ((STWO_PRIME - denom_i) * denom_norm_inverse_squared) % STWO_PRIME;
+        let denom_inverse_r = (denom_r * denom_norm_inverse_squared) % STWO_PRIME_U64;
+        let denom_inverse_i =
+            ((STWO_PRIME_U64 - denom_i) * denom_norm_inverse_squared) % STWO_PRIME_U64;
 
-        Ok(Self::from_coordinates([
-            coordinates[0] * denom_inverse_r + STWO_PRIME * STWO_PRIME
+        Ok(Self::reduce_u64([
+            coordinates[0] * denom_inverse_r + STWO_PRIME_U64 * STWO_PRIME_U64
                 - coordinates[1] * denom_inverse_i,
             coordinates[0] * denom_inverse_i + coordinates[1] * denom_inverse_r,
-            coordinates[3] * denom_inverse_i + STWO_PRIME * STWO_PRIME
+            coordinates[3] * denom_inverse_i + STWO_PRIME_U64 * STWO_PRIME_U64
                 - coordinates[2] * denom_inverse_r,
-            2 * STWO_PRIME * STWO_PRIME
+            2 * STWO_PRIME_U64 * STWO_PRIME_U64
                 - coordinates[2] * denom_inverse_i
                 - coordinates[3] * denom_inverse_r,
         ]))
@@ -304,8 +347,6 @@ impl QM31 {
 
 #[cfg(test)]
 mod test {
-    use core::u64;
-
     use proptest::{
         array::uniform4,
         prelude::{BoxedStrategy, Just, Strategy},
@@ -324,25 +365,25 @@ mod test {
         let unpacked_coordinates = QM31::unpack_from_felt(&packed_coordinates).unwrap();
         assert_eq!(coordinates, unpacked_coordinates);
 
-        let qm31 = QM31::from_coordinates([u64::MAX, 0, 0, 0]);
+        let qm31 = QM31::from_coordinates([u32::MAX, 0, 0, 0]);
         let felt: Felt = qm31.pack_into_felt();
         let felt_to_qm31 = QM31::unpack_from_felt(&felt).unwrap();
 
         assert_eq!(felt_to_qm31, qm31);
 
-        let qm31 = QM31::from_coordinates([u64::MAX, u64::MAX, 0, 0]);
+        let qm31 = QM31::from_coordinates([u32::MAX, u32::MAX, 0, 0]);
         let felt: Felt = qm31.pack_into_felt();
         let felt_to_qm31 = QM31::unpack_from_felt(&felt).unwrap();
 
         assert_eq!(felt_to_qm31, qm31);
 
-        let qm31 = QM31::from_coordinates([u64::MAX, u64::MAX, u64::MAX, 0]);
+        let qm31 = QM31::from_coordinates([u32::MAX, u32::MAX, u32::MAX, 0]);
         let felt: Felt = qm31.pack_into_felt();
         let felt_to_qm31 = QM31::unpack_from_felt(&felt).unwrap();
 
         assert_eq!(felt_to_qm31, qm31);
 
-        let qm31 = QM31::from_coordinates([u64::MAX, u64::MAX, u64::MAX, u64::MAX]);
+        let qm31 = QM31::from_coordinates([u32::MAX, u32::MAX, u32::MAX, u32::MAX]);
         let felt: Felt = qm31.pack_into_felt();
         let felt_to_qm31 = QM31::unpack_from_felt(&felt).unwrap();
 
@@ -452,13 +493,13 @@ mod test {
     }
 
     /// Necessary strat to use proptest on the QM31 test
-    fn configuration_strat() -> BoxedStrategy<u64> {
+    fn configuration_strat() -> BoxedStrategy<u32> {
         prop_oneof![Just(0), Just(1), Just(STWO_PRIME - 1), 0..STWO_PRIME].boxed()
     }
 
     proptest! {
         #[test]
-        fn qm31_packed_reduced_inv_random(x_coordinates in uniform4(0u64..STWO_PRIME)
+        fn qm31_packed_reduced_inv_random(x_coordinates in uniform4(0u32..STWO_PRIME)
                                                             .prop_filter("All configs cant be 0",
                                                             |arr| !arr.iter().all(|x| *x == 0))
         ) {
