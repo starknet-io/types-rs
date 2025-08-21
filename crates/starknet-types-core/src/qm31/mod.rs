@@ -50,10 +50,10 @@ impl QM31 {
         self.0
     }
 
-    /// Utility method to return the coordinates of a [QM31] as 64 values.
-    ///
+    /// Utility method to return the coordinates of a [QM31] as u64 values.
+    /// 
     /// This method is convinient for performing multications and inversions,
-    /// in which operating with the coordinates could result in overflows if
+    /// in which operating with the coordinates could result in overflows if 
     /// the 32 bit representation was used.
     fn inner_u64(&self) -> [u64; 4] {
         self.0.map(u64::from)
@@ -100,7 +100,7 @@ impl QM31 {
     /// Having coordinates \[C0, C1, C2, C3\], the resulting Felt is computed with the following ecuation:
     /// `felt = C0 + C1 << 36 + C2 << 72 + C3 << 108`
     ///
-    /// A QM31 is composed of 4 coordinates each represented with 31 bits which, for efficiency reasons,
+    /// A QM31 is composed of 4 coordinates each represented with 31 bits which, for efficiency reasons, 
     /// are packed as 36 bit values.
     pub fn pack_into_felt(&self) -> Felt {
         let coordinates = self.0;
