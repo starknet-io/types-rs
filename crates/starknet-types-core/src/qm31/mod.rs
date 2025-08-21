@@ -61,10 +61,12 @@ impl QM31 {
         ])
     }
 
-    /// Packs the [QM31] coordinates into a Felt.
+    /// Packs the [QM31] coordinates into a [Felt].
     ///
     /// A QM31 is composed of 4 coordinates each of which can be represented with 36 bits, meaning
-    /// it can be store in a Felt252. This method packs a given QM31 and stores it in the first 144 bits of a Felt252.
+    /// it can be store in a Felt. This method packs a given QM31 and stores it in the first 144 bits of a Felt.
+    /// Having coordinates \[C0, C1, C2, C3\], the resulting Felt is computed with the following ecuation:
+    /// `felt = C0 + C1 << 36 + C2 << 72 + C3 << 108``.
     pub fn pack_into_felt(&self) -> Felt {
         let coordinates = self.0;
 
