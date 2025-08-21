@@ -46,7 +46,7 @@ impl QM31 {
     /// [QM31] constant that's equal to 0.
     pub const ZERO: Self = Self([0, 0, 0, 0]);
 
-    pub fn inner(&self) -> [u32; 4] {
+    pub fn to_coordinates(&self) -> [u32; 4] {
         self.0
     }
 
@@ -55,7 +55,7 @@ impl QM31 {
     /// This method is convinient for performing multications and inversions,
     /// in which operating with the coordinates could result in overflows if
     /// the 32 bit representation was used.
-    fn inner_u64(&self) -> [u64; 4] {
+    fn to_coordinates_u64(&self) -> [u64; 4] {
         self.0.map(u64::from)
     }
 
@@ -156,8 +156,8 @@ impl QM31 {
     /// The algorithm was taken from the following papper: [Link](https://github.com/ingonyama-zk/papers/blob/main/Mersenne31_polynomial_arithmetic.pdf)
     /// Section 1.1.2.
     pub fn add(&self, rhs: &QM31) -> QM31 {
-        let coordinates1 = self.inner();
-        let coordinates2 = rhs.inner();
+        let coordinates1 = self.to_coordinates();
+        let coordinates2 = rhs.to_coordinates();
         let result_unreduced_coordinates = [
             coordinates1[0] + coordinates2[0],
             coordinates1[1] + coordinates2[1],
@@ -174,7 +174,7 @@ impl QM31 {
     /// The algorithm was taken from the following papper: [Link](https://github.com/ingonyama-zk/papers/blob/main/Mersenne31_polynomial_arithmetic.pdf)
     /// Section 1.1.2.
     pub fn neg(&self) -> QM31 {
-        let coordinates = self.inner();
+        let coordinates = self.to_coordinates();
         Self::reduce([
             STWO_PRIME - coordinates[0],
             STWO_PRIME - coordinates[1],
@@ -190,8 +190,8 @@ impl QM31 {
     /// The algorithm was taken from the following papper: [Link](https://github.com/ingonyama-zk/papers/blob/main/Mersenne31_polynomial_arithmetic.pdf)
     /// Section 1.1.2.
     pub fn sub(&self, rhs: &QM31) -> QM31 {
-        let coordinates1 = self.inner();
-        let coordinates2 = rhs.inner();
+        let coordinates1 = self.to_coordinates();
+        let coordinates2 = rhs.to_coordinates();
         let result_unreduced_coordinates = [
             STWO_PRIME + coordinates1[0] - coordinates2[0],
             STWO_PRIME + coordinates1[1] - coordinates2[1],
@@ -215,8 +215,8 @@ impl QM31 {
     /// The implementation of the QM31 multiplication is based on the following paper: [Link](https://github.com/ingonyama-zk/papers/blob/main/Mersenne31_polynomial_arithmetic.pdf)
     /// Section 1.3, Ecuation 1.20.
     pub fn mul(&self, rhs: &QM31) -> QM31 {
-        let coordinates1_u64 = self.inner_u64();
-        let coordinates2_u64 = rhs.inner_u64();
+        let coordinates1_u64 = self.to_coordinates_u64();
+        let coordinates2_u64 = rhs.to_coordinates_u64();
         let coordinates1 = coordinates1_u64.map(u128::from);
         let coordinates2 = coordinates2_u64.map(u128::from);
 
@@ -297,7 +297,7 @@ impl QM31 {
             return Err(QM31Error::InvalidInversion);
         }
 
-        let coordinates = self.inner_u64();
+        let coordinates = self.to_coordinates_u64();
 
         let b2_r = (coordinates[2] * coordinates[2] + STWO_PRIME_U64 * STWO_PRIME_U64
             - coordinates[3] * coordinates[3])
@@ -409,7 +409,7 @@ mod test {
         let x = QM31::from_coordinates(x_coordinates);
         let y = QM31::from_coordinates(y_coordinates);
         let res = x.add(&y);
-        let res_coordinates = res.inner();
+        let res_coordinates = res.to_coordinates();
         assert_eq!(
             res_coordinates,
             [
@@ -426,7 +426,7 @@ mod test {
         let x_coordinates = [1749652895, 834624081, 1930174752, 2063872165];
         let x = QM31::from_coordinates(x_coordinates);
         let res = x.neg();
-        let res_coordinates = res.inner();
+        let res_coordinates = res.to_coordinates();
         assert_eq!(
             res_coordinates,
             [
@@ -450,7 +450,7 @@ mod test {
         let x = QM31::from_coordinates(x_coordinates);
         let y = QM31::from_coordinates(y_coordinates);
         let res = x.sub(&y);
-        let res_coordinates = res.inner();
+        let res_coordinates = res.to_coordinates();
         assert_eq!(
             res_coordinates,
             [1234567890, 1414213562, 1732050807, 1618033988]
@@ -464,7 +464,7 @@ mod test {
         let x = QM31::from_coordinates(x_coordinates);
         let y = QM31::from_coordinates(y_coordinates);
         let res = x.mul(&y);
-        let res_coordinates = res.inner();
+        let res_coordinates = res.to_coordinates();
         assert_eq!(
             res_coordinates,
             [947980980, 1510986506, 623360030, 1260310989]
