@@ -149,4 +149,34 @@ mod test {
             assert_eq!(packed_qm31, Felt::from(expected_packing))
         }
     }
+
+    #[test]
+    fn qm31_invalid_packing() {
+        const MAX: u64 = MERSENNE_31_PRIME_FIELD_ORDER as u64 - 1;
+
+        let cases = [
+            [MAX + 1, 0, 0, 0],
+            [0, MAX + 1, 0, 0],
+            [0, 0, MAX + 1, 0],
+            [0, 0, 0, MAX + 1],
+        ];
+
+        for [c1, c2, c3, c4] in cases {
+            let invalid_packing = Felt::from(
+                BigInt::from(c1)
+                    + (BigInt::from(c2) << 36)
+                    + (BigInt::from(c3) << 72)
+                    + (BigInt::from(c4) << 108),
+            );
+
+            QM31::unpack_from_felt(&invalid_packing).unwrap_err();
+        }
+    }
+
+    #[test]
+    fn qm31_packing_with_high_bits() {
+        let invalid_packing = Felt::from(BigInt::from(1) << 200);
+
+        QM31::unpack_from_felt(&invalid_packing).unwrap_err();
+    }
 }
