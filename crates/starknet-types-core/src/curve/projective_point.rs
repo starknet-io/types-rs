@@ -3,6 +3,7 @@ use crate::curve::curve_errors::CurveError;
 use crate::felt::Felt;
 use core::ops;
 use lambdaworks_math::cyclic_group::IsGroup;
+use lambdaworks_math::elliptic_curve::point::ProjectivePoint as LambdaworksProjectivePoint;
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::stark_curve::StarkCurve;
 use lambdaworks_math::elliptic_curve::short_weierstrass::point::ShortWeierstrassProjectivePoint;
 use lambdaworks_math::elliptic_curve::traits::EllipticCurveError::InvalidPoint;
@@ -15,8 +16,10 @@ use lambdaworks_math::unsigned_integer::traits::IsUnsignedInteger;
 pub struct ProjectivePoint(pub(crate) ShortWeierstrassProjectivePoint<StarkCurve>);
 
 impl ProjectivePoint {
-    pub fn new(x: Felt, y: Felt, z: Felt) -> ProjectivePoint {
-        Self(ShortWeierstrassProjectivePoint::new([x.0, y.0, z.0]))
+    pub fn new_unchecked(x: Felt, y: Felt, z: Felt) -> ProjectivePoint {
+        Self(ShortWeierstrassProjectivePoint(
+            LambdaworksProjectivePoint::new([x.0, y.0, z.0]),
+        ))
     }
 
     /// The point at infinity.
@@ -201,7 +204,7 @@ mod test {
 
     #[test]
     fn try_from_affine() {
-        let projective_point = ProjectivePoint::new(
+        let projective_point = ProjectivePoint::new_unchecked(
             Felt::from_dec_str(
                 "874739451078007766457464989774322083649278607533249481151382481072868806602",
             )
@@ -265,7 +268,7 @@ mod test {
         assert!(identity.is_identity());
         assert_eq!(
             identity,
-            ProjectivePoint::new(Felt::from(0), Felt::from(1), Felt::from(0))
+            ProjectivePoint::new_unchecked(Felt::from(0), Felt::from(1), Felt::from(0))
         );
 
         assert_eq!(
@@ -273,7 +276,7 @@ mod test {
             Err(CurveError::EllipticCurveError(InvalidPoint))
         );
 
-        let a = ProjectivePoint::new(
+        let a = ProjectivePoint::new_unchecked(
             Felt::from_dec_str(
                 "874739451078007766457464989774322083649278607533249481151382481072868806602",
             )
@@ -290,7 +293,7 @@ mod test {
     #[test]
     // Results checked against starknet-rs https://github.com/xJonathanLEI/starknet-rs/
     fn add_operations() {
-        let projective_point_1 = ProjectivePoint::new(
+        let projective_point_1 = ProjectivePoint::new_unchecked(
             Felt::from_dec_str(
                 "874739451078007766457464989774322083649278607533249481151382481072868806602",
             )
@@ -325,7 +328,7 @@ mod test {
     #[test]
     // Results checked against starknet-rs https://github.com/xJonathanLEI/starknet-rs/
     fn add_operations_with_affine() {
-        let projective_point = ProjectivePoint::new(
+        let projective_point = ProjectivePoint::new_unchecked(
             Felt::from_dec_str(
                 "874739451078007766457464989774322083649278607533249481151382481072868806602",
             )
@@ -358,7 +361,7 @@ mod test {
     #[test]
     // Results checked against starknet-rs https://github.com/xJonathanLEI/starknet-rs/
     fn add_operations_with_affine_no_pointer() {
-        let projective_point = ProjectivePoint::new(
+        let projective_point = ProjectivePoint::new_unchecked(
             Felt::from_dec_str(
                 "874739451078007766457464989774322083649278607533249481151382481072868806602",
             )
@@ -391,7 +394,7 @@ mod test {
     #[test]
     // Results checked against starknet-rs https://github.com/xJonathanLEI/starknet-rs/
     fn add_assign_operations() {
-        let mut projective_point_1 = ProjectivePoint::new(
+        let mut projective_point_1 = ProjectivePoint::new_unchecked(
             Felt::from_dec_str(
                 "874739451078007766457464989774322083649278607533249481151382481072868806602",
             )
@@ -427,7 +430,7 @@ mod test {
     #[test]
     // Results checked against starknet-rs https://github.com/xJonathanLEI/starknet-rs/
     fn add_assign_operations_with_affine() {
-        let mut projective_point = ProjectivePoint::new(
+        let mut projective_point = ProjectivePoint::new_unchecked(
             Felt::from_dec_str(
                 "874739451078007766457464989774322083649278607533249481151382481072868806602",
             )
@@ -463,7 +466,7 @@ mod test {
     #[test]
     // Results checked against starknet-rs https://github.com/xJonathanLEI/starknet-rs/
     fn add_assign_operations_with_affine_no_pointer() {
-        let mut projective_point = ProjectivePoint::new(
+        let mut projective_point = ProjectivePoint::new_unchecked(
             Felt::from_dec_str(
                 "874739451078007766457464989774322083649278607533249481151382481072868806602",
             )
@@ -507,7 +510,7 @@ mod test {
             identity
         );
 
-        let projective_point_1 = ProjectivePoint::new(
+        let projective_point_1 = ProjectivePoint::new_unchecked(
             Felt::from_dec_str(
                 "685118385380464480289795596422487144864558069280897344382334516257395969277",
             )
@@ -539,7 +542,7 @@ mod test {
 
     #[test]
     fn mul_by_scalar_operations_with_felt() {
-        let a = ProjectivePoint::new(
+        let a = ProjectivePoint::new_unchecked(
             Felt::from_dec_str(
                 "685118385380464480289795596422487144864558069280897344382334516257395969277",
             )
@@ -564,7 +567,7 @@ mod test {
     #[test]
     // Results checked against starknet-rs https://github.com/xJonathanLEI/starknet-rs/
     fn double_operations() {
-        let projective_point = ProjectivePoint::new(
+        let projective_point = ProjectivePoint::new_unchecked(
             Felt::from_dec_str(
                 "874739451078007766457464989774322083649278607533249481151382481072868806602",
             )
@@ -594,7 +597,7 @@ mod test {
 
     #[test]
     fn neg_operations() {
-        let a = ProjectivePoint::new(
+        let a = ProjectivePoint::new_unchecked(
             Felt::from_dec_str(
                 "685118385380464480289795596422487144864558069280897344382334516257395969277",
             )
@@ -606,7 +609,7 @@ mod test {
             Felt::from(1),
         );
 
-        let b = ProjectivePoint::new(
+        let b = ProjectivePoint::new_unchecked(
             Felt::from_dec_str(
                 "685118385380464480289795596422487144864558069280897344382334516257395969277",
             )
@@ -623,7 +626,7 @@ mod test {
 
     #[test]
     fn sub_operations_pointers() {
-        let mut a = ProjectivePoint::new(
+        let mut a = ProjectivePoint::new_unchecked(
             Felt::from_dec_str(
                 "685118385380464480289795596422487144864558069280897344382334516257395969277",
             )
@@ -645,7 +648,7 @@ mod test {
 
     #[test]
     fn sub_operations() {
-        let mut a = ProjectivePoint::new(
+        let mut a = ProjectivePoint::new_unchecked(
             Felt::from_dec_str(
                 "685118385380464480289795596422487144864558069280897344382334516257395969277",
             )
