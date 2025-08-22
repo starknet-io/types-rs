@@ -235,7 +235,7 @@ impl Felt {
 
     /// Finite field division.
     pub fn field_div(&self, rhs: &NonZeroFelt) -> Self {
-        Self(self.0 / rhs.0)
+        Self((self.0 / rhs.0).expect("dividing by a non zero felt will never fail"))
     }
 
     /// Truncated quotient between `self` and `rhs`.
