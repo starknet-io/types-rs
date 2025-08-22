@@ -16,6 +16,10 @@ use lambdaworks_math::unsigned_integer::traits::IsUnsignedInteger;
 pub struct ProjectivePoint(pub(crate) ShortWeierstrassProjectivePoint<StarkCurve>);
 
 impl ProjectivePoint {
+    pub fn new(x: Felt, y: Felt, z: Felt) -> Result<ProjectivePoint, CurveError> {
+        Ok(Self(ShortWeierstrassProjectivePoint::new([x.0, y.0, z.0])?))
+    }
+
     pub fn new_unchecked(x: Felt, y: Felt, z: Felt) -> ProjectivePoint {
         Self(ShortWeierstrassProjectivePoint(
             LambdaworksProjectivePoint::new([x.0, y.0, z.0]),
