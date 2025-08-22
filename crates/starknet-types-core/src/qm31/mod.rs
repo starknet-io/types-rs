@@ -1,3 +1,5 @@
+use std::fmt;
+
 use lambdaworks_math::field::{
     element::FieldElement,
     fields::mersenne31::{extensions::Degree4ExtensionField, field::MERSENNE_31_PRIME_FIELD_ORDER},
@@ -12,6 +14,18 @@ use crate::felt::Felt;
 /// field. Thus, a QM31 is represented by four M31 coordinates.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct QM31(pub FieldElement<Degree4ExtensionField>);
+
+#[derive(Debug, Clone, Copy)]
+pub struct InvalidQM31Packing(pub Felt);
+
+#[cfg(feature = "std")]
+impl std::error::Error for InvalidQM31Packing {}
+
+impl fmt::Display for InvalidQM31Packing {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "felt is not a packed QM31: {}", self.0)
+    }
+}
 
 impl QM31 {
     /// Packs the [QM31] into a [Felt].
@@ -45,7 +59,7 @@ impl QM31 {
     ///
     /// See the method [QM31::pack_into_felt] for a detailed explanation on the
     /// packing format.
-    pub fn unpack_from_felt(felt: &Felt) -> QM31 {
+    pub fn unpack_from_felt(felt: &Felt) -> Result<QM31, InvalidQM31Packing> {
         const MASK_36: u64 = (1 << 36) - 1;
         const MASK_8: u64 = (1 << 8) - 1;
 
@@ -54,7 +68,7 @@ impl QM31 {
         // The QM31 is packed in the first 144 bits,
         // the remaining bits must be zero.
         if digits[3] != 0 || digits[2] >= 1 << 16 {
-            panic!("a")
+            return Err(InvalidQM31Packing(*felt));
         }
 
         // Unpack as: c1 + c2 << 36 + c3 << 36*2 + c4 << 36*3.
@@ -67,13 +81,13 @@ impl QM31 {
         // the maximum value is still the field prime.
         for c in [c1, c2, c3, c4] {
             if c >= MERSENNE_31_PRIME_FIELD_ORDER as u64 {
-                panic!("b")
+                return Err(InvalidQM31Packing(*felt));
             }
         }
 
-        QM31(Degree4ExtensionField::const_from_coefficients(
+        Ok(QM31(Degree4ExtensionField::const_from_coefficients(
             c1 as u32, c2 as u32, c3 as u32, c4 as u32,
-        ))
+        )))
     }
 }
 
@@ -103,7 +117,7 @@ mod test {
                 c1, c2, c3, c4,
             ));
             let packed_qm31 = qm31.pack_into_felt();
-            let unpacked_qm31 = QM31::unpack_from_felt(&packed_qm31);
+            let unpacked_qm31 = QM31::unpack_from_felt(&packed_qm31).unwrap();
 
             assert_eq!(qm31, unpacked_qm31)
         }
