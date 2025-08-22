@@ -10,7 +10,7 @@ use crate::felt::Felt;
 /// A value in the Degree-4 (quadruple) extension of the Mersenne 31 field.
 ///
 /// Each QM31 value is represented by two values in the Degree-2 (complex)
-/// extension, and each of these is represented with two values in the base
+/// extension, and each of these is represented by two values in the base
 /// field. Thus, a QM31 is represented by four M31 coordinates.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct QM31(pub FieldElement<Degree4ExtensionField>);
