@@ -57,3 +57,63 @@ impl QM31 {
         ))
     }
 }
+
+#[cfg(test)]
+mod test {
+    use lambdaworks_math::field::fields::mersenne31::{
+        extensions::Degree4ExtensionField, field::MERSENNE_31_PRIME_FIELD_ORDER,
+    };
+    use num_bigint::BigInt;
+
+    use crate::{felt::Felt, qm31::QM31};
+
+    #[test]
+    fn qm31_packing_and_unpacking() {
+        const MAX: u32 = MERSENNE_31_PRIME_FIELD_ORDER - 1;
+
+        let cases = [
+            [1, 2, 3, 4],
+            [MAX, 0, 0, 0],
+            [MAX, MAX, 0, 0],
+            [MAX, MAX, MAX, 0],
+            [MAX, MAX, MAX, MAX],
+        ];
+
+        for [c1, c2, c3, c4] in cases {
+            let qm31 = QM31(Degree4ExtensionField::const_from_coefficients(
+                c1, c2, c3, c4,
+            ));
+            let packed_qm31 = qm31.pack_into_felt();
+            let unpacked_qm31 = QM31::unpack_from_felt(&packed_qm31);
+
+            assert_eq!(qm31, unpacked_qm31)
+        }
+    }
+
+    #[test]
+    fn qm31_packing() {
+        const MAX: u32 = MERSENNE_31_PRIME_FIELD_ORDER - 2;
+
+        let cases = [
+            [1, 2, 3, 4],
+            [MAX, 0, 0, 0],
+            [MAX, MAX, 0, 0],
+            [MAX, MAX, MAX, 0],
+            [MAX, MAX, MAX, MAX],
+        ];
+
+        for [c1, c2, c3, c4] in cases {
+            let qm31 = QM31(Degree4ExtensionField::const_from_coefficients(
+                c1, c2, c3, c4,
+            ));
+            let packed_qm31 = qm31.pack_into_felt();
+
+            let expected_packing = BigInt::from(c1)
+                + (BigInt::from(c2) << 36)
+                + (BigInt::from(c3) << 72)
+                + (BigInt::from(c4) << 108);
+
+            assert_eq!(packed_qm31, Felt::from(expected_packing))
+        }
+    }
+}
