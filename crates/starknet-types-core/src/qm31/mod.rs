@@ -3,7 +3,7 @@
 //! The QM31 type represents a Degree-4 extension the Mersenne 31 Field. This extension can be
 //! represented as two components of the Complex extension the Mersenne 31 Field as follows ((a, b), (c, d)), where
 //! a, b, c and d represent a value from the Mersenne 31 Field, denotated as M31.
-//! If anly a M31 was used by the verifier, then a 31 bit value wouldn't be enough to provide security
+//! If only a M31 was used by the verifier, then a 31 bit value wouldn't be enough to provide security
 //! to the verification. A QM31 not only provides an efficient arithmetic field, since it is composed of four M31 values, but
 //! also allows for a more secure level of verification as it offers a 124 bit value. By using this extension,
 //! the verifier is able to generate challeges with a proper level of randomness, ensuring the security of the protocol.
