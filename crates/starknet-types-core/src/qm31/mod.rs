@@ -1,18 +1,20 @@
 //! A Cairo-like QM31 type.
 //!
 //! The QM31 type represents a Degree-4 extension in the Mersenne 31 field. This extension can be
-//! represented as two components of the Complex extension the Mersenne 31 field as follows ((a, b), (c, d)), where
-//! a, b, c and d represent a value from the Mersenne 31 field, denotated as M31.
-//! If only a M31 was used by the verifier, then a 31 bit value wouldn't be enough to provide security
+//! represented as two components of the Complex extension in the Mersenne 31 field as follows ((a, b), (c, d)), where
+//! a, b, c and d represent a value from the Mersenne 31 field, denotated as M31. These four values represent the coordinates
+//! of a QM31.
+//! If only an M31 was used by a verifier, then a 31 bit value wouldn't be enough to provide security
 //! to the verification. A QM31 not only provides an efficient arithmetic field, since it is composed of four M31 values, but
 //! also allows for a more secure level of verification as it offers a 124 bit value. By using this extension,
-//! the verifier is able to generate challeges with a proper level of randomness, ensuring the security of the protocol.
+//! a verifier is able to generate challenges with a proper level of randomness, ensuring the security of the protocol.
 //!
 //! While the Cairo language's representation of QM31 consists of four `BoundedInt`s
-//! simulating a 31 bit value, this implementation uses four 32 bit values.
+//! simulating a 31 bit value, this implementation uses four 32 bit values. The refered
+//! representation can be seen here: [Link](https://github.com/starkware-libs/cairo/blob/main/corelib/src/qm31.cairo#L7).
 //!
-//! The conversion to a Felt is done by using the four elements of the struct, refered to as coordinates, as bytes and then 
-//! parsed as a little endian value. For a more efficient Felt representation, each coordinate is stored as a 36 bit. Hence, 
+//! The conversion to a Felt is done by using the four cordinates of the struct as bytes and then
+//! parsed as a little endian value. For a more efficient Felt representation, each coordinate is stored as a 36 bit. Hence,
 //! a QM31 can be represented with the first 144 bits of a Felt.
 
 use core::fmt;
