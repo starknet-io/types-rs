@@ -1,3 +1,7 @@
+//! A value in the Degree-4 (quadruple) extension of the Mersenne 31 field.
+//!
+//! The Marsenne 31 field is used by the Stwo prover.
+
 use std::fmt;
 
 use lambdaworks_math::field::{
