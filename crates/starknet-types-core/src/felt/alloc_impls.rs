@@ -21,12 +21,7 @@ impl Felt {
     /// The resulting string is guaranted to be 66 chars long, which is enough to represent `Felt::MAX`:
     /// 2 chars for the `0x` prefix and 64 chars for the padded hexadecimal felt value.
     pub fn to_fixed_hex_string(&self) -> alloc::string::String {
-        let hex_str = alloc::format!("{self:#x}");
-        if hex_str.len() < 66 {
-            alloc::format!("0x{:0>64}", hex_str.strip_prefix("0x").unwrap())
-        } else {
-            hex_str
-        }
+        alloc::format!("{self:#066x}")
     }
 }
 
@@ -35,22 +30,7 @@ impl fmt::LowerHex for Felt {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let hex = alloc::string::ToString::to_string(&self.0);
         let hex = hex.strip_prefix("0x").unwrap();
-
-        let width = if f.sign_aware_zero_pad() {
-            f.width().unwrap().min(64)
-        } else {
-            1
-        };
-        if f.alternate() {
-            write!(f, "0x")?;
-        }
-
-        if hex.len() < width {
-            for _ in 0..(width - hex.len()) {
-                write!(f, "0")?;
-            }
-        }
-        write!(f, "{}", hex)
+        f.pad_integral(true, if f.alternate() { "0x" } else { "" }, hex)
     }
 }
 
@@ -59,22 +39,7 @@ impl fmt::UpperHex for Felt {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let hex = alloc::string::ToString::to_string(&self.0);
         let hex = hex.strip_prefix("0x").unwrap().to_uppercase();
-
-        let width = if f.sign_aware_zero_pad() {
-            f.width().unwrap().min(64)
-        } else {
-            1
-        };
-        if f.alternate() {
-            write!(f, "0x")?;
-        }
-
-        if hex.len() < width {
-            for _ in 0..(width - hex.len()) {
-                write!(f, "0")?;
-            }
-        }
-        write!(f, "{}", hex)
+        f.pad_integral(true, if f.alternate() { "0x" } else { "" }, &hex)
     }
 }
 
