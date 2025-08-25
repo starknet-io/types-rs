@@ -33,7 +33,6 @@ impl AffinePoint {
             y.0,
             Felt::ONE.0,
         ])))
-
     }
 
     /// Construct new affine point from the `x` coordinate and the parity bit `y_parity`.
