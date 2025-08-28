@@ -6,7 +6,11 @@ use std::fmt;
 
 use lambdaworks_math::field::{
     element::FieldElement,
-    fields::mersenne31::{extensions::Degree4ExtensionField, field::MERSENNE_31_PRIME_FIELD_ORDER},
+    fields::mersenne31::{
+        extensions::Degree4ExtensionField,
+        field::{Mersenne31Field, MERSENNE_31_PRIME_FIELD_ORDER},
+    },
+    traits::IsField,
 };
 
 use crate::felt::Felt;
@@ -32,6 +36,28 @@ impl fmt::Display for InvalidQM31Packing {
 }
 
 impl QM31 {
+    /// Creates a QM31 from four M31 elements.
+    pub fn from_coefficients(a: u32, b: u32, c: u32, d: u32) -> Self {
+        Self(Degree4ExtensionField::const_from_coefficients(
+            Mersenne31Field::from_base_type(a),
+            Mersenne31Field::from_base_type(b),
+            Mersenne31Field::from_base_type(c),
+            Mersenne31Field::from_base_type(d),
+        ))
+    }
+
+    /// Extracts M31 elements from a QM31.
+    pub fn to_coefficients(&self) -> (u32, u32, u32, u32) {
+        // Take CM31 coordinates from QM31.
+        let [a, b] = self.0.value();
+
+        // Take M31 Coordinates from both CM31.
+        let [c1, c2] = a.value();
+        let [c3, c4] = b.value();
+
+        (c1.to_raw(), c2.to_raw(), c3.to_raw(), c4.to_raw())
+    }
+
     /// Packs the [QM31] into a [Felt].
     ///
     /// Stores the four M31 coordinates in the first 144 bits of a Felt. Each
@@ -43,16 +69,11 @@ impl QM31 {
     /// (that representation is efficient for multiplication). 36 is the first
     /// multiple of 9 that is greater than 31.
     pub fn pack_into_felt(&self) -> Felt {
-        // Take CM31 coordinates from QM31.
-        let [a, b] = self.0.value();
-
-        // Take M31 Coordinates from both CM31.
-        let [c1, c2] = a.value();
-        let [c3, c4] = b.value();
+        let (c1, c2, c3, c4) = self.to_coefficients();
 
         // Pack as: c1 + c2 << 36 + c3 << 36*2 + c4 << 36*3.
-        let lo = c1.to_raw() as u128 + ((c2.to_raw() as u128) << 36);
-        let hi = c3.to_raw() as u128 + ((c4.to_raw() as u128) << 36);
+        let lo = c1 as u128 + ((c2 as u128) << 36);
+        let hi = c3 as u128 + ((c4 as u128) << 36);
         let mut felt_bytes = [0u8; 32];
         felt_bytes[0..9].copy_from_slice(&lo.to_le_bytes()[0..9]);
         felt_bytes[9..18].copy_from_slice(&hi.to_le_bytes()[0..9]);
