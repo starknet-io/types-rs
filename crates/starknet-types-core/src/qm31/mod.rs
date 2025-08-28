@@ -2,10 +2,12 @@
 //!
 //! The Marsenne 31 field is used by the Stwo prover.
 
+use core::ops::{Add, AddAssign, Div, Mul, MulAssign, Neg, Sub};
 use std::fmt;
 
 use lambdaworks_math::field::{
     element::FieldElement,
+    errors::FieldError,
     fields::mersenne31::{
         extensions::Degree4ExtensionField,
         field::{Mersenne31Field, MERSENNE_31_PRIME_FIELD_ORDER},
@@ -113,6 +115,52 @@ impl QM31 {
         Ok(QM31(Degree4ExtensionField::const_from_coefficients(
             c1 as u32, c2 as u32, c3 as u32, c4 as u32,
         )))
+    }
+}
+
+impl Add for QM31 {
+    type Output = QM31;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Self(self.0.add(rhs.0))
+    }
+}
+impl Sub for QM31 {
+    type Output = QM31;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        Self(self.0.sub(rhs.0))
+    }
+}
+impl Mul for QM31 {
+    type Output = QM31;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        Self(self.0.mul(rhs.0))
+    }
+}
+impl Div for QM31 {
+    type Output = Result<QM31, FieldError>;
+
+    fn div(self, rhs: Self) -> Self::Output {
+        Ok(Self(self.0.div(rhs.0)?))
+    }
+}
+impl AddAssign for QM31 {
+    fn add_assign(&mut self, rhs: Self) {
+        self.0.add_assign(rhs.0);
+    }
+}
+impl MulAssign for QM31 {
+    fn mul_assign(&mut self, rhs: Self) {
+        self.0.mul_assign(rhs.0);
+    }
+}
+impl Neg for QM31 {
+    type Output = QM31;
+
+    fn neg(self) -> Self::Output {
+        Self(self.0.neg())
     }
 }
 
