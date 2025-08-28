@@ -20,7 +20,16 @@ impl ProjectivePoint {
         Ok(Self(ShortWeierstrassProjectivePoint::new([x.0, y.0, z.0])?))
     }
 
-    pub fn new_unchecked(x: Felt, y: Felt, z: Felt) -> ProjectivePoint {
+    /// Creates a new short Weierstrass projective point, assuming the coordinates are valid.
+    ///
+    /// The coordinates are valid if the equation `y^2 * z = x^3 + a * x * z^2 + b * z^3`
+    /// holds, Where `a` and `b` are the short Weierstrass coefficients of the Stark
+    /// curve. Furthermore, the coordinates in the form `[0, _, 0]` all satisfy the
+    /// equation, and should be always transformed to the infinity value `[0, 1, 0]`.
+    ///
+    /// SAFETY: Failing to guarantee this assumptions could lead to a runtime panic
+    /// while operating with the value.
+    pub const fn new_unchecked(x: Felt, y: Felt, z: Felt) -> ProjectivePoint {
         Self(ShortWeierstrassProjectivePoint(
             LambdaworksProjectivePoint::new([x.0, y.0, z.0]),
         ))
