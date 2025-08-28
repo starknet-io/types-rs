@@ -117,6 +117,11 @@ impl QM31 {
             c1 as u32, c2 as u32, c3 as u32, c4 as u32,
         )))
     }
+
+    /// Multiplicative inverse inside field.
+    pub fn inverse(&self) -> Result<Self, FieldError> {
+        Ok(Self(self.0.inv()?))
+    }
 }
 
 impl Zero for QM31 {
