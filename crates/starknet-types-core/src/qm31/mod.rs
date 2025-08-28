@@ -20,7 +20,7 @@ use crate::felt::Felt;
 /// Each QM31 value is represented by two values in the Degree-2 (complex)
 /// extension, and each of these is represented by two values in the base
 /// field. Thus, a QM31 is represented by four M31 coordinates.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct QM31(pub FieldElement<Degree4ExtensionField>);
 
 #[derive(Debug, Clone, Copy)]
