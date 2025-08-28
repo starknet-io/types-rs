@@ -54,7 +54,7 @@ impl QM31 {
         // Take CM31 coordinates from QM31.
         let [a, b] = self.0.value();
 
-        // Take M31 Coordinates from both CM31.
+        // Take M31 coordinates from both CM31.
         let [c1, c2] = a.value();
         let [c3, c4] = b.value();
 
