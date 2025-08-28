@@ -14,6 +14,7 @@ use lambdaworks_math::field::{
     },
     traits::IsField,
 };
+use num_traits::Zero;
 
 use crate::felt::Felt;
 
@@ -118,6 +119,15 @@ impl QM31 {
     }
 }
 
+impl Zero for QM31 {
+    fn zero() -> Self {
+        Self(FieldElement::<Degree4ExtensionField>::zero())
+    }
+
+    fn is_zero(&self) -> bool {
+        self == &Self::zero()
+    }
+}
 impl Add for QM31 {
     type Output = QM31;
 
