@@ -3,7 +3,6 @@
 //! The Marsenne 31 field is used by the Stwo prover.
 
 use core::ops::{Add, AddAssign, Div, Mul, MulAssign, Neg, Sub};
-use std::fmt;
 
 use lambdaworks_math::field::{
     element::FieldElement,
@@ -34,8 +33,9 @@ pub struct InvalidQM31Packing(pub Felt);
 #[cfg(feature = "std")]
 impl std::error::Error for InvalidQM31Packing {}
 
-impl fmt::Display for InvalidQM31Packing {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+#[cfg(feature = "std")]
+impl std::fmt::Display for InvalidQM31Packing {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "felt is not a packed QM31: {}", self.0)
     }
 }
