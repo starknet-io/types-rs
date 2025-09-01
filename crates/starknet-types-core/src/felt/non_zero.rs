@@ -19,10 +19,9 @@ impl NonZeroFelt {
     /// # Safety
     /// If the value is zero will panic.
     pub const fn from_raw(value: [u64; 4]) -> Self {
-        assert!(
-            value[0] != 0 || value[1] != 0 || value[2] != 0 || value[3] != 0,
-            "Felt is zero"
-        );
+        if value[0] == 0 && value[1] == 0 && value[2] == 0 && value[3] == 0 {
+            panic!("Felt is zero");
+        }
         let value = Felt::from_raw(value);
         Self(value.0)
     }
