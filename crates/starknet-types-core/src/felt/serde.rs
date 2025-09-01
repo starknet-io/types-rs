@@ -84,6 +84,7 @@ impl de::Visitor<'_> for FeltVisitor {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use bincode::Options;
     use proptest::prelude::*;
     use serde_test::{assert_tokens, Configure, Token};
 
@@ -119,6 +120,20 @@ mod tests {
             &Felt::from_hex_unchecked("0xbabe0000").compact(),
             &[Token::Bytes(&[0xba, 0xbe, 0, 0])],
         );
+    }
+
+    #[test]
+    fn backward_compatible_deserialization() {
+        static TWO_SERIALIZED_USING_PREVIOUS_IMPLEMENTATION: [u8; 33] = [
+            32, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 2,
+        ];
+
+        let options = bincode::DefaultOptions::new();
+        let deserialized = options
+            .deserialize(&TWO_SERIALIZED_USING_PREVIOUS_IMPLEMENTATION)
+            .unwrap();
+        assert_eq!(Felt::TWO, deserialized);
     }
 
     proptest! {
