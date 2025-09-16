@@ -9,6 +9,8 @@ pub mod felt;
 pub mod qm31;
 
 #[cfg(feature = "alloc")]
+pub mod contract_address;
+#[cfg(feature = "alloc")]
 pub mod short_string;
 pub mod u256;
 
