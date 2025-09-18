@@ -11,7 +11,6 @@ use lambdaworks_math::field::{
         extensions::{Degree2ExtensionField, Degree4ExtensionField},
         field::{Mersenne31Field, MERSENNE_31_PRIME_FIELD_ORDER},
     },
-    traits::IsField,
 };
 
 #[cfg(feature = "num-traits")]
@@ -185,9 +184,7 @@ impl Neg for QM31 {
 
 #[cfg(test)]
 mod test {
-    use lambdaworks_math::field::fields::mersenne31::{
-        extensions::Degree4ExtensionField, field::MERSENNE_31_PRIME_FIELD_ORDER,
-    };
+    use lambdaworks_math::field::fields::mersenne31::field::MERSENNE_31_PRIME_FIELD_ORDER;
     use num_bigint::BigInt;
 
     use crate::{
