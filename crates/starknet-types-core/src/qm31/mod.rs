@@ -161,6 +161,10 @@ impl Div for QM31 {
     type Output = Result<QM31, FieldError>;
 
     fn div(self, rhs: Self) -> Self::Output {
+        // While this function returns a `Result` it will always return the `Ok` variant.
+        // v0.3.0 bumped lambdaworks from 0.10.0 to 0.12.0 but v0.3.1 downgraded it to 0.11.0
+        // so the idea is to preserve the API.
+        // This function should be simplified before releasing a major version (i.e. 0.4.0)
         Ok(Self(self.0.div(rhs.0)))
     }
 }
