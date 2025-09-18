@@ -48,7 +48,7 @@ impl std::fmt::Display for InvalidQM31Packing {
 impl QM31 {
     /// Creates a QM31 from four M31 elements.
     pub fn from_coefficients(a: u32, b: u32, c: u32, d: u32) -> Self {
-        Self(const_from_coefficients(a, b, c, d))
+        Self(const_fp4e_from_coefficients(a, b, c, d))
     }
 
     /// Extracts M31 elements from a QM31.
@@ -115,7 +115,7 @@ impl QM31 {
             }
         }
 
-        Ok(Self(const_from_coefficients(
+        Ok(Self(const_fp4e_from_coefficients(
             c1 as u32, c2 as u32, c3 as u32, c4 as u32,
         )))
     }
@@ -176,7 +176,7 @@ impl Neg for QM31 {
     }
 }
 
-const fn const_from_coefficients(a: u32, b: u32, c: u32, d: u32) -> Fp4E {
+const fn const_fp4e_from_coefficients(a: u32, b: u32, c: u32, d: u32) -> Fp4E {
     Fp4E::const_from_raw([
         Fp2E::const_from_raw([FpE::const_from_raw(a), FpE::const_from_raw(b)]),
         Fp2E::const_from_raw([FpE::const_from_raw(c), FpE::const_from_raw(d)]),
@@ -190,7 +190,7 @@ mod test {
 
     use crate::{
         felt::Felt,
-        qm31::{const_from_coefficients, QM31},
+        qm31::{const_fp4e_from_coefficients, QM31},
     };
 
     #[test]
@@ -206,7 +206,7 @@ mod test {
         ];
 
         for [c1, c2, c3, c4] in cases {
-            let qm31 = QM31(const_from_coefficients(
+            let qm31 = QM31(const_fp4e_from_coefficients(
                 c1 as u32, c2 as u32, c3 as u32, c4 as u32,
             ));
             let packed_qm31 = qm31.pack_into_felt();
@@ -229,7 +229,7 @@ mod test {
         ];
 
         for [c1, c2, c3, c4] in cases {
-            let qm31 = QM31(const_from_coefficients(
+            let qm31 = QM31(const_fp4e_from_coefficients(
                 c1 as u32, c2 as u32, c3 as u32, c4 as u32,
             ));
             let packed_qm31 = qm31.pack_into_felt();
