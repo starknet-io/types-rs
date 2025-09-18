@@ -17,7 +17,7 @@ pub struct ProjectivePoint(pub(crate) ShortWeierstrassProjectivePoint<StarkCurve
 
 impl ProjectivePoint {
     pub fn new(x: Felt, y: Felt, z: Felt) -> Result<ProjectivePoint, CurveError> {
-        Ok(Self(ShortWeierstrassProjectivePoint::new([x.0, y.0, z.0])?))
+        Ok(Self(ShortWeierstrassProjectivePoint::new([x.0, y.0, z.0])))
     }
 
     /// Creates a new short Weierstrass projective point, assuming the coordinates are valid.
