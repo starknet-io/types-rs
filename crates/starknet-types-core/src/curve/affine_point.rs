@@ -115,16 +115,16 @@ mod test {
     #[test]
     fn affine_point_new_unchecked() {
         let a = AffinePoint::new(
-            Felt::from_hex_unchecked("0x2d39148a92f479fb077389d"),
-            Felt::from_hex_unchecked(
+            Felt::from_hex_unwrap("0x2d39148a92f479fb077389d"),
+            Felt::from_hex_unwrap(
                 "0x11a2681208d7c128580162110d9e6ddb0bd34e42ace22dcc7f52f9939e11df6",
             ),
         )
         .unwrap();
 
         let b = AffinePoint::new_unchecked(
-            Felt::from_hex_unchecked("0x2d39148a92f479fb077389d"),
-            Felt::from_hex_unchecked(
+            Felt::from_hex_unwrap("0x2d39148a92f479fb077389d"),
+            Felt::from_hex_unwrap(
                 "0x11a2681208d7c128580162110d9e6ddb0bd34e42ace22dcc7f52f9939e11df6",
             ),
         );
@@ -140,8 +140,8 @@ mod test {
         assert_eq!(identity.y(), Felt::from(1));
 
         let a = AffinePoint::new(
-            Felt::from_hex_unchecked("0x2d39148a92f479fb077389d"),
-            Felt::from_hex_unchecked(
+            Felt::from_hex_unwrap("0x2d39148a92f479fb077389d"),
+            Felt::from_hex_unwrap(
                 "0x11a2681208d7c128580162110d9e6ddb0bd34e42ace22dcc7f52f9939e11df6",
             ),
         );
@@ -152,15 +152,15 @@ mod test {
     fn affine_neg() {
         assert_eq!(
             -&AffinePoint::new(
-                Felt::from_hex_unchecked("0x2d39148a92f479fb077389d"),
-                Felt::from_hex_unchecked(
+                Felt::from_hex_unwrap("0x2d39148a92f479fb077389d"),
+                Felt::from_hex_unwrap(
                     "0x11a2681208d7c128580162110d9e6ddb0bd34e42ace22dcc7f52f9939e11df6"
                 ),
             )
             .unwrap(),
             AffinePoint::new(
-                Felt::from_hex_unchecked("0x2d39148a92f479fb077389d"),
-                Felt::from_hex_unchecked(
+                Felt::from_hex_unwrap("0x2d39148a92f479fb077389d"),
+                Felt::from_hex_unwrap(
                     "0x6e5d97edf7283fe7a7fe9deef2619224f42cb1bd531dd23380ad066c61ee20b"
                 ),
             )
@@ -172,8 +172,8 @@ mod test {
     #[test]
     fn affine_add() {
         let p = AffinePoint::new(
-            Felt::from_hex_unchecked("0x2d39148a92f479fb077389d"),
-            Felt::from_hex_unchecked(
+            Felt::from_hex_unwrap("0x2d39148a92f479fb077389d"),
+            Felt::from_hex_unwrap(
                 "0x6e5d97edf7283fe7a7fe9deef2619224f42cb1bd531dd23380ad066c61ee20b",
             ),
         )
@@ -182,10 +182,10 @@ mod test {
         assert_eq!(
             p.clone() + p,
             AffinePoint::new(
-                Felt::from_hex_unchecked(
+                Felt::from_hex_unwrap(
                     "0x23a1c9a32dd397fb1e7f758b9089757c1223057aea1d8b52cbec583ad74eaab",
                 ),
-                Felt::from_hex_unchecked(
+                Felt::from_hex_unwrap(
                     "0x466880caf4086bac129ae52ee98ddf75b2b394ae7c7ed1a19d9c61aa1f69f62",
                 ),
             )
@@ -196,8 +196,8 @@ mod test {
     #[test]
     fn affine_mul() {
         let p = AffinePoint::new(
-            Felt::from_hex_unchecked("0x2d39148a92f479fb077389d"),
-            Felt::from_hex_unchecked(
+            Felt::from_hex_unwrap("0x2d39148a92f479fb077389d"),
+            Felt::from_hex_unwrap(
                 "0x6e5d97edf7283fe7a7fe9deef2619224f42cb1bd531dd23380ad066c61ee20b",
             ),
         )
@@ -206,10 +206,10 @@ mod test {
         assert_eq!(
             &p * Felt::from(2),
             AffinePoint::new(
-                Felt::from_hex_unchecked(
+                Felt::from_hex_unwrap(
                     "0x23a1c9a32dd397fb1e7f758b9089757c1223057aea1d8b52cbec583ad74eaab",
                 ),
-                Felt::from_hex_unchecked(
+                Felt::from_hex_unwrap(
                     "0x466880caf4086bac129ae52ee98ddf75b2b394ae7c7ed1a19d9c61aa1f69f62",
                 ),
             )
@@ -220,8 +220,8 @@ mod test {
     #[test]
     fn affine_new_from_x_odd() {
         let p = AffinePoint::new(
-            Felt::from_hex_unchecked("0x2d39148a92f479fb077389d"),
-            Felt::from_hex_unchecked(
+            Felt::from_hex_unwrap("0x2d39148a92f479fb077389d"),
+            Felt::from_hex_unwrap(
                 "0x6e5d97edf7283fe7a7fe9deef2619224f42cb1bd531dd23380ad066c61ee20b",
             ),
         )
@@ -233,8 +233,8 @@ mod test {
     #[test]
     fn affine_new_from_x_even() {
         let p = AffinePoint::new(
-            Felt::from_hex_unchecked("0x2d39148a92f479fb077389d"),
-            Felt::from_hex_unchecked(
+            Felt::from_hex_unwrap("0x2d39148a92f479fb077389d"),
+            Felt::from_hex_unwrap(
                 "0x6e5d97edf7283fe7a7fe9deef2619224f42cb1bd531dd23380ad066c61ee20b",
             ),
         )

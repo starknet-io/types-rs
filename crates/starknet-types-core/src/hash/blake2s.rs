@@ -49,7 +49,7 @@ impl Blake2Felt252 {
     /// Values below `SMALL_THRESHOLD` are encoded as two `u32`s,
     /// while values at or above it are encoded as eight `u32`s
     /// (`SMALL_THRESHOLD` equals `2**63`).
-    pub const SMALL_THRESHOLD: Felt = Felt::from_hex_unchecked("8000000000000000");
+    pub const SMALL_THRESHOLD: Felt = Felt::from_hex_unwrap("8000000000000000");
 
     /// Encodes each `Felt` into 32-bit words:
     /// - **Small** values `< 2^63` get **2** words: `[ high_32_bits, low_32_bits ]` from the last 8
@@ -138,7 +138,7 @@ mod tests {
     fn test_encode_felts_to_u32s_small() {
         // Last 8 bytes of 0x1122334455667788 in big-endian are [0x11,0x22,0x33,0x44,0x55,0x66,0x77,0x88].
         // High word = 0x11223344, low word = 0x55667788.
-        let val = Felt::from_hex_unchecked("1122334455667788");
+        let val = Felt::from_hex_unwrap("1122334455667788");
         let words = Blake2Felt252::encode_felts_to_u32s(&[val]);
         assert_eq!(words, vec![0x11223344, 0x55667788]);
     }
@@ -147,7 +147,7 @@ mod tests {
     #[test]
     fn test_encode_felts_to_u32s_big() {
         // The value 2^63 (0x8000000000000000) triggers the "big" path.
-        let val = Felt::from_hex_unchecked("8000000000000000");
+        let val = Felt::from_hex_unwrap("8000000000000000");
         let words = Blake2Felt252::encode_felts_to_u32s(&[val]);
 
         // Expected limbs: split full 32-byte BE into eight 32-bit words.
@@ -209,9 +209,9 @@ mod tests {
     /// Test that hashing a single zero Felt produces the expected 256-bit Blake2s digest.
     #[test]
     fn test_hash_single_zero() {
-        let zero = Felt::from_hex_unchecked("0");
+        let zero = Felt::from_hex_unwrap("0");
         let hash = Blake2Felt252::hash_single(&zero);
-        let expected = Felt::from_hex_unchecked(
+        let expected = Felt::from_hex_unwrap(
             "5768af071a2f8df7c9df9dc4ca0e7a1c5908d5eff88af963c3264f412dbdf43",
         );
         assert_eq!(hash, expected);
@@ -220,10 +220,10 @@ mod tests {
     /// Test that hashing an array of Felts [1, 2] produces the expected 256-bit Blake2s digest.
     #[test]
     fn test_hash_array_one_two() {
-        let one = Felt::from_hex_unchecked("1");
-        let two = Felt::from_hex_unchecked("2");
+        let one = Felt::from_hex_unwrap("1");
+        let two = Felt::from_hex_unwrap("2");
         let hash = Blake2Felt252::hash_array(&[one, two]);
-        let expected = Felt::from_hex_unchecked(
+        let expected = Felt::from_hex_unwrap(
             "5534c03a14b214436366f30e9c77b6e56c8835de7dc5aee36957d4384cce66d",
         );
         assert_eq!(hash, expected);
@@ -235,7 +235,7 @@ mod tests {
     #[case::empty(vec![], "874258848688468311465623299960361657518391155660316941922502367727700287818")]
     #[case::boundary_under_2_63(vec![Felt::from((1u64 << 63) - 1)], "94160078030592802631039216199460125121854007413180444742120780261703604445")]
     #[case::boundary_at_2_63(vec![Felt::from(1u64 << 63)], "318549634615606806810268830802792194529205864650702991817600345489579978482")]
-    #[case::very_large_felt(vec![Felt::from_hex_unchecked("800000000000011000000000000000000000000000000000000000000000000")], "3505594194634492896230805823524239179921427575619914728883524629460058657521")]
+    #[case::very_large_felt(vec![Felt::from_hex_unwrap("800000000000011000000000000000000000000000000000000000000000000")], "3505594194634492896230805823524239179921427575619914728883524629460058657521")]
     #[case::mixed_small_large(vec![Felt::from(42), Felt::from(1u64 << 63), Felt::from(1337)], "1127477916086913892828040583976438888091205536601278656613505514972451246501")]
     #[case::max_u64(vec![Felt::from(u64::MAX)], "3515074221976790747383295076946184515593027667350620348239642126105984996390")]
     fn test_encode_felt252_data_and_calc_blake_hash(

@@ -44,7 +44,7 @@ impl SecretFelt {
     /// ```
     /// use starknet_types_core::felt::{Felt, secret_felt::SecretFelt};
     ///
-    /// let mut private_key = Felt::from_hex_unchecked("0x2d39148a92f479fb077389d");
+    /// let mut private_key = Felt::from_hex_unwrap("0x2d39148a92f479fb077389d");
     /// let secret_felt = SecretFelt::from_felt(&mut private_key);
     /// // private_key is now zeroized (set to Felt::ZERO)
     /// ```
@@ -171,7 +171,7 @@ mod test {
 
     #[test]
     fn test_zeroize_original() {
-        let mut private_key = Felt::from_hex_unchecked(
+        let mut private_key = Felt::from_hex_unwrap(
             "0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
         );
         let mut signing_key = SecretFelt::from_felt(&mut private_key);
@@ -210,7 +210,7 @@ mod test {
 
     #[test]
     fn test_zeroize_on_drop() {
-        let mut private_key = Felt::from_hex_unchecked(
+        let mut private_key = Felt::from_hex_unwrap(
             "0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
         );
 
@@ -244,7 +244,7 @@ mod test {
 
     #[test]
     fn test_inner_value() {
-        let mut private_key = Felt::from_hex_unchecked(
+        let mut private_key = Felt::from_hex_unwrap(
             "0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
         );
 
