@@ -208,7 +208,7 @@ mod test {
 
     #[test]
     fn qm31_packing() {
-        const MAX: u32 = MERSENNE_31_PRIME_FIELD_ORDER - 2;
+        const MAX: u32 = MERSENNE_31_PRIME_FIELD_ORDER - 1;
 
         let cases = [
             [1, 2, 3, 4],
