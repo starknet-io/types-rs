@@ -124,10 +124,10 @@ mod tests {
     fn ok() {
         for (string, expected_felt) in [
             (String::default(), Felt::ZERO),
-            (String::from("aa"), Felt::from_hex_unchecked("0x6161")),
+            (String::from("aa"), Felt::from_hex_unwrap("0x6161")),
             (
                 String::from("approve"),
-                Felt::from_hex_unchecked("0x617070726f7665"),
+                Felt::from_hex_unwrap("0x617070726f7665"),
             ),
             (
                 String::from("SN_SEPOLIA"),
