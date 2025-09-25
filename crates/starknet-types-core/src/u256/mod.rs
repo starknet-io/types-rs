@@ -1,12 +1,12 @@
 //! A Cairo-like u256 type.
 //!
-//! This `U256` type purpose is not to be used to perfomr arithmetic operations,
+//! This `U256` type purpose is not to be used to perform arithmetic operations,
 //! but rather to offer a handy interface to convert from and to Cairo's u256 values.
 //! Indeed, the Cairo language represent u256 values as a two felts struct,
 //! representing the `low` and `high` 128 bits of the value.
 //! We mirror this representation, allowing for efficient serialization/deserializatin.
 //!
-//! We recommand you create From/Into implementation to bridge the gap between your favourite u256 type,
+//! We recommend you create From/Into implementation to bridge the gap between your favourite u256 type,
 //! and the one provided by this crate.
 
 #[cfg(feature = "num-traits")]
