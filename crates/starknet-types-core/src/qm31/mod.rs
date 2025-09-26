@@ -62,7 +62,12 @@ impl QM31 {
         let [c1, c2] = a.value();
         let [c3, c4] = b.value();
 
-        (c1.to_raw(), c2.to_raw(), c3.to_raw(), c4.to_raw())
+        (
+            c1.representative(),
+            c2.representative(),
+            c3.representative(),
+            c4.representative(),
+        )
     }
 
     /// Packs the [QM31] into a [Felt].
@@ -208,7 +213,7 @@ mod test {
 
     #[test]
     fn qm31_packing() {
-        const MAX: u32 = MERSENNE_31_PRIME_FIELD_ORDER - 2;
+        const MAX: u32 = MERSENNE_31_PRIME_FIELD_ORDER - 1;
 
         let cases = [
             [1, 2, 3, 4],
@@ -261,5 +266,34 @@ mod test {
         let invalid_packing = Felt::from(BigInt::from(1) << 200);
 
         QM31::unpack_from_felt(&invalid_packing).unwrap_err();
+    }
+
+    /// Tests the QM31 packing when some coefficients have a value of PRIME.
+    ///
+    /// If we try to create an M31 with a value of PRIME, it won't be reduced
+    /// to 0 internally. This tests verifies that a PRIME coefficient is being
+    /// packed as its representative value, instead of the raw value.
+    #[test]
+    fn qm31_packing_with_prime_coefficients() {
+        const PRIME: u32 = MERSENNE_31_PRIME_FIELD_ORDER;
+
+        let cases = [
+            [PRIME, 0, 0, 0],
+            [0, PRIME, 0, 0],
+            [0, 0, PRIME, 0],
+            [0, 0, 0, PRIME],
+        ];
+
+        for [c1, c2, c3, c4] in cases {
+            let qm31 = QM31::from_coefficients(c1, c2, c3, c4);
+            let packed_qm31 = qm31.pack_into_felt();
+
+            let expected_packing = BigInt::from(c1 % PRIME)
+                + (BigInt::from(c2 % PRIME) << 36)
+                + (BigInt::from(c3 % PRIME) << 72)
+                + (BigInt::from(c4 % PRIME) << 108);
+
+            assert_eq!(packed_qm31, Felt::from(expected_packing))
+        }
     }
 }
