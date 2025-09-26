@@ -8,16 +8,19 @@ use lambdaworks_math::field::{
     element::FieldElement,
     errors::FieldError,
     fields::mersenne31::{
-        extensions::Degree4ExtensionField,
+        extensions::{Degree2ExtensionField, Degree4ExtensionField},
         field::{Mersenne31Field, MERSENNE_31_PRIME_FIELD_ORDER},
     },
-    traits::IsField,
 };
 
 #[cfg(feature = "num-traits")]
 mod num_traits_impl;
 
 use crate::felt::Felt;
+
+type FpE = FieldElement<Mersenne31Field>;
+type Fp2E = FieldElement<Degree2ExtensionField>;
+type Fp4E = FieldElement<Degree4ExtensionField>;
 
 /// A value in the Degree-4 (quadruple) extension of the Mersenne 31 (M31) field.
 ///
@@ -27,7 +30,7 @@ use crate::felt::Felt;
 ///
 /// An M31 coordinate fits in 31 bits, as it has a maximum value of: `(1 << 31) - 1`.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
-pub struct QM31(pub FieldElement<Degree4ExtensionField>);
+pub struct QM31(pub Fp4E);
 
 #[derive(Debug, Clone, Copy)]
 pub struct InvalidQM31Packing(pub Felt);
@@ -45,12 +48,7 @@ impl std::fmt::Display for InvalidQM31Packing {
 impl QM31 {
     /// Creates a QM31 from four M31 elements.
     pub fn from_coefficients(a: u32, b: u32, c: u32, d: u32) -> Self {
-        Self(Degree4ExtensionField::const_from_coefficients(
-            Mersenne31Field::from_base_type(a),
-            Mersenne31Field::from_base_type(b),
-            Mersenne31Field::from_base_type(c),
-            Mersenne31Field::from_base_type(d),
-        ))
+        Self(const_fp4e_from_coefficients(a, b, c, d))
     }
 
     /// Extracts M31 elements from a QM31.
@@ -96,7 +94,7 @@ impl QM31 {
     ///
     /// See the method [QM31::pack_into_felt] for a detailed explanation on the
     /// packing format.
-    pub fn unpack_from_felt(felt: &Felt) -> Result<QM31, InvalidQM31Packing> {
+    pub fn unpack_from_felt(felt: &Felt) -> Result<Self, InvalidQM31Packing> {
         const MASK_36: u64 = (1 << 36) - 1;
         const MASK_8: u64 = (1 << 8) - 1;
 
@@ -122,7 +120,7 @@ impl QM31 {
             }
         }
 
-        Ok(QM31(Degree4ExtensionField::const_from_coefficients(
+        Ok(Self(const_fp4e_from_coefficients(
             c1 as u32, c2 as u32, c3 as u32, c4 as u32,
         )))
     }
@@ -158,7 +156,11 @@ impl Div for QM31 {
     type Output = Result<QM31, FieldError>;
 
     fn div(self, rhs: Self) -> Self::Output {
-        Ok(Self(self.0.div(rhs.0)?))
+        // While this function returns a `Result` it will always return the `Ok` variant.
+        // v0.3.0 bumped lambdaworks from 0.10.0 to 0.12.0 but v0.3.1 downgraded it to 0.11.0
+        // so the idea is to preserve the API.
+        // This function should be simplified before releasing a major version (i.e. 0.4.0)
+        Ok(Self(self.0.div(rhs.0)))
     }
 }
 impl AddAssign for QM31 {
@@ -179,14 +181,22 @@ impl Neg for QM31 {
     }
 }
 
+const fn const_fp4e_from_coefficients(a: u32, b: u32, c: u32, d: u32) -> Fp4E {
+    Fp4E::const_from_raw([
+        Fp2E::const_from_raw([FpE::const_from_raw(a), FpE::const_from_raw(b)]),
+        Fp2E::const_from_raw([FpE::const_from_raw(c), FpE::const_from_raw(d)]),
+    ])
+}
+
 #[cfg(test)]
 mod test {
-    use lambdaworks_math::field::fields::mersenne31::{
-        extensions::Degree4ExtensionField, field::MERSENNE_31_PRIME_FIELD_ORDER,
-    };
+    use lambdaworks_math::field::fields::mersenne31::field::MERSENNE_31_PRIME_FIELD_ORDER;
     use num_bigint::BigInt;
 
-    use crate::{felt::Felt, qm31::QM31};
+    use crate::{
+        felt::Felt,
+        qm31::{const_fp4e_from_coefficients, QM31},
+    };
 
     #[test]
     fn qm31_packing_and_unpacking() {
@@ -201,8 +211,8 @@ mod test {
         ];
 
         for [c1, c2, c3, c4] in cases {
-            let qm31 = QM31(Degree4ExtensionField::const_from_coefficients(
-                c1, c2, c3, c4,
+            let qm31 = QM31(const_fp4e_from_coefficients(
+                c1 as u32, c2 as u32, c3 as u32, c4 as u32,
             ));
             let packed_qm31 = qm31.pack_into_felt();
             let unpacked_qm31 = QM31::unpack_from_felt(&packed_qm31).unwrap();
@@ -224,8 +234,8 @@ mod test {
         ];
 
         for [c1, c2, c3, c4] in cases {
-            let qm31 = QM31(Degree4ExtensionField::const_from_coefficients(
-                c1, c2, c3, c4,
+            let qm31 = QM31(const_fp4e_from_coefficients(
+                c1 as u32, c2 as u32, c3 as u32, c4 as u32,
             ));
             let packed_qm31 = qm31.pack_into_felt();
 
