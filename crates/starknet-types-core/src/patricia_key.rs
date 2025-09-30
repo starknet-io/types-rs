@@ -4,7 +4,7 @@
 //! The state of the starknet blockchain (contracts declared, contracts deployed, storage of each contract),
 //! is represented as multiple binary Merkle-Patricia trees.
 //! Those trees have an height of 251, which means that they contains at most 2^251 values.
-//! The keys to those values are represented as `Felt`, ranging from `0x0` to `PATRICIA_KEY_UPPER_BOUND` (2^251).
+//! The keys to those values are represented as `Felt`, with range [0, PATRICIA_KEY_UPPER_BOUND).
 //! Therefore not every `Felt` is a valid `PatriciaKey`,
 //! and we can use the `PatriciaKey` type to enfoce type safety in our code.
 
@@ -12,7 +12,7 @@ use core::str::FromStr;
 
 use crate::felt::Felt;
 
-const PATRICIA_KEY_UPPER_BOUND: Felt =
+pub const PATRICIA_KEY_UPPER_BOUND: Felt =
     Felt::from_hex_unchecked("0x800000000000000000000000000000000000000000000000000000000000000");
 
 #[repr(transparent)]
@@ -43,14 +43,14 @@ impl From<PatriciaKey> for Felt {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct PatriciaKeyFromFeltError(Felt);
 
 impl core::fmt::Display for PatriciaKeyFromFeltError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(
             f,
-            "invalid felt value for patricia key. Upper bound is 2^251 got {:#x}",
+            "invalid felt value for patricia key. Upper non-inclusinve bound is 2^251 got {:#x}",
             self.0
         )
     }
@@ -85,6 +85,9 @@ impl core::fmt::Display for PatriciaKeyFromStrError {
         }
     }
 }
+
+#[cfg(feature = "std")]
+impl std::error::Error for PatriciaKeyFromStrError {}
 
 impl FromStr for PatriciaKey {
     type Err = PatriciaKeyFromStrError;
