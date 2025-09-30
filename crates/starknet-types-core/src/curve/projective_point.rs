@@ -3,7 +3,6 @@ use crate::curve::curve_errors::CurveError;
 use crate::felt::Felt;
 use core::ops;
 use lambdaworks_math::cyclic_group::IsGroup;
-use lambdaworks_math::elliptic_curve::point::ProjectivePoint as LambdaworksProjectivePoint;
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::stark_curve::StarkCurve;
 use lambdaworks_math::elliptic_curve::short_weierstrass::point::ShortWeierstrassProjectivePoint;
 use lambdaworks_math::elliptic_curve::traits::EllipticCurveError::InvalidPoint;
@@ -30,9 +29,9 @@ impl ProjectivePoint {
     /// SAFETY: Failing to guarantee this assumptions could lead to a runtime panic
     /// while operating with the value.
     pub const fn new_unchecked(x: Felt, y: Felt, z: Felt) -> ProjectivePoint {
-        Self(ShortWeierstrassProjectivePoint(
-            LambdaworksProjectivePoint::new([x.0, y.0, z.0]),
-        ))
+        Self(ShortWeierstrassProjectivePoint::new_unchecked([
+            x.0, y.0, z.0,
+        ]))
     }
 
     /// The point at infinity.
@@ -65,9 +64,11 @@ impl ProjectivePoint {
     /// This method should be used with caution, as it does not validate whether the provided coordinates
     /// correspond to a valid point on the curve.
     pub fn from_affine_unchecked(x: Felt, y: Felt) -> Self {
-        Self(ShortWeierstrassProjectivePoint(
-            LambdaworksProjectivePoint::new([x.0, y.0, Felt::ONE.0]),
-        ))
+        Self(ShortWeierstrassProjectivePoint::new_unchecked([
+            x.0,
+            y.0,
+            Felt::ONE.0,
+        ]))
     }
 
     /// Returns the `x` coordinate of the point.

@@ -61,6 +61,7 @@ impl core::fmt::Display for FromStrError {
             CreationError::InvalidHexString => write!(f, "invalid hex string"),
             CreationError::InvalidDecString => write!(f, "invalid dec string"),
             CreationError::HexStringIsTooBig => write!(f, "hex string too big"),
+            CreationError::RepresentativeOutOfRange => write!(f, "representative out of range"),
             CreationError::EmptyString => write!(f, "empty string"),
         }
     }
