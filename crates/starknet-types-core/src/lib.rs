@@ -9,6 +9,7 @@ pub mod felt;
 pub mod qm31;
 
 pub mod contract_address;
+pub mod patricia_key;
 #[cfg(any(feature = "std", feature = "alloc"))]
 pub mod short_string;
 pub mod u256;
