@@ -1330,4 +1330,17 @@ mod test {
         assert_eq!(one, Felt::ONE);
         assert_eq!(zero, Felt::ZERO);
     }
+
+    #[test]
+    fn felt_from_hex_upper_bound_limit() {
+        assert!(Felt::from_hex(
+            "0x800000000000011000000000000000000000000000000000000000000000001"
+        )
+        .is_ok());
+        assert!(Felt::from_hex(
+            "0x800000000000011000000000000000000000000000000000000000000000002"
+        )
+        .is_err());
+        assert!(Felt::from_hex(&format!("0x{}", "f".repeat(63))).is_err());
+    }
 }

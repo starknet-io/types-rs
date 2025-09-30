@@ -46,7 +46,6 @@ impl fmt::UpperHex for Felt {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloc::format;
     use proptest::prelude::*;
 
     proptest! {
