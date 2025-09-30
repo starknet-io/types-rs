@@ -76,9 +76,6 @@ impl core::fmt::Display for ContactAddressFromFeltError {
 #[cfg(feature = "std")]
 impl std::error::Error for ContactAddressFromFeltError {}
 
-const ADDRESS_UPPER_BOUND: Felt =
-    Felt::from_hex_unchecked("0x800000000000000000000000000000000000000000000000000000000000000");
-
 /// Validates that a Felt value represents a valid Starknet contract address.
 ///
 /// This validation is critical for preventing funds from being sent to invalid addresses,
