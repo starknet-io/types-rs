@@ -2,7 +2,6 @@ use crate::{curve::curve_errors::CurveError, felt::Felt};
 use lambdaworks_math::{
     cyclic_group::IsGroup,
     elliptic_curve::{
-        point::ProjectivePoint,
         short_weierstrass::{
             curves::stark_curve::StarkCurve, point::ShortWeierstrassProjectivePoint,
             traits::IsShortWeierstrass,
@@ -28,11 +27,11 @@ impl AffinePoint {
     /// This method should be used with caution, as it does not validate whether the provided coordinates
     /// correspond to a valid point on the curve.
     pub const fn new_unchecked(x: Felt, y: Felt) -> AffinePoint {
-        Self(ShortWeierstrassProjectivePoint(ProjectivePoint::new([
+        Self(ShortWeierstrassProjectivePoint::new_unchecked([
             x.0,
             y.0,
             Felt::ONE.0,
-        ])))
+        ]))
     }
 
     /// Construct new affine point from the `x` coordinate and the parity bit `y_parity`.
