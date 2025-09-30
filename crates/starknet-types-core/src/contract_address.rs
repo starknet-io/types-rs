@@ -7,7 +7,7 @@
 
 use core::str::FromStr;
 
-use crate::felt::Felt;
+use crate::{felt::Felt, patricia_key::PATRICIA_KEY_UPPER_BOUND};
 
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -76,16 +76,13 @@ impl core::fmt::Display for ContactAddressFromFeltError {
 #[cfg(feature = "std")]
 impl std::error::Error for ContactAddressFromFeltError {}
 
-const ADDRESS_UPPER_BOUND: Felt =
-    Felt::from_hex_unwrap("0x800000000000000000000000000000000000000000000000000000000000000");
-
 /// Validates that a Felt value represents a valid Starknet contract address.
 ///
 /// This validation is critical for preventing funds from being sent to invalid addresses,
 /// which would result in permanent loss.
 impl Felt {
     pub fn is_valid_contract_address(&self) -> bool {
-        self >= &Felt::from(2u64) && self < &ADDRESS_UPPER_BOUND
+        self >= &Felt::from(2u64) && self < &PATRICIA_KEY_UPPER_BOUND
     }
 }
 
@@ -99,7 +96,7 @@ impl TryFrom<Felt> for ContractAddress {
         if value == Felt::ONE {
             return Err(ContactAddressFromFeltError::One);
         }
-        if value >= ADDRESS_UPPER_BOUND {
+        if value >= PATRICIA_KEY_UPPER_BOUND {
             return Err(ContactAddressFromFeltError::TooBig);
         }
 
@@ -149,7 +146,7 @@ mod test {
     use proptest::prelude::*;
 
     use crate::{
-        contract_address::{ContractAddress, ADDRESS_UPPER_BOUND},
+        contract_address::{ContractAddress, PATRICIA_KEY_UPPER_BOUND},
         felt::Felt,
     };
 
@@ -157,7 +154,7 @@ mod test {
     fn basic_values() {
         assert!(ContractAddress::try_from(Felt::ZERO).is_err());
         assert!(ContractAddress::try_from(Felt::ONE).is_err());
-        assert!(ContractAddress::try_from(ADDRESS_UPPER_BOUND).is_err());
+        assert!(ContractAddress::try_from(PATRICIA_KEY_UPPER_BOUND).is_err());
 
         let felt = Felt::TWO;
         let contract_address = ContractAddress::try_from(felt).unwrap();

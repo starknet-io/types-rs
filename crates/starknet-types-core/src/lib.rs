@@ -10,6 +10,7 @@ pub mod qm31;
 
 #[cfg(feature = "alloc")]
 pub mod contract_address;
+pub mod patricia_key;
 #[cfg(feature = "alloc")]
 pub mod short_string;
 pub mod u256;
