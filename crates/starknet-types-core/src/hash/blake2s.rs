@@ -101,7 +101,8 @@ impl Blake2Felt252 {
         Felt::from_bytes_le(&buf)
     }
 
-    fn blake2s_to_felt(data: &[u8]) -> Felt {
+    /// Hashes the data with Blake2s-256 and packs the result into a Felt.
+    pub fn hash_and_pack_to_felt(data: &[u8]) -> Felt {
         let mut hasher = Blake2s256::new();
         hasher.update(data);
         let hash32 = hasher.finalize();
@@ -122,8 +123,8 @@ impl Blake2Felt252 {
             byte_stream.extend_from_slice(&word.to_le_bytes());
         }
 
-        // 3) Compute Blake2s-256 over the bytes and pack the first 224 bits into a Felt.
-        Self::blake2s_to_felt(&byte_stream)
+        // 3) Compute Blake2s-256 over the bytes and pack the result into a Felt.
+        Self::hash_and_pack_to_felt(&byte_stream)
     }
 }
 
