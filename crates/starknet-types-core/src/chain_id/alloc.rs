@@ -87,11 +87,11 @@ impl From<ChainId> for &str {
 
 #[derive(Debug, Clone, Copy)]
 #[cfg(feature = "devnet")]
-pub struct TryChainIdFromStringError(crate::short_string::TryShortStringFromStringError);
+pub struct TryChainIdFromStringError(pub(super) crate::short_string::TryShortStringFromStringError);
 
 #[derive(Debug, Clone)]
 #[cfg(not(feature = "devnet"))]
-pub struct TryChainIdFromStringError(String);
+pub struct TryChainIdFromStringError(pub(super) String);
 
 impl core::fmt::Display for TryChainIdFromStringError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
