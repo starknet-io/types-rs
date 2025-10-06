@@ -46,6 +46,17 @@ impl core::fmt::Display for ChainId {
     }
 }
 
+impl AsRef<str> for ChainId {
+    fn as_ref(&self) -> &str {
+        match self {
+            ChainId::Mainnet => SN_MAIN_STR,
+            ChainId::Sepolia => SN_SEPOLIA_STR,
+            #[cfg(feature = "devnet")]
+            ChainId::Devnet(ss) => ss.as_ref(),
+        }
+    }
+}
+
 // Felt
 
 impl From<ChainId> for Felt {
@@ -205,11 +216,11 @@ mod tests {
     fn str_and_chain_id_round_trip() {
         let s = SN_MAIN_STR;
         let chain_id = ChainId::from_str(s).unwrap();
-        assert_eq!(chain_id.to_string(), s.to_string());
+        assert_eq!(chain_id.as_ref(), s);
 
         let s = SN_SEPOLIA_STR;
         let chain_id = ChainId::from_str(s).unwrap();
-        assert_eq!(chain_id.to_string(), s.to_string());
+        assert_eq!(chain_id.as_ref(), s);
 
         #[cfg(not(feature = "devnet"))]
         {
@@ -220,7 +231,7 @@ mod tests {
         {
             let s = "SN_DEVNET";
             let chain_id = ChainId::from_str(s).unwrap();
-            assert_eq!(s, chain_id.to_string());
+            assert_eq!(s, chain_id.as_ref());
             let s = "SN_DEVNET_LOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOONG";
             assert!(ChainId::from_str(s).is_err());
             let s = "SN_DEVNET_🌟";
