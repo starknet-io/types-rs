@@ -56,6 +56,7 @@ prime-bigint = ["dep:lazy_static"]
 num-traits = []
 apollo-serialization = ["std"]
 secret-felt = ["alloc", "dep:zeroize", "dep:subtle", "subtle/const-generics", "subtle/core_hint_black_box", "dep:rand", "rand/alloc"]
+devnet = ["alloc"]
 
 [dev-dependencies]
 proptest = { version = "1.5", default-features = false, features = [
