@@ -149,31 +149,31 @@ mod tests {
     #[test]
     fn nonzerofelt_from_felt_unchecked() {
         assert_eq!(
-            NonZeroFelt::from_felt_unchecked(Felt::from_hex_unchecked("9028392")),
+            NonZeroFelt::from_felt_unchecked(Felt::from_hex_unwrap("9028392")),
             NonZeroFelt::try_from(Felt::from(0x9028392)).unwrap()
         );
         assert_eq!(
-            NonZeroFelt::from_felt_unchecked(Felt::from_hex_unchecked("1")),
+            NonZeroFelt::from_felt_unchecked(Felt::from_hex_unwrap("1")),
             NonZeroFelt::try_from(Felt::from(1)).unwrap()
         );
         assert_eq!(
-            NonZeroFelt::from_felt_unchecked(Felt::from_hex_unchecked("0x2")),
+            NonZeroFelt::from_felt_unchecked(Felt::from_hex_unwrap("0x2")),
             NonZeroFelt::try_from(Felt::from(2)).unwrap()
         );
         assert_eq!(
-            NonZeroFelt::from_felt_unchecked(Felt::from_hex_unchecked("0x0000000003")),
+            NonZeroFelt::from_felt_unchecked(Felt::from_hex_unwrap("0x0000000003")),
             NonZeroFelt::try_from(Felt::from(3)).unwrap()
         );
         assert_eq!(
-            NonZeroFelt::from_felt_unchecked(Felt::from_hex_unchecked("000004")),
+            NonZeroFelt::from_felt_unchecked(Felt::from_hex_unwrap("000004")),
             NonZeroFelt::try_from(Felt::from(4)).unwrap()
         );
         assert_eq!(
-            NonZeroFelt::from_felt_unchecked(Felt::from_hex_unchecked("0x05b")),
+            NonZeroFelt::from_felt_unchecked(Felt::from_hex_unwrap("0x05b")),
             NonZeroFelt::try_from(Felt::from(91)).unwrap()
         );
         assert_eq!(
-            NonZeroFelt::from_felt_unchecked(Felt::from_hex_unchecked("A")),
+            NonZeroFelt::from_felt_unchecked(Felt::from_hex_unwrap("A")),
             NonZeroFelt::try_from(Felt::from(10)).unwrap()
         );
     }

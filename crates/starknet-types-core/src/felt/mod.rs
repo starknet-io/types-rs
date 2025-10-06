@@ -101,6 +101,15 @@ impl Felt {
         ))
     }
 
+    /// Create a new [Felt] from a hex static string.
+    ///
+    /// This will panic if used on incorrect values, making it unfit for parsing dynamic values.
+    /// It should only be used with static strings, idealy in tests or a `const` context.
+    pub const fn from_hex_unwrap(val: &'static str) -> Self {
+        Self(FieldElement::<Stark252PrimeField>::from_hex_unchecked(val))
+    }
+
+    #[deprecated(since = "0.3.1", note = "use `from_hex_unwrap` instead")]
     pub const fn from_hex_unchecked(val: &str) -> Self {
         Self(FieldElement::<Stark252PrimeField>::from_hex_unchecked(val))
     }
@@ -1142,14 +1151,14 @@ mod test {
     }
 
     #[test]
-    fn felt_from_hex_unchecked() {
-        assert_eq!(Felt::from_hex_unchecked("0"), Felt::from(0));
-        assert_eq!(Felt::from_hex_unchecked("1"), Felt::from(1));
-        assert_eq!(Felt::from_hex_unchecked("0x2"), Felt::from(2));
-        assert_eq!(Felt::from_hex_unchecked("0x0000000003"), Felt::from(3));
-        assert_eq!(Felt::from_hex_unchecked("000004"), Felt::from(4));
-        assert_eq!(Felt::from_hex_unchecked("0x05b"), Felt::from(91));
-        assert_eq!(Felt::from_hex_unchecked("A"), Felt::from(10));
+    fn felt_from_hex_unwrap() {
+        assert_eq!(Felt::from_hex_unwrap("0"), Felt::from(0));
+        assert_eq!(Felt::from_hex_unwrap("1"), Felt::from(1));
+        assert_eq!(Felt::from_hex_unwrap("0x2"), Felt::from(2));
+        assert_eq!(Felt::from_hex_unwrap("0x0000000003"), Felt::from(3));
+        assert_eq!(Felt::from_hex_unwrap("000004"), Felt::from(4));
+        assert_eq!(Felt::from_hex_unwrap("0x05b"), Felt::from(91));
+        assert_eq!(Felt::from_hex_unwrap("A"), Felt::from(10));
     }
     #[test]
     fn mul_operations() {

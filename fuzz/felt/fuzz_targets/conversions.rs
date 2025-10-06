@@ -40,9 +40,9 @@ fuzz_target!(|felt: Felt| {
         assert_eq!(felt_as_bits[i], bit);
     }
 
-    // to_hex_string, to_fixed_hex_string, from_hex_unchecked
-    assert_eq!(felt, Felt::from_hex_unchecked(&felt.to_hex_string()));
-    assert_eq!(felt, Felt::from_hex_unchecked(&felt.to_fixed_hex_string()));
+    // to_hex_string, to_fixed_hex_string, from_hex_unwrap
+    assert_eq!(felt, Felt::from_hex_unwrap(&felt.to_hex_string()));
+    assert_eq!(felt, Felt::from_hex_unwrap(&felt.to_fixed_hex_string()));
     assert_eq!(66, felt.to_fixed_hex_string().len());
 
     // from_dec_str
