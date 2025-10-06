@@ -1,3 +1,6 @@
+pub extern crate alloc;
+use alloc::string::{String, ToString};
+
 use crate::short_string;
 use crate::short_string::ShortString;
 

@@ -10,6 +10,8 @@
 //! The convesion to `Felt` is done by using the internal ascii short string as bytes and parse those as a big endian number.
 
 use crate::felt::Felt;
+use core::str::FromStr;
+
 #[cfg(not(feature = "std"))]
 use crate::felt::alloc::string::{String, ToString};
 
@@ -145,10 +147,10 @@ impl Felt {
     }
 }
 
-impl TryFrom<&str> for ShortString {
-    type Error = TryShortStringFromStringError;
+impl FromStr for ShortString {
+    type Err = TryShortStringFromStringError;
 
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
         if value.len() > 31 {
             return Err(TryShortStringFromStringError::TooLong);
         }
@@ -197,7 +199,7 @@ macro_rules! short_string {
         };
 
         // Safety: We've validated the string at compile time
-        match $crate::short_string::ShortString::try_from($s) {
+        match <$crate::short_string::ShortString as core::str::FromStr>::from_str($s) {
             Ok(ss) => ss,
             Err(_) => unreachable!("compile-time validation should prevent this"),
         }
@@ -227,7 +229,7 @@ mod tests {
 
     #[test]
     fn short_string_and_felt_full_round() {
-        let ss1 = ShortString::try_from("A short string").unwrap();
+        let ss1 = ShortString::from_str("A short string").unwrap();
         let f = Felt::from(ss1.clone());
         let ss2 = ShortString::try_from(f).unwrap();
 
