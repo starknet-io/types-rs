@@ -2,6 +2,8 @@ use crate::felt::Felt;
 
 #[cfg(feature = "alloc")]
 mod alloc;
+#[cfg(feature = "devnet")]
+use crate::short_string::ShortString;
 #[cfg(feature = "alloc")]
 pub use alloc::*;
 
@@ -110,13 +112,13 @@ pub struct TryChainIdFromStrError(crate::short_string::TryShortStringFromStringE
 
 #[derive(Debug, Clone)]
 #[cfg(all(not(feature = "devnet"), feature = "alloc"))]
-pub struct TryChainIdFromStringError(String);
+pub struct TryChainIdFromStrError(String);
 
 #[derive(Debug, Clone)]
 #[cfg(all(not(feature = "devnet"), not(feature = "alloc")))]
-pub struct TryChainIdFromStringError;
+pub struct TryChainIdFromStrError;
 
-impl core::fmt::Display for TryChainIdFromStringError {
+impl core::fmt::Display for TryChainIdFromStrError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         #[cfg(feature = "devnet")]
         write!(f, "failed to parse string as ShortString: {}", self.0)?;
@@ -131,7 +133,7 @@ impl core::fmt::Display for TryChainIdFromStringError {
     }
 }
 impl TryFrom<&str> for ChainId {
-    type Error = TryChainIdFromStringError;
+    type Error = TryChainIdFromStrError;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         if value == SN_MAIN_STR {
@@ -143,14 +145,14 @@ impl TryFrom<&str> for ChainId {
         #[cfg(feature = "devnet")]
         return match ShortString::try_from(value) {
             Ok(ss) => Ok(ChainId::Devnet(ss)),
-            Err(e) => Err(TryChainIdFromStringError(e)),
+            Err(e) => Err(TryChainIdFromStrError(e)),
         };
 
         #[cfg(all(not(feature = "devnet"), feature = "alloc"))]
-        return Err(TryChainIdFromStringError(value.to_string()));
+        return Err(TryChainIdFromStrError(value.to_string()));
 
         #[cfg(all(not(feature = "devnet"), not(feature = "alloc")))]
-        return Err(TryChainIdFromStringError);
+        return Err(TryChainIdFromStrError);
     }
 }
 
