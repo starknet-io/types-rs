@@ -75,39 +75,6 @@ impl Felt {
     }
 }
 
-// impl TryFrom<Felt> for ContractAddress {
-//     type Error = ContactAddressFromFeltError;
-
-//     fn try_from(value: Felt) -> Result<Self, Self::Error> {
-//         if value == Felt::ZERO {
-//             return Err(ContactAddressFromFeltError::Zero);
-//         }
-//         if value == Felt::ONE {
-//             return Err(ContactAddressFromFeltError::One);
-//         }
-//         if value >= ADDRESS_UPPER_BOUND {
-//             return Err(ContactAddressFromFeltError::TooBig);
-//         }
-
-//         Ok(ContractAddress(value))
-//     }
-// }
-
-// #[derive(Debug)]
-// pub enum ContractAddressFromStrError {
-//     BadFelt(<Felt as FromStr>::Err),
-//     BadAddress(ContactAddressFromFeltError),
-// }
-
-// impl core::fmt::Display for ContractAddressFromStrError {
-//     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-//         match self {
-//             ContractAddressFromStrError::BadFelt(e) => write!(f, "invalid felt string: {e}"),
-//             ContractAddressFromStrError::BadAddress(e) => write!(f, "invalid address value: {e}"),
-//         }
-//     }
-// }
-
 impl FromStr for ContractAddress {
     type Err = PatriciaKeyFromStrError;
 
