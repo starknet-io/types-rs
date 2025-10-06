@@ -27,6 +27,12 @@ impl core::fmt::Display for ShortString {
     }
 }
 
+impl AsRef<str> for ShortString {
+    fn as_ref(&self) -> &str {
+        &self.0
+    }
+}
+
 impl From<ShortString> for Felt {
     fn from(ss: ShortString) -> Self {
         let bytes = ss.0.as_bytes();
@@ -42,7 +48,45 @@ impl From<ShortString> for Felt {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Copy, Clone)]
+pub enum TryShortStringFromFeltError {
+    TooLong,
+    NonAscii,
+}
+
+impl core::fmt::Display for TryShortStringFromFeltError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            TryShortStringFromFeltError::TooLong => "string to long",
+            TryShortStringFromFeltError::NonAscii => "string contains non ascii characters",
+        }
+        .fmt(f)
+    }
+}
+
+impl TryFrom<Felt> for ShortString {
+    type Error = TryShortStringFromFeltError;
+
+    fn try_from(value: Felt) -> Result<Self, Self::Error> {
+        let bytes = value.to_bytes_be();
+        if bytes[0] != 0 {
+            return Err(TryShortStringFromFeltError::TooLong);
+        }
+        let first_non_zero_byte = match bytes.iter().position(|&v| v != 0) {
+            Some(i) => i,
+            None => return Ok(ShortString(String::new())),
+        };
+        if !bytes[first_non_zero_byte..].is_ascii() {
+            return Err(TryShortStringFromFeltError::NonAscii);
+        }
+
+        let s = unsafe { str::from_utf8_unchecked(&bytes[first_non_zero_byte..]) };
+
+        Ok(ShortString(s.to_string()))
+    }
+}
+
+#[derive(Debug, Copy, Clone)]
 #[cfg_attr(test, derive(PartialEq, Eq))]
 pub enum TryShortStringFromStringError {
     TooLong,
@@ -116,9 +160,87 @@ impl TryFrom<&str> for ShortString {
     }
 }
 
+/// Create a `ShortString` at compile time from a string literal.
+///
+/// This macro validates at compile time that the string:
+/// - Contains only ASCII characters
+/// - Is no longer than 31 characters
+///
+/// # Panics
+///
+/// Panics at compile time if the string is invalid.
+///
+/// # Examples
+///
+/// ```
+/// use starknet_types_core::{short_string};
+///
+/// let ss = short_string!("Hello, Cairo!");
+/// assert_eq!(ss.to_string(), "Hello, Cairo!");
+///
+/// // This would fail to compile:
+/// // let ss = short_string!("This string is way too long for a Cairo short string");
+/// ```
+#[macro_export]
+macro_rules! short_string {
+    ($s:literal) => {{
+        const _: () = {
+            let bytes = $s.as_bytes();
+            assert!(
+                bytes.len() <= 31,
+                "Short string must be at most 31 characters"
+            );
+            assert!(
+                bytes.is_ascii(),
+                "Short string must contain only ASCII characters"
+            );
+        };
+
+        // Safety: We've validated the string at compile time
+        match $crate::short_string::ShortString::try_from($s) {
+            Ok(ss) => ss,
+            Err(_) => unreachable!("compile-time validation should prevent this"),
+        }
+    }};
+}
+
 #[cfg(test)]
 mod tests {
+    use crate::chain_id::{SN_MAIN, SN_MAIN_STR, SN_SEPOLIA, SN_SEPOLIA_STR};
+
     use super::*;
+
+    #[test]
+    fn test_short_string_macro() {
+        let ss = short_string!("test");
+        assert_eq!(ss.to_string(), "test");
+
+        let ss = short_string!("SN_MAIN");
+        assert_eq!(ss.to_string(), SN_MAIN_STR);
+
+        let ss = short_string!("This is a 31 characters string.");
+        assert_eq!(ss.to_string(), "This is a 31 characters string.");
+
+        let ss = short_string!("");
+        assert_eq!(ss.to_string(), "");
+    }
+
+    #[test]
+    fn short_string_and_felt_full_round() {
+        let ss1 = ShortString::try_from("A short string").unwrap();
+        let f = Felt::from(ss1.clone());
+        let ss2 = ShortString::try_from(f).unwrap();
+
+        assert_eq!(ss1, ss2);
+    }
+
+    #[test]
+    fn chain_ids() {
+        let ss = ShortString::try_from(SN_MAIN).unwrap();
+        assert_eq!(ss.to_string(), SN_MAIN_STR.to_string());
+        let ss = ShortString::try_from(SN_SEPOLIA).unwrap();
+        assert_eq!(ss.to_string(), SN_SEPOLIA_STR.to_string());
+    }
 
     #[test]
     fn ok() {
@@ -130,7 +252,7 @@ mod tests {
                 Felt::from_hex_unwrap("0x617070726f7665"),
             ),
             (
-                String::from("SN_SEPOLIA"),
+                String::from(SN_SEPOLIA_STR),
                 Felt::from_raw([
                     507980251676163170,
                     18446744073709551615,
