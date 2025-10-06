@@ -1,3 +1,14 @@
+//! A regular Starknet contract address
+//!
+//! This excludes the two special values reserved by the protocol: 0x0 and 0x1.
+//! 0x0 is the default caller address used for external calls. Nothing is ever stored there.
+//! 0x1 is used for block hash mapping.
+//! See: https://docs.starknet.io/learn/protocol/state#special-addresses
+//!
+//! Most user applications should not interact with those special addresses.
+//! Doing so would be a bug or invalid input.
+//! `RegularContractAddress` enforces this at the type level.
+
 use core::str::FromStr;
 
 use crate::{
@@ -63,7 +74,7 @@ impl From<RegularContractAddress> for ContractAddress {
 /// In Starknet, contract addresses must follow specific constraints to be less than 2^251 (0x800000000000000000000000000000000000000000000000000000000000000) to be valid.
 /// But there is also two special addressed for the protocol use:
 ///   * 0x0 acts as the default caller address for external calls and has no storage
-///   * 0x1 functions as a storage space for block mapping [link](https://docs.starknet.io/architecture-and-concepts/network-architecture/starknet-state/#special_addresses)
+///   * 0x1 functions as a storage space for block mapping
 ///
 /// Making the regular contract address range be [2, 2^251)
 #[derive(Debug, Clone, Copy)]
