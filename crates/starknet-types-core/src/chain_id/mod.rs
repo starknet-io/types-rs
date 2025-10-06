@@ -1,11 +1,15 @@
+#[cfg(feature = "alloc")]
+pub extern crate alloc;
+use core::str::FromStr;
+
 use crate::felt::Felt;
 
 #[cfg(feature = "alloc")]
-mod alloc;
+mod alloc_impls;
 #[cfg(feature = "devnet")]
 use crate::short_string::ShortString;
 #[cfg(feature = "alloc")]
-pub use alloc::*;
+pub use alloc_impls::*;
 
 #[derive(Debug, Clone)]
 pub enum ChainId {
@@ -112,7 +116,7 @@ pub struct TryChainIdFromStrError(crate::short_string::TryShortStringFromStringE
 
 #[derive(Debug, Clone)]
 #[cfg(all(not(feature = "devnet"), feature = "alloc"))]
-pub struct TryChainIdFromStrError(String);
+pub struct TryChainIdFromStrError(alloc::string::String);
 
 #[derive(Debug, Clone)]
 #[cfg(all(not(feature = "devnet"), not(feature = "alloc")))]
@@ -132,10 +136,11 @@ impl core::fmt::Display for TryChainIdFromStrError {
         Ok(())
     }
 }
-impl TryFrom<&str> for ChainId {
-    type Error = TryChainIdFromStrError;
 
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
+impl FromStr for ChainId {
+    type Err = TryChainIdFromStrError;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
         if value == SN_MAIN_STR {
             return Ok(ChainId::Mainnet);
         } else if value == SN_SEPOLIA_STR {
@@ -143,13 +148,15 @@ impl TryFrom<&str> for ChainId {
         }
 
         #[cfg(feature = "devnet")]
-        return match ShortString::try_from(value) {
+        return match ShortString::from_str(value) {
             Ok(ss) => Ok(ChainId::Devnet(ss)),
             Err(e) => Err(TryChainIdFromStrError(e)),
         };
 
         #[cfg(all(not(feature = "devnet"), feature = "alloc"))]
-        return Err(TryChainIdFromStrError(value.to_string()));
+        return Err(TryChainIdFromStrError(alloc::string::ToString::to_string(
+            value,
+        )));
 
         #[cfg(all(not(feature = "devnet"), not(feature = "alloc")))]
         return Err(TryChainIdFromStrError);
@@ -158,6 +165,8 @@ impl TryFrom<&str> for ChainId {
 
 #[cfg(test)]
 mod tests {
+    use core::str::FromStr;
+
     use crate::{
         chain_id::{SN_MAIN_STR, SN_SEPOLIA_STR},
         felt::Felt,
@@ -195,17 +204,17 @@ mod tests {
     #[test]
     fn str_and_chain_id_round_trip() {
         let s = SN_MAIN_STR;
-        let chain_id = ChainId::try_from(s).unwrap();
+        let chain_id = ChainId::from_str(s).unwrap();
         assert_eq!(chain_id.to_string(), s.to_string());
 
         let s = SN_SEPOLIA_STR;
-        let chain_id = ChainId::try_from(s).unwrap();
+        let chain_id = ChainId::from_str(s).unwrap();
         assert_eq!(chain_id.to_string(), s.to_string());
 
         #[cfg(not(feature = "devnet"))]
         {
             let s = "SN_DEVNET";
-            assert!(ChainId::try_from(s).is_err());
+            assert!(ChainId::from_str(s).is_err());
         }
         #[cfg(feature = "devnet")]
         {
