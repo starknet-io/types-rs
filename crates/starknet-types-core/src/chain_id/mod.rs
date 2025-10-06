@@ -186,15 +186,15 @@ mod tests {
 
         #[cfg(feature = "devnet")]
         {
-            let felt = Felt::from_hex_unchecked("0x63616665");
+            let felt = Felt::from_hex_unwrap("0x63616665");
             let chain_id = ChainId::try_from(felt).unwrap();
             assert_eq!(Felt::from(chain_id), felt);
 
             // Non ascii
-            let felt = Felt::from_hex_unchecked("0x1234567890");
+            let felt = Felt::from_hex_unwrap("0x1234567890");
             assert!(ChainId::try_from(felt).is_err());
             // Non too long
-            let felt = Felt::from_hex_unchecked(
+            let felt = Felt::from_hex_unwrap(
                 "0x6363636363636363636363636363636363636363636363636363636363636363",
             );
             assert!(ChainId::try_from(felt).is_err());
@@ -219,12 +219,12 @@ mod tests {
         #[cfg(feature = "devnet")]
         {
             let s = "SN_DEVNET";
-            let chain_id = ChainId::try_from(s).unwrap();
+            let chain_id = ChainId::from_str(s).unwrap();
             assert_eq!(s, chain_id.to_string());
             let s = "SN_DEVNET_LOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOONG";
-            assert!(ChainId::try_from(s).is_err());
+            assert!(ChainId::from_str(s).is_err());
             let s = "SN_DEVNET_🌟";
-            assert!(ChainId::try_from(s).is_err());
+            assert!(ChainId::from_str(s).is_err());
         }
     }
 }
