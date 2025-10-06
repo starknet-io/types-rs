@@ -43,7 +43,7 @@ impl core::fmt::Display for FromStrError {
                 core::fmt::Display::fmt(e, f)
             }
             FromStrError::StringTooLong => {
-                core::fmt::Display::fmt("too many characters to be a valid u256 represenation", f)
+                core::fmt::Display::fmt("too many characters to be a valid u256 representation", f)
             }
         }
     }
@@ -234,7 +234,7 @@ impl U256 {
                     let low_high = (low >> 64) as u64;
 
                     // Both of those values cannot overflow, as they are u64 stored into a u128.
-                    // Intead they will just start using the highest half part of their bytes.
+                    // Instead they will just start using the highest half part of their bytes.
                     let low_low = (low_low as u128) * 10;
                     let low_high = (low_high as u128) * 10;
 
