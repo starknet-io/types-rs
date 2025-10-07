@@ -27,4 +27,4 @@ jobs:
 
       - name: "Build all feature combinations"
         run: |
-          cargo hack build --package ${{ matrix.package }} --feature-powerset
+          cargo hack build --package ${{ matrix.package }} --feature-powerset --no-dev-deps --depth 3
