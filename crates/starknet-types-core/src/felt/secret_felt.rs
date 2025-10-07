@@ -4,7 +4,7 @@ use subtle::ConstantTimeEq;
 use zeroize::{Zeroize, Zeroizing};
 
 #[cfg(not(feature = "std"))]
-use super::alloc::{boxed::Box, string::String, vec::Vec};
+use super::alloc::{boxed::Box, string::String};
 
 /// A wrapper for a [Felt] that ensures the value is securely zeroized when dropped.
 ///
