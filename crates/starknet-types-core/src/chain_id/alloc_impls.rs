@@ -1,4 +1,6 @@
+#[cfg(not(feature = "std"))]
 pub extern crate alloc;
+#[cfg(not(feature = "std"))]
 use alloc::string::{String, ToString};
 
 use crate::short_string;
