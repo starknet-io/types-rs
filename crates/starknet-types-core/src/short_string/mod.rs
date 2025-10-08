@@ -4,7 +4,7 @@
 //! See https://docs.starknet.io/archive/cairo-101/strings/ for more information and syntax.
 //!
 //! This modules allows to mirror this behaviour in Rust, by leveraging type safety.
-//! A `ShortString` is string that have been checked and is guaranted to be convertible into a valid `Felt`.
+//! A `ShortString` is string that have been checked and is guaranteed to be convertible into a valid `Felt`.
 //! It checks that the `String` only contains ascii characters and is no longer than 31 characters.
 //!
 //! The convesion to `Felt` is done by using the internal ascii short string as bytes and parse those as a big endian number.
@@ -16,7 +16,7 @@ use crate::felt::Felt;
 /// A cairo short string
 ///
 /// Allow for safe conversion of cairo short string `String` into `Felt`,
-/// as it is guaranted that the value it contains can be represented as a felt.
+/// as it is guaranteed that the value it contains can be represented as a felt.
 #[repr(transparent)]
 #[derive(Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ShortString(String);
