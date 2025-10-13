@@ -48,11 +48,19 @@ pub struct PatriciaKeyFromFeltError(Felt);
 
 impl core::fmt::Display for PatriciaKeyFromFeltError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(
+        #[cfg(feature = "alloc")]
+        return write!(
             f,
             "invalid felt value for patricia key. Upper non-inclusinve bound is 2^251 got {:#x}",
             self.0
-        )
+        );
+
+        #[cfg(not(feature = "alloc"))]
+        return write!(
+            f,
+            "invalid felt value for patricia key. Upper non-inclusinve bound is 2^251 got {}",
+            self.0
+        );
     }
 }
 
