@@ -109,15 +109,15 @@ mod tests {
         ];
         assert_tokens(&Felt::MAX.compact(), &[Token::Bytes(&MAX)]);
         assert_tokens(
-            &Felt::from_hex_unchecked("0xbabe").compact(),
+            &Felt::from_hex_unwrap("0xbabe").compact(),
             &[Token::Bytes(&[0xba, 0xbe])],
         );
         assert_tokens(
-            &Felt::from_hex_unchecked("0xba000000be").compact(),
+            &Felt::from_hex_unwrap("0xba000000be").compact(),
             &[Token::Bytes(&[0xba, 0, 0, 0, 0xbe])],
         );
         assert_tokens(
-            &Felt::from_hex_unchecked("0xbabe0000").compact(),
+            &Felt::from_hex_unwrap("0xbabe0000").compact(),
             &[Token::Bytes(&[0xba, 0xbe, 0, 0])],
         );
     }

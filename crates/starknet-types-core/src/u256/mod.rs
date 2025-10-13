@@ -1,12 +1,12 @@
 //! A Cairo-like u256 type.
 //!
-//! This `U256` type purpose is not to be used to perfomr arithmetic operations,
+//! This `U256` type purpose is not to be used to perform arithmetic operations,
 //! but rather to offer a handy interface to convert from and to Cairo's u256 values.
 //! Indeed, the Cairo language represent u256 values as a two felts struct,
 //! representing the `low` and `high` 128 bits of the value.
 //! We mirror this representation, allowing for efficient serialization/deserializatin.
 //!
-//! We recommand you create From/Into implementation to bridge the gap between your favourite u256 type,
+//! We recommend you create From/Into implementation to bridge the gap between your favourite u256 type,
 //! and the one provided by this crate.
 
 #[cfg(feature = "num-traits")]
@@ -43,7 +43,7 @@ impl core::fmt::Display for FromStrError {
                 core::fmt::Display::fmt(e, f)
             }
             FromStrError::StringTooLong => {
-                core::fmt::Display::fmt("too many characters to be a valid u256 represenation", f)
+                core::fmt::Display::fmt("too many characters to be a valid u256 representation", f)
             }
         }
     }
@@ -234,7 +234,7 @@ impl U256 {
                     let low_high = (low >> 64) as u64;
 
                     // Both of those values cannot overflow, as they are u64 stored into a u128.
-                    // Intead they will just start using the highest half part of their bytes.
+                    // Instead they will just start using the highest half part of their bytes.
                     let low_low = (low_low as u128) * 10;
                     let low_high = (low_high as u128) * 10;
 
