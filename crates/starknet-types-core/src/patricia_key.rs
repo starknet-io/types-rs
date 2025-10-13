@@ -102,7 +102,7 @@ impl FromStr for PatriciaKey {
 }
 
 impl PatriciaKey {
-    pub const fn from_hex_unwrap(s: &'static str) -> PatriciaKey {
+    pub const fn from_hex_unchecked(s: &'static str) -> PatriciaKey {
         let felt = Felt::from_hex_unwrap(s);
 
         PatriciaKey(felt)
