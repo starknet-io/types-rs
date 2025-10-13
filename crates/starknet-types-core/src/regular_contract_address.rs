@@ -3,6 +3,8 @@
 //! This excludes the two special values reserved by the protocol: 0x0 and 0x1.
 //! 0x0 is the default caller address used for external calls. Nothing is ever stored there.
 //! 0x1 is used for block hash mapping.
+//! 0x2 is used for alias.
+//! 0x3 is reserved without used for now.
 //! See: https://docs.starknet.io/learn/protocol/state#special-addresses
 //!
 //! Most user applications should not interact with those special addresses.
@@ -75,12 +77,16 @@ impl From<RegularContractAddress> for ContractAddress {
 /// But there is also two special addressed for the protocol use:
 ///   * 0x0 acts as the default caller address for external calls and has no storage
 ///   * 0x1 functions as a storage space for block mapping
+///   * 0x2 is an alias
+///   * 0x3 is an reserved but not used
 ///
-/// Making the regular contract address range be [2, 2^251)
+/// Making the regular contract address range be [4, 2^251)
 #[derive(Debug, Clone, Copy)]
 pub enum RegularContractAddressFromContractAddressError {
     Zero,
     One,
+    Two,
+    Three,
 }
 
 impl core::fmt::Display for RegularContractAddressFromContractAddressError {
@@ -98,6 +104,12 @@ impl core::fmt::Display for RegularContractAddressFromContractAddressError {
                     "address 0x1 is reserved as storage space for block mapping"
                 )
             }
+            RegularContractAddressFromContractAddressError::Two => {
+                write!(f, "address 0x2 is reserved as alias")
+            }
+            RegularContractAddressFromContractAddressError::Three => {
+                write!(f, "address 0x3 is reserved for future uses")
+            }
         }
     }
 }
@@ -114,6 +126,12 @@ impl TryFrom<ContractAddress> for RegularContractAddress {
         }
         if AsRef::<Felt>::as_ref(&value) == &Felt::ONE {
             return Err(RegularContractAddressFromContractAddressError::One);
+        }
+        if AsRef::<Felt>::as_ref(&value) == &Felt::TWO {
+            return Err(RegularContractAddressFromContractAddressError::Two);
+        }
+        if AsRef::<Felt>::as_ref(&value) == &Felt::THREE {
+            return Err(RegularContractAddressFromContractAddressError::Three);
         }
 
         Ok(RegularContractAddress(value))
@@ -144,11 +162,12 @@ impl std::error::Error for RegularContractAddressFromFeltError {}
 
 impl Felt {
     /// Validates that a Felt value represents a valid Starknet contract address,
-    /// excluding the two starknet special constract address `0x0` and `0x1`.
+    /// excluding the starknet special constract address `0x0`, `0x1`, `0x2` and `0x3`.
     ///
     /// https://docs.starknet.io/learn/protocol/state#special-addresses
+    /// https://github.com/starkware-libs/sequencer/blob/ecd4779abef7bf345938a69f18ef70b6239d3a50/crates/blockifier/resources/blockifier_versioned_constants_0_15_0.json#L92-L97
     pub fn is_regular_contract_address(&self) -> bool {
-        self >= &Felt::TWO && self < &PATRICIA_KEY_UPPER_BOUND
+        self > &Felt::THREE && self < &PATRICIA_KEY_UPPER_BOUND
     }
 }
 
@@ -159,15 +178,15 @@ impl TryFrom<Felt> for RegularContractAddress {
         let contract_address = ContractAddress::try_from(value)
             .map_err(RegularContractAddressFromFeltError::TooBig)?;
 
-        Ok(RegularContractAddress(contract_address))
+        RegularContractAddress::try_from(contract_address)
+            .map_err(RegularContractAddressFromFeltError::SpecialAddress)
     }
 }
 
 #[derive(Debug)]
 pub enum RegularContractAddressFromStrError {
     BadContractAddress(PatriciaKeyFromStrError),
-    SpecialContractAddressZero,
-    SpecialContractAddressOne,
+    SpecialContractAddress(RegularContractAddressFromContractAddressError),
 }
 
 impl core::fmt::Display for RegularContractAddressFromStrError {
@@ -176,14 +195,9 @@ impl core::fmt::Display for RegularContractAddressFromStrError {
             RegularContractAddressFromStrError::BadContractAddress(e) => {
                 write!(f, "invalid felt string: {e}")
             }
-            RegularContractAddressFromStrError::SpecialContractAddressZero => write!(
-                f,
-                "address 0x0 is reserved as the default caller address and has no storage"
-            ),
-            RegularContractAddressFromStrError::SpecialContractAddressOne => write!(
-                f,
-                "address 0x1 is reserved as storage space for block mapping"
-            ),
+            RegularContractAddressFromStrError::SpecialContractAddress(e) => {
+                write!(f, "got special contract address: {e}")
+            }
         }
     }
 }
@@ -198,14 +212,8 @@ impl FromStr for RegularContractAddress {
         let contract_address = ContractAddress::from_str(s)
             .map_err(RegularContractAddressFromStrError::BadContractAddress)?;
 
-        if AsRef::<Felt>::as_ref(&contract_address) == &Felt::ZERO {
-            return Err(RegularContractAddressFromStrError::SpecialContractAddressZero);
-        }
-        if AsRef::<Felt>::as_ref(&contract_address) == &Felt::ONE {
-            return Err(RegularContractAddressFromStrError::SpecialContractAddressOne);
-        }
-
-        Ok(RegularContractAddress(contract_address))
+        RegularContractAddress::try_from(contract_address)
+            .map_err(RegularContractAddressFromStrError::SpecialContractAddress)
     }
 }
 
