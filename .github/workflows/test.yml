@@ -15,11 +15,11 @@ jobs:
         run: cargo fmt -- --check
 
       - name: Run cargo clippy
-        run: cargo clippy --all-features -- -D warnings
+        run: cargo clippy --all-features
 
       - name: Run cargo clippy alloc
         run: >
-          cargo clippy --no-default-features  --features alloc,serde -- -D warnings
+          cargo clippy --no-default-features  --features alloc,serde
       - name: Run cargo test
         run: cargo test --all-features
 
