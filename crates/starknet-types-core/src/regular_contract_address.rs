@@ -218,8 +218,8 @@ impl FromStr for RegularContractAddress {
 }
 
 impl RegularContractAddress {
-    pub const fn from_hex_unwrap(s: &'static str) -> RegularContractAddress {
-        let contract_address = ContractAddress::from_hex_unwrap(s);
+    pub const fn from_hex_unchecked(s: &'static str) -> RegularContractAddress {
+        let contract_address = ContractAddress::from_hex_unchecked(s);
 
         RegularContractAddress(contract_address)
     }

@@ -24,6 +24,13 @@ use crate::{
 )]
 pub struct ContractAddress(PatriciaKey);
 
+impl ContractAddress {
+    pub const ZERO: Self = Self::from_hex_unchecked("0x0");
+    pub const ONE: Self = Self::from_hex_unchecked("0x1");
+    pub const TWO: Self = Self::from_hex_unchecked("0x2");
+    pub const THREE: Self = Self::from_hex_unchecked("0x3");
+}
+
 impl core::fmt::Display for ContractAddress {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "{}", self.0)
@@ -84,10 +91,10 @@ impl FromStr for ContractAddress {
 }
 
 impl ContractAddress {
-    pub const fn from_hex_unwrap(s: &'static str) -> ContractAddress {
-        let felt = PatriciaKey::from_hex_unwrap(s);
+    pub const fn from_hex_unchecked(s: &'static str) -> ContractAddress {
+        let patricia_key = PatriciaKey::from_hex_unchecked(s);
 
-        ContractAddress(felt)
+        ContractAddress(patricia_key)
     }
 }
 
