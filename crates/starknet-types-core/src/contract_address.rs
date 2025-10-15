@@ -9,9 +9,7 @@ use core::str::FromStr;
 
 use crate::{
     felt::Felt,
-    patricia_key::{
-        PatriciaKey, PatriciaKeyFromFeltError, PatriciaKeyFromStrError, PATRICIA_KEY_UPPER_BOUND,
-    },
+    patricia_key::{PatriciaKey, PatriciaKeyFromFeltError, PatriciaKeyFromStrError},
 };
 
 #[repr(transparent)]
@@ -29,6 +27,11 @@ impl ContractAddress {
     pub const ONE: Self = Self::from_hex_unchecked("0x1");
     pub const TWO: Self = Self::from_hex_unchecked("0x2");
     pub const THREE: Self = Self::from_hex_unchecked("0x3");
+
+    /// Lower inclusive bound
+    pub const LOWER_BOUND: Self = Self::ZERO;
+    /// Upper non-inclusive bound
+    pub const UPPER_BOUND: Self = Self(PatriciaKey::UPPER_BOUND);
 }
 
 impl core::fmt::Display for ContractAddress {
@@ -78,7 +81,7 @@ impl TryFrom<Felt> for ContractAddress {
 impl Felt {
     /// Validates that a Felt value represents a valid Starknet contract address.
     pub fn is_valid_contract_address(&self) -> bool {
-        self < &PATRICIA_KEY_UPPER_BOUND
+        self < &Felt::from(ContractAddress::UPPER_BOUND)
     }
 }
 
@@ -91,6 +94,11 @@ impl FromStr for ContractAddress {
 }
 
 impl ContractAddress {
+    /// Create a new [ContractAddress] from an hex encoded string without checking it is a valid value.
+    ///
+    /// Should NEVER be used on user inputs,
+    /// as it can cause erroneous execution if dynamically initialized with bad values.
+    /// Should mostly be used at compilation time on hardcoded static string.
     pub const fn from_hex_unchecked(s: &'static str) -> ContractAddress {
         let patricia_key = PatriciaKey::from_hex_unchecked(s);
 
@@ -110,8 +118,6 @@ mod test {
 
     #[test]
     fn basic_values() {
-        assert!(ContractAddress::try_from(Felt::ZERO).is_err());
-        assert!(ContractAddress::try_from(Felt::ONE).is_err());
         assert!(ContractAddress::try_from(PATRICIA_KEY_UPPER_BOUND).is_err());
 
         let felt = Felt::TWO;

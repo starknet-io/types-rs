@@ -16,9 +16,7 @@ use core::str::FromStr;
 use crate::{
     contract_address::ContractAddress,
     felt::Felt,
-    patricia_key::{
-        PatriciaKey, PatriciaKeyFromFeltError, PatriciaKeyFromStrError, PATRICIA_KEY_UPPER_BOUND,
-    },
+    patricia_key::{PatriciaKey, PatriciaKeyFromFeltError, PatriciaKeyFromStrError},
 };
 
 #[repr(transparent)]
@@ -30,6 +28,13 @@ use crate::{
     derive(parity_scale_codec::Encode, parity_scale_codec::Decode)
 )]
 pub struct RegularContractAddress(ContractAddress);
+
+impl RegularContractAddress {
+    /// Lower inclusive bound
+    pub const LOWER_BOUND: Self = Self::from_hex_unchecked("0x4");
+    /// Upper non-inclusive bound
+    pub const UPPER_BOUND: Self = Self(ContractAddress::UPPER_BOUND);
+}
 
 impl core::fmt::Display for RegularContractAddress {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
@@ -167,7 +172,8 @@ impl Felt {
     /// https://docs.starknet.io/learn/protocol/state#special-addresses
     /// https://github.com/starkware-libs/sequencer/blob/ecd4779abef7bf345938a69f18ef70b6239d3a50/crates/blockifier/resources/blockifier_versioned_constants_0_15_0.json#L92-L97
     pub fn is_regular_contract_address(&self) -> bool {
-        self > &Felt::THREE && self < &PATRICIA_KEY_UPPER_BOUND
+        self >= &Felt::from(RegularContractAddress::LOWER_BOUND)
+            && self < &Felt::from(RegularContractAddress::UPPER_BOUND)
     }
 }
 
@@ -218,9 +224,50 @@ impl FromStr for RegularContractAddress {
 }
 
 impl RegularContractAddress {
+    /// Create a new [RegularContractAddress] from an hex encoded string without checking it is a valid value.
+    ///
+    /// Should NEVER be used on user inputs,
+    /// as it can cause erroneous execution if dynamically initialized with bad values.
+    /// Should mostly be used at compilation time on hardcoded static string.
     pub const fn from_hex_unchecked(s: &'static str) -> RegularContractAddress {
         let contract_address = ContractAddress::from_hex_unchecked(s);
 
         RegularContractAddress(contract_address)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    #[cfg(feature = "alloc")]
+    pub extern crate alloc;
+    use proptest::prelude::*;
+
+    use crate::{
+        felt::Felt, patricia_key::PATRICIA_KEY_UPPER_BOUND,
+        regular_contract_address::RegularContractAddress,
+    };
+
+    #[test]
+    fn basic_values() {
+        assert!(RegularContractAddress::try_from(Felt::ZERO).is_err());
+        assert!(RegularContractAddress::try_from(Felt::ONE).is_err());
+        assert!(RegularContractAddress::try_from(Felt::TWO).is_err());
+        assert!(RegularContractAddress::try_from(Felt::THREE).is_err());
+        assert!(RegularContractAddress::try_from(PATRICIA_KEY_UPPER_BOUND).is_err());
+
+        let felt = Felt::from_hex_unwrap("0xcaffe");
+        let contract_address = RegularContractAddress::try_from(felt).unwrap();
+        assert_eq!(Felt::from(contract_address), felt);
+    }
+
+    proptest! {
+        #[test]
+        fn is_valid_match_try_into(ref x in any::<Felt>()) {
+            if x.is_regular_contract_address() {
+                prop_assert!(RegularContractAddress::try_from(*x).is_ok());
+            } else {
+                prop_assert!(RegularContractAddress::try_from(*x).is_err());
+            }
+        }
     }
 }
