@@ -25,6 +25,13 @@ pub const PATRICIA_KEY_UPPER_BOUND: Felt =
 )]
 pub struct PatriciaKey(Felt);
 
+impl PatriciaKey {
+    /// Lower inclusive bound
+    pub const LOWER_BOUND: Self = Self(Felt::ZERO);
+    /// Upper non-inclusive bound
+    pub const UPPER_BOUND: Self = Self(PATRICIA_KEY_UPPER_BOUND);
+}
+
 impl core::fmt::Display for PatriciaKey {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "{}", self.0)
@@ -110,6 +117,11 @@ impl FromStr for PatriciaKey {
 }
 
 impl PatriciaKey {
+    /// Create a new [PatriciaKey] from an hex encoded string without checking it is a valid value.
+    ///
+    /// Should NEVER be used on user inputs,
+    /// as it can cause erroneous execution if dynamically initialized with bad values.
+    /// Should mostly be used at compilation time on hardcoded static string.
     pub const fn from_hex_unchecked(s: &'static str) -> PatriciaKey {
         let felt = Felt::from_hex_unwrap(s);
 
