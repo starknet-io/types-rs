@@ -104,7 +104,7 @@ impl Felt {
     /// Create a new [Felt] from a hex static string.
     ///
     /// This will panic if used on incorrect values, making it unfit for parsing dynamic values.
-    /// It should only be used with static strings, idealy in tests or a `const` context.
+    /// It should only be used with static strings, ideally in tests or a `const` context.
     pub const fn from_hex_unwrap(val: &'static str) -> Self {
         Self(FieldElement::<Stark252PrimeField>::from_hex_unchecked(val))
     }
