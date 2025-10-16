@@ -48,6 +48,12 @@ impl core::fmt::Display for ChainId {
 
 impl AsRef<str> for ChainId {
     fn as_ref(&self) -> &str {
+        self.as_str()
+    }
+}
+
+impl ChainId {
+    pub fn as_str(&self) -> &str {
         match self {
             ChainId::Mainnet => SN_MAIN_STR,
             ChainId::Sepolia => SN_SEPOLIA_STR,
@@ -152,25 +158,25 @@ impl FromStr for ChainId {
     type Err = TryChainIdFromStrError;
 
     fn from_str(value: &str) -> Result<Self, Self::Err> {
-        if value == SN_MAIN_STR {
-            return Ok(ChainId::Mainnet);
-        } else if value == SN_SEPOLIA_STR {
-            return Ok(ChainId::Sepolia);
+        match value {
+            SN_MAIN_STR => Ok(ChainId::Mainnet),
+            SN_SEPOLIA_STR => Ok(ChainId::Sepolia),
+            _ => {
+                #[cfg(feature = "devnet")]
+                return match ShortString::from_str(value) {
+                    Ok(ss) => Ok(ChainId::Devnet(ss)),
+                    Err(e) => Err(TryChainIdFromStrError(e)),
+                };
+
+                #[cfg(all(not(feature = "devnet"), feature = "alloc"))]
+                return Err(TryChainIdFromStrError(alloc::string::ToString::to_string(
+                    value,
+                )));
+
+                #[cfg(all(not(feature = "devnet"), not(feature = "alloc")))]
+                return Err(TryChainIdFromStrError);
+            }
         }
-
-        #[cfg(feature = "devnet")]
-        return match ShortString::from_str(value) {
-            Ok(ss) => Ok(ChainId::Devnet(ss)),
-            Err(e) => Err(TryChainIdFromStrError(e)),
-        };
-
-        #[cfg(all(not(feature = "devnet"), feature = "alloc"))]
-        return Err(TryChainIdFromStrError(alloc::string::ToString::to_string(
-            value,
-        )));
-
-        #[cfg(all(not(feature = "devnet"), not(feature = "alloc")))]
-        return Err(TryChainIdFromStrError);
     }
 }
 
