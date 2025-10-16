@@ -29,6 +29,12 @@ impl core::fmt::Display for ShortString {
     }
 }
 
+impl ShortString {
+    pub fn as_str(&self) -> &str {
+        self.0.as_str()
+    }
+}
+
 impl AsRef<str> for ShortString {
     fn as_ref(&self) -> &str {
         &self.0
@@ -82,6 +88,7 @@ impl TryFrom<Felt> for ShortString {
             return Err(TryShortStringFromFeltError::NonAscii);
         }
 
+        // Safe to use because we already checked all the bytes are valid ascii characters
         let s = unsafe { str::from_utf8_unchecked(&bytes[first_non_zero_byte..]) };
 
         Ok(ShortString(s.to_string()))
@@ -276,7 +283,8 @@ mod tests {
     fn ko_too_long() {
         let ok_string = String::from("This is a 31 characters string.");
         assert!(Felt::parse_cairo_short_string(&ok_string).is_ok());
-        assert!(ShortString::try_from(ok_string).is_ok());
+        let ss = ShortString::try_from(ok_string.clone()).unwrap();
+        assert_eq!(ok_string, ss.to_string());
 
         let ko_string = String::from("This is a 32 characters string..");
 

@@ -22,12 +22,10 @@ impl From<ChainId> for ShortString {
 #[cfg(feature = "devnet")]
 impl From<ShortString> for ChainId {
     fn from(value: ShortString) -> Self {
-        if value.as_ref() == SN_MAIN_STR {
-            ChainId::Mainnet
-        } else if value.as_ref() == SN_SEPOLIA_STR {
-            ChainId::Sepolia
-        } else {
-            ChainId::Devnet(value)
+        match value.as_str() {
+            SN_MAIN_STR => ChainId::Mainnet,
+            SN_SEPOLIA_STR => ChainId::Sepolia,
+            _ => ChainId::Devnet(value),
         }
     }
 }
@@ -54,12 +52,10 @@ mod try_chain_id_from_short_string {
         type Error = TryChainIdFromShortStringError;
 
         fn try_from(value: ShortString) -> Result<Self, Self::Error> {
-            if value.as_ref() == SN_MAIN_STR {
-                Ok(ChainId::Mainnet)
-            } else if value.as_ref() == SN_SEPOLIA_STR {
-                Ok(ChainId::Sepolia)
-            } else {
-                Err(TryChainIdFromShortStringError(value))
+            match value.as_str() {
+                SN_MAIN_STR => Ok(ChainId::Mainnet),
+                SN_SEPOLIA_STR => Ok(ChainId::Sepolia),
+                _ => Err(TryChainIdFromShortStringError(value)),
             }
         }
     }
@@ -81,11 +77,22 @@ impl From<ChainId> for String {
 }
 
 #[cfg(not(feature = "devnet"))]
-impl From<ChainId> for &str {
+impl From<ChainId> for &'static str {
     fn from(value: ChainId) -> Self {
         match value {
             ChainId::Mainnet => SN_MAIN_STR,
             ChainId::Sepolia => SN_SEPOLIA_STR,
+        }
+    }
+}
+
+#[cfg(feature = "devnet")]
+impl<'a> From<&'a ChainId> for &'a str {
+    fn from(value: &'a ChainId) -> Self {
+        match value {
+            ChainId::Mainnet => SN_MAIN_STR,
+            ChainId::Sepolia => SN_SEPOLIA_STR,
+            ChainId::Devnet(ss) => ss.as_ref(),
         }
     }
 }
@@ -117,20 +124,20 @@ impl TryFrom<String> for ChainId {
     type Error = TryChainIdFromStringError;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        if value == SN_MAIN_STR {
-            return Ok(ChainId::Mainnet);
-        } else if value == SN_SEPOLIA_STR {
-            return Ok(ChainId::Sepolia);
-        }
+        match value.as_str() {
+            SN_MAIN_STR => Ok(ChainId::Mainnet),
+            SN_SEPOLIA_STR => Ok(ChainId::Sepolia),
+            _ => {
+                #[cfg(feature = "devnet")]
+                match ShortString::try_from(value) {
+                    Ok(ss) => Ok(ChainId::Devnet(ss)),
+                    Err(e) => Err(TryChainIdFromStringError(e)),
+                }
 
-        #[cfg(feature = "devnet")]
-        match ShortString::try_from(value) {
-            Ok(ss) => Ok(ChainId::Devnet(ss)),
-            Err(e) => Err(TryChainIdFromStringError(e)),
+                #[cfg(not(feature = "devnet"))]
+                Err(TryChainIdFromStringError(value))
+            }
         }
-
-        #[cfg(not(feature = "devnet"))]
-        Err(TryChainIdFromStringError(value))
     }
 }
 
