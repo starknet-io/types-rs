@@ -1,7 +1,7 @@
 use core::fmt;
 
-use super::alloc;
 use super::Felt;
+use super::alloc;
 
 impl Felt {
     /// Helper to represent the felt value as a zero-padded hexadecimal string.

@@ -53,8 +53,7 @@ fn try_from_hex_str_parts() {
     assert!(U256::try_from_hex_str_parts(valid_str, valid_str).is_ok());
     let valid_str = "0x123";
     assert!(U256::try_from_hex_str_parts(valid_str, valid_str).is_ok());
-    let valid_str =
-        "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000123";
+    let valid_str = "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000123";
     assert!(U256::try_from_hex_str_parts(valid_str, valid_str).is_ok());
 
     let invalid_str = "";
