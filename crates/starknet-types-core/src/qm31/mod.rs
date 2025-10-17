@@ -9,7 +9,7 @@ use lambdaworks_math::field::{
     errors::FieldError,
     fields::mersenne31::{
         extensions::Degree4ExtensionField,
-        field::{Mersenne31Field, MERSENNE_31_PRIME_FIELD_ORDER},
+        field::{MERSENNE_31_PRIME_FIELD_ORDER, Mersenne31Field},
     },
     traits::IsField,
 };

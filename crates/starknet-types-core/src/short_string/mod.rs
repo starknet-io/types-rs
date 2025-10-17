@@ -9,9 +9,9 @@
 //!
 //! The convesion to `Felt` is done by using the internal ascii short string as bytes and parse those as a big endian number.
 
+use crate::felt::Felt;
 #[cfg(not(feature = "std"))]
 use crate::felt::alloc::string::{String, ToString};
-use crate::felt::Felt;
 
 /// A cairo short string
 ///

@@ -7,8 +7,8 @@ use lambdaworks_math::field::{
     element::FieldElement, fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
 };
 use serde::{
-    de::{self},
     Deserialize, Serialize,
+    de::{self},
 };
 
 use super::Felt;
@@ -86,7 +86,7 @@ mod tests {
     use super::*;
     use bincode::Options;
     use proptest::prelude::*;
-    use serde_test::{assert_tokens, Configure, Token};
+    use serde_test::{Configure, Token, assert_tokens};
 
     #[test]
     fn serde() {

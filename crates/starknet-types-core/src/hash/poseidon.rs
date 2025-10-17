@@ -1,6 +1,6 @@
 use crate::felt::Felt;
 use lambdaworks_crypto::hash::poseidon::{
-    starknet::PoseidonCairoStark252, Poseidon as PoseidonLambdaworks,
+    Poseidon as PoseidonLambdaworks, starknet::PoseidonCairoStark252,
 };
 use lambdaworks_math::field::{
     element::FieldElement, fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,

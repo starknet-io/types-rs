@@ -79,7 +79,7 @@ fn test_from_dec_str_values_under_39_digits() {
 fn test_from_dec_str_values_39_digits_and_above() {
     // Test 39 digits (should use manual parsing)
     let result = U256::from_dec_str("123456789012345678901234567890123456789").unwrap(); // 39 digits
-                                                                                         // This should use the manual parsing logic
+    // This should use the manual parsing logic
     assert!(result.low() > 0 || result.high() > 0);
 
     // Test a specific known value that exceeds u128::MAX
