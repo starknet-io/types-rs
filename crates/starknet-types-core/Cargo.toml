@@ -74,3 +74,4 @@ bincode = "1"
 [[bench]]
 name = "criterion_hashes"
 harness = false
+required-features = ["hash"]
