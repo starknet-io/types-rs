@@ -54,7 +54,7 @@ parity-scale-codec = ["dep:parity-scale-codec"]
 serde = ["alloc", "dep:serde"]
 prime-bigint = ["dep:lazy_static"]
 num-traits = []
-papyrus-serialization = ["std"]
+apollo-serialization = ["std"]
 secret-felt = ["alloc", "dep:zeroize", "dep:subtle", "subtle/const-generics", "subtle/core_hint_black_box", "dep:rand", "rand/alloc"]
 
 [dev-dependencies]
