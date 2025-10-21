@@ -2,6 +2,8 @@
 pub extern crate alloc;
 #[cfg(feature = "alloc")]
 mod alloc_impls;
+#[cfg(feature = "apollo-serialization")]
+mod apollo_serialization;
 #[cfg(feature = "arbitrary")]
 mod arbitrary;
 #[cfg(test)]
@@ -9,8 +11,6 @@ mod felt_arbitrary;
 mod non_zero;
 #[cfg(feature = "num-traits")]
 mod num_traits_impl;
-#[cfg(feature = "papyrus-serialization")]
-mod papyrus_serialization;
 #[cfg(feature = "parity-scale-codec")]
 mod parity_scale_codec;
 #[cfg(feature = "prime-bigint")]
