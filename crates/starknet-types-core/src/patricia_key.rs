@@ -12,8 +12,24 @@ use core::str::FromStr;
 
 use crate::felt::Felt;
 
-pub const PATRICIA_KEY_UPPER_BOUND: Felt =
-    Felt::from_hex_unwrap("0x800000000000000000000000000000000000000000000000000000000000000");
+pub const PATRICIA_KEY_UPPER_BOUND: PatriciaKey = PatriciaKey(Felt::from_hex_unwrap(
+    "0x800000000000000000000000000000000000000000000000000000000000000",
+));
+
+/// The index upper bound for a Starknet tree
+///
+/// Equal to `0x800000000000000000000000000000000000000000000000000000000000000 - 256`.
+///
+/// In Starknet users are allowed to store up to 256 felts in a tree leaf.
+/// Therfore, storage addresses can be used as "pointers" to some specific felt stored in a leaf:
+/// ValueAddress = LeafAddress + IndexInsideTheLeaf
+/// So, all leaf addresses are modulo this value.
+pub const STORAGE_LEAF_ADDRESS_UPPER_BOUND: PatriciaKey = PatriciaKey(Felt::from_raw([
+    576459263475590224,
+    18446744073709255680,
+    160989183,
+    18446743986131443745,
+]));
 
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -29,7 +45,7 @@ impl PatriciaKey {
     /// Lower inclusive bound
     pub const LOWER_BOUND: Self = Self(Felt::ZERO);
     /// Upper non-inclusive bound
-    pub const UPPER_BOUND: Self = Self(PATRICIA_KEY_UPPER_BOUND);
+    pub const UPPER_BOUND: Self = PATRICIA_KEY_UPPER_BOUND;
 }
 
 impl core::fmt::Display for PatriciaKey {
@@ -78,7 +94,7 @@ impl TryFrom<Felt> for PatriciaKey {
     type Error = PatriciaKeyFromFeltError;
 
     fn try_from(value: Felt) -> Result<Self, Self::Error> {
-        if value >= PATRICIA_KEY_UPPER_BOUND {
+        if value >= PATRICIA_KEY_UPPER_BOUND.0 {
             return Err(PatriciaKeyFromFeltError(value));
         }
 
@@ -126,5 +142,21 @@ impl PatriciaKey {
         let felt = Felt::from_hex_unwrap(s);
 
         PatriciaKey(felt)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        felt::Felt,
+        patricia_key::{PATRICIA_KEY_UPPER_BOUND, STORAGE_LEAF_ADDRESS_UPPER_BOUND},
+    };
+
+    #[test]
+    fn enforce_max_storage_leaf_address() {
+        assert_eq!(
+            PATRICIA_KEY_UPPER_BOUND.0 - Felt::from(256),
+            STORAGE_LEAF_ADDRESS_UPPER_BOUND.into(),
+        );
     }
 }
