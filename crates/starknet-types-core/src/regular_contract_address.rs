@@ -14,9 +14,11 @@
 use core::str::FromStr;
 
 use crate::{
-    contract_address::ContractAddress,
+    contract_address::{
+        ContractAddress, ContractAddressFromFeltError, ContractAddressFromStrError,
+    },
     felt::Felt,
-    patricia_key::{PatriciaKey, PatriciaKeyFromFeltError, PatriciaKeyFromStrError},
+    patricia_key::PatriciaKey,
 };
 
 #[repr(transparent)]
@@ -143,20 +145,20 @@ impl TryFrom<ContractAddress> for RegularContractAddress {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug)]
 pub enum RegularContractAddressFromFeltError {
-    TooBig(PatriciaKeyFromFeltError),
+    ContractAddress(ContractAddressFromFeltError),
     SpecialAddress(RegularContractAddressFromContractAddressError),
 }
 
 impl core::fmt::Display for RegularContractAddressFromFeltError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            RegularContractAddressFromFeltError::TooBig(e) => {
+            RegularContractAddressFromFeltError::ContractAddress(e) => {
                 write!(f, "invalid contract address: {}", e)
             }
             RegularContractAddressFromFeltError::SpecialAddress(e) => {
-                write!(f, "got special contract address: {e}")
+                write!(f, "value is a special contract address: {e}")
             }
         }
     }
@@ -182,7 +184,7 @@ impl TryFrom<Felt> for RegularContractAddress {
 
     fn try_from(value: Felt) -> Result<Self, Self::Error> {
         let contract_address = ContractAddress::try_from(value)
-            .map_err(RegularContractAddressFromFeltError::TooBig)?;
+            .map_err(RegularContractAddressFromFeltError::ContractAddress)?;
 
         RegularContractAddress::try_from(contract_address)
             .map_err(RegularContractAddressFromFeltError::SpecialAddress)
@@ -191,14 +193,14 @@ impl TryFrom<Felt> for RegularContractAddress {
 
 #[derive(Debug)]
 pub enum RegularContractAddressFromStrError {
-    BadContractAddress(PatriciaKeyFromStrError),
+    ContractAddress(ContractAddressFromStrError),
     SpecialContractAddress(RegularContractAddressFromContractAddressError),
 }
 
 impl core::fmt::Display for RegularContractAddressFromStrError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            RegularContractAddressFromStrError::BadContractAddress(e) => {
+            RegularContractAddressFromStrError::ContractAddress(e) => {
                 write!(f, "invalid felt string: {e}")
             }
             RegularContractAddressFromStrError::SpecialContractAddress(e) => {
@@ -216,7 +218,7 @@ impl FromStr for RegularContractAddress {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let contract_address = ContractAddress::from_str(s)
-            .map_err(RegularContractAddressFromStrError::BadContractAddress)?;
+            .map_err(RegularContractAddressFromStrError::ContractAddress)?;
 
         RegularContractAddress::try_from(contract_address)
             .map_err(RegularContractAddressFromStrError::SpecialContractAddress)
@@ -253,7 +255,7 @@ mod test {
         assert!(RegularContractAddress::try_from(Felt::ONE).is_err());
         assert!(RegularContractAddress::try_from(Felt::TWO).is_err());
         assert!(RegularContractAddress::try_from(Felt::THREE).is_err());
-        assert!(RegularContractAddress::try_from(PATRICIA_KEY_UPPER_BOUND).is_err());
+        assert!(RegularContractAddress::try_from(Felt::from(PATRICIA_KEY_UPPER_BOUND)).is_err());
 
         let felt = Felt::from_hex_unwrap("0xcaffe");
         let contract_address = RegularContractAddress::try_from(felt).unwrap();

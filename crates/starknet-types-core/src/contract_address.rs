@@ -9,7 +9,10 @@ use core::str::FromStr;
 
 use crate::{
     felt::Felt,
-    patricia_key::{PatriciaKey, PatriciaKeyFromFeltError, PatriciaKeyFromStrError},
+    patricia_key::{
+        PatriciaKey, PatriciaKeyFromFeltError, PatriciaKeyFromStrError,
+        STORAGE_LEAF_ADDRESS_UPPER_BOUND,
+    },
 };
 
 #[repr(transparent)]
@@ -31,7 +34,9 @@ impl ContractAddress {
     /// Lower inclusive bound
     pub const LOWER_BOUND: Self = Self::ZERO;
     /// Upper non-inclusive bound
-    pub const UPPER_BOUND: Self = Self(PatriciaKey::UPPER_BOUND);
+    ///
+    /// For consistency with other merkle leaf bounds, [ContractAddress] is also bounded by [STORAGE_LEAF_ADDRESS_UPPER_BOUND]
+    pub const UPPER_BOUND: Self = Self(STORAGE_LEAF_ADDRESS_UPPER_BOUND);
 }
 
 impl core::fmt::Display for ContractAddress {
@@ -64,17 +69,67 @@ impl From<ContractAddress> for PatriciaKey {
     }
 }
 
-impl From<PatriciaKey> for ContractAddress {
-    fn from(value: PatriciaKey) -> Self {
-        ContractAddress(value)
+#[derive(Debug)]
+pub enum ContractAddressFromPatriciaKeyError {
+    OutOfBound,
+}
+
+impl core::fmt::Display for ContractAddressFromPatriciaKeyError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            ContractAddressFromPatriciaKeyError::OutOfBound => write!(
+                f,
+                "value out of bound, upper non-inclusive bound is {}",
+                ContractAddress::UPPER_BOUND
+            ),
+        }
     }
 }
 
+#[cfg(feature = "std")]
+impl std::error::Error for ContractAddressFromPatriciaKeyError {}
+
+impl TryFrom<PatriciaKey> for ContractAddress {
+    type Error = ContractAddressFromPatriciaKeyError;
+
+    fn try_from(value: PatriciaKey) -> Result<Self, Self::Error> {
+        if value >= STORAGE_LEAF_ADDRESS_UPPER_BOUND {
+            Err(ContractAddressFromPatriciaKeyError::OutOfBound)
+        } else {
+            Ok(ContractAddress(value))
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum ContractAddressFromFeltError {
+    PatriciaKey(PatriciaKeyFromFeltError),
+    OutOfBound(ContractAddressFromPatriciaKeyError),
+}
+
+impl core::fmt::Display for ContractAddressFromFeltError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            ContractAddressFromFeltError::OutOfBound(e) => {
+                write!(f, "invalid value for contract address: {e}")
+            }
+            ContractAddressFromFeltError::PatriciaKey(e) => {
+                write!(f, "invalid patricia key value: {e}")
+            }
+        }
+    }
+}
+
+#[cfg(feature = "std")]
+impl std::error::Error for ContractAddressFromFeltError {}
 impl TryFrom<Felt> for ContractAddress {
-    type Error = PatriciaKeyFromFeltError;
+    type Error = ContractAddressFromFeltError;
 
     fn try_from(value: Felt) -> Result<Self, Self::Error> {
-        Ok(ContractAddress(PatriciaKey::try_from(value)?))
+        let pk = PatriciaKey::try_from(value).map_err(ContractAddressFromFeltError::PatriciaKey)?;
+        let ca = ContractAddress::try_from(pk).map_err(ContractAddressFromFeltError::OutOfBound)?;
+
+        Ok(ca)
     }
 }
 
@@ -85,19 +140,43 @@ impl Felt {
     }
 }
 
+#[derive(Debug)]
+pub enum ContractAddressFromStrError {
+    PatriciaKey(PatriciaKeyFromStrError),
+    OutOfBound(ContractAddressFromPatriciaKeyError),
+}
+
+impl core::fmt::Display for ContractAddressFromStrError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            ContractAddressFromStrError::PatriciaKey(e) => {
+                write!(f, "invalid patricia key: {e}")
+            }
+            ContractAddressFromStrError::OutOfBound(e) => {
+                write!(f, "invalid value for contract address: {e}")
+            }
+        }
+    }
+}
+
+#[cfg(feature = "std")]
+impl std::error::Error for ContractAddressFromStrError {}
+
 impl FromStr for ContractAddress {
-    type Err = PatriciaKeyFromStrError;
+    type Err = ContractAddressFromStrError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(ContractAddress(PatriciaKey::from_str(s)?))
+        let pk = PatriciaKey::from_str(s).map_err(ContractAddressFromStrError::PatriciaKey)?;
+        let ca = ContractAddress::try_from(pk).map_err(ContractAddressFromStrError::OutOfBound)?;
+
+        Ok(ca)
     }
 }
 
 impl ContractAddress {
     /// Create a new [ContractAddress] from an hex encoded string without checking it is a valid value.
     ///
-    /// Should NEVER be used on user inputs,
-    /// as it can cause erroneous execution if dynamically initialized with bad values.
+    /// Should NEVER be used on user inputs, as it can cause erroneous execution if dynamically initialized with bad values.
     /// Should mostly be used at compilation time on hardcoded static string.
     pub const fn from_hex_unchecked(s: &'static str) -> ContractAddress {
         let patricia_key = PatriciaKey::from_hex_unchecked(s);
