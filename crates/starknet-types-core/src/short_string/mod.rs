@@ -58,17 +58,16 @@ impl From<ShortString> for Felt {
 
 #[derive(Debug, Copy, Clone)]
 pub enum TryShortStringFromFeltError {
-    TooLong,
-    NonAscii,
+    TooLong(Felt),
+    NonAscii(Felt),
 }
 
 impl core::fmt::Display for TryShortStringFromFeltError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            TryShortStringFromFeltError::TooLong => "string to long",
-            TryShortStringFromFeltError::NonAscii => "string contains non ascii characters",
+            TryShortStringFromFeltError::TooLong(value) => write!(f, "felt value `{:#x}` has to many significant bytes, the first one should always be set to zero to represent a 31 chars long string", value),
+            TryShortStringFromFeltError::NonAscii(value) => write!(f, "felt value `{:#x}` contains non ascii bytes", value),
         }
-        .fmt(f)
     }
 }
 
@@ -78,14 +77,14 @@ impl TryFrom<Felt> for ShortString {
     fn try_from(value: Felt) -> Result<Self, Self::Error> {
         let bytes = value.to_bytes_be();
         if bytes[0] != 0 {
-            return Err(TryShortStringFromFeltError::TooLong);
+            return Err(TryShortStringFromFeltError::TooLong(value));
         }
         let first_non_zero_byte = match bytes.iter().position(|&v| v != 0) {
             Some(i) => i,
             None => return Ok(ShortString(String::new())),
         };
         if !bytes[first_non_zero_byte..].is_ascii() {
-            return Err(TryShortStringFromFeltError::NonAscii);
+            return Err(TryShortStringFromFeltError::NonAscii(value));
         }
 
         // Safe to use because we already checked all the bytes are valid ascii characters
@@ -192,7 +191,7 @@ impl FromStr for ShortString {
 /// ```
 #[macro_export]
 macro_rules! short_string {
-    ($s:literal) => {{
+    ($s:expr) => {{
         const _: () = {
             let bytes = $s.as_bytes();
             assert!(
