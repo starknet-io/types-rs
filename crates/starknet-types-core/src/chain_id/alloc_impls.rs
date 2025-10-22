@@ -11,8 +11,8 @@ use super::{ChainId, SN_MAIN_STR, SN_SEPOLIA_STR};
 impl From<ChainId> for ShortString {
     fn from(value: ChainId) -> Self {
         match value {
-            ChainId::Mainnet => short_string!("SN_MAIN"),
-            ChainId::Sepolia => short_string!("SN_SEPOLIA"),
+            ChainId::Mainnet => short_string!(SN_MAIN_STR),
+            ChainId::Sepolia => short_string!(SN_SEPOLIA_STR),
             #[cfg(feature = "devnet")]
             ChainId::Devnet(ss) => ss,
         }

@@ -78,13 +78,13 @@ impl From<ChainId> for Felt {
 
 #[derive(Debug, Clone, Copy)]
 #[cfg(not(feature = "devnet"))]
-pub struct TryChainIdFormFeltError(Felt);
+pub struct TryChainIdFromFeltError(Felt);
 
 #[derive(Debug, Clone, Copy)]
 #[cfg(feature = "devnet")]
-pub struct TryChainIdFormFeltError(crate::short_string::TryShortStringFromFeltError, Felt);
+pub struct TryChainIdFromFeltError(crate::short_string::TryShortStringFromFeltError, Felt);
 
-impl core::fmt::Display for TryChainIdFormFeltError {
+impl core::fmt::Display for TryChainIdFromFeltError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         #[cfg(not(feature = "devnet"))]
         write!(f, "unknown chain id `{:#}`", self.0)?;
@@ -101,10 +101,10 @@ impl core::fmt::Display for TryChainIdFormFeltError {
 }
 
 #[cfg(feature = "std")]
-impl std::error::Error for TryChainIdFormFeltError {}
+impl std::error::Error for TryChainIdFromFeltError {}
 
 impl TryFrom<Felt> for ChainId {
-    type Error = TryChainIdFormFeltError;
+    type Error = TryChainIdFromFeltError;
 
     fn try_from(value: Felt) -> Result<Self, Self::Error> {
         if value == SN_MAIN {
@@ -117,11 +117,11 @@ impl TryFrom<Felt> for ChainId {
         #[cfg(feature = "devnet")]
         match ShortString::try_from(value) {
             Ok(ss) => Ok(ChainId::Devnet(ss)),
-            Err(e) => Err(TryChainIdFormFeltError(e, value)),
+            Err(e) => Err(TryChainIdFromFeltError(e, value)),
         }
 
         #[cfg(not(feature = "devnet"))]
-        Err(TryChainIdFormFeltError(value))
+        Err(TryChainIdFromFeltError(value))
     }
 }
 
