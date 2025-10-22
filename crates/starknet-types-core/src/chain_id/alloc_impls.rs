@@ -3,8 +3,8 @@ pub extern crate alloc;
 #[cfg(not(feature = "std"))]
 use alloc::string::{String, ToString};
 
-use crate::short_string;
 use crate::short_string::ShortString;
+use crate::{chain_id::SN_INTEGRATION_SEPOLIA_STR, short_string};
 
 use super::{ChainId, SN_MAIN_STR, SN_SEPOLIA_STR};
 
@@ -13,6 +13,7 @@ impl From<ChainId> for ShortString {
         match value {
             ChainId::Mainnet => short_string!(SN_MAIN_STR),
             ChainId::Sepolia => short_string!(SN_SEPOLIA_STR),
+            ChainId::IntegrationSepolia => short_string!(SN_INTEGRATION_SEPOLIA_STR),
             #[cfg(feature = "devnet")]
             ChainId::Devnet(ss) => ss,
         }
@@ -25,6 +26,7 @@ impl From<ShortString> for ChainId {
         match value.as_str() {
             SN_MAIN_STR => ChainId::Mainnet,
             SN_SEPOLIA_STR => ChainId::Sepolia,
+            SN_INTEGRATION_SEPOLIA_STR => ChainId::IntegrationSepolia,
             _ => ChainId::Devnet(value),
         }
     }
@@ -32,7 +34,7 @@ impl From<ShortString> for ChainId {
 
 #[cfg(not(feature = "devnet"))]
 mod try_chain_id_from_short_string {
-    use crate::chain_id::{SN_MAIN_STR, SN_SEPOLIA_STR};
+    use crate::chain_id::{SN_INTEGRATION_SEPOLIA_STR, SN_MAIN_STR, SN_SEPOLIA_STR};
 
     use super::*;
 
@@ -55,6 +57,7 @@ mod try_chain_id_from_short_string {
             match value.as_str() {
                 SN_MAIN_STR => Ok(ChainId::Mainnet),
                 SN_SEPOLIA_STR => Ok(ChainId::Sepolia),
+                SN_INTEGRATION_SEPOLIA_STR => Ok(ChainId::IntegrationSepolia),
                 _ => Err(TryChainIdFromShortStringError(value)),
             }
         }
@@ -70,6 +73,7 @@ impl From<ChainId> for String {
         match value {
             ChainId::Mainnet => SN_MAIN_STR.to_string(),
             ChainId::Sepolia => SN_SEPOLIA_STR.to_string(),
+            ChainId::IntegrationSepolia => SN_INTEGRATION_SEPOLIA_STR.to_string(),
             #[cfg(feature = "devnet")]
             ChainId::Devnet(ss) => ss.to_string(),
         }
@@ -82,6 +86,7 @@ impl From<ChainId> for &'static str {
         match value {
             ChainId::Mainnet => SN_MAIN_STR,
             ChainId::Sepolia => SN_SEPOLIA_STR,
+            ChainId::IntegrationSepolia => SN_INTEGRATION_SEPOLIA_STR,
         }
     }
 }
@@ -92,6 +97,7 @@ impl<'a> From<&'a ChainId> for &'a str {
         match value {
             ChainId::Mainnet => SN_MAIN_STR,
             ChainId::Sepolia => SN_SEPOLIA_STR,
+            ChainId::IntegrationSepolia => SN_INTEGRATION_SEPOLIA_STR,
             ChainId::Devnet(ss) => ss.as_ref(),
         }
     }
@@ -127,6 +133,7 @@ impl TryFrom<String> for ChainId {
         match value.as_str() {
             SN_MAIN_STR => Ok(ChainId::Mainnet),
             SN_SEPOLIA_STR => Ok(ChainId::Sepolia),
+            SN_INTEGRATION_SEPOLIA_STR => Ok(ChainId::IntegrationSepolia),
             _ => {
                 #[cfg(feature = "devnet")]
                 match ShortString::try_from(value) {
@@ -147,11 +154,15 @@ mod tests {
 
     #[test]
     fn short_string_and_chain_id_round_trip() {
-        let ss = short_string!("SN_MAIN");
+        let ss = short_string!(SN_MAIN_STR);
         let chain_id = ChainId::try_from(ss.clone()).unwrap();
         assert_eq!(chain_id.to_string(), ss.to_string());
 
-        let ss = short_string!("SN_SEPOLIA");
+        let ss = short_string!(SN_SEPOLIA_STR);
+        let chain_id = ChainId::try_from(ss.clone()).unwrap();
+        assert_eq!(chain_id.to_string(), ss.to_string());
+
+        let ss = short_string!(SN_INTEGRATION_SEPOLIA_STR);
         let chain_id = ChainId::try_from(ss.clone()).unwrap();
         assert_eq!(chain_id.to_string(), ss.to_string());
 
@@ -175,6 +186,10 @@ mod tests {
         assert_eq!(chain_id.to_string(), s.to_string());
 
         let s = String::from(SN_SEPOLIA_STR);
+        let chain_id = ChainId::try_from(s.clone()).unwrap();
+        assert_eq!(chain_id.to_string(), s.to_string());
+
+        let s = String::from(SN_INTEGRATION_SEPOLIA_STR);
         let chain_id = ChainId::try_from(s.clone()).unwrap();
         assert_eq!(chain_id.to_string(), s.to_string());
 

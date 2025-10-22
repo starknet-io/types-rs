@@ -15,6 +15,7 @@ pub use alloc_impls::*;
 pub enum ChainId {
     Mainnet,
     Sepolia,
+    IntegrationSepolia,
     #[cfg(feature = "devnet")]
     Devnet(ShortString),
 }
@@ -35,11 +36,20 @@ pub const SN_SEPOLIA: Felt = Felt::from_raw([
     1555806712078248243,
 ]);
 
+pub const SN_INTEGRATION_SEPOLIA_STR: &str = "SN_INTEGRATION_SEPOLIA";
+pub const SN_INTEGRATION_SEPOLIA: Felt = Felt::from_raw([
+    356451801641654316,
+    18443812999431337335,
+    7869628190608881772,
+    122696121091289693,
+]);
+
 impl core::fmt::Display for ChainId {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             ChainId::Mainnet => core::fmt::Display::fmt(SN_MAIN_STR, f),
             ChainId::Sepolia => core::fmt::Display::fmt(SN_SEPOLIA_STR, f),
+            ChainId::IntegrationSepolia => core::fmt::Display::fmt(SN_INTEGRATION_SEPOLIA_STR, f),
             #[cfg(feature = "devnet")]
             ChainId::Devnet(ss) => core::fmt::Display::fmt(ss, f),
         }
@@ -57,6 +67,7 @@ impl ChainId {
         match self {
             ChainId::Mainnet => SN_MAIN_STR,
             ChainId::Sepolia => SN_SEPOLIA_STR,
+            ChainId::IntegrationSepolia => SN_INTEGRATION_SEPOLIA_STR,
             #[cfg(feature = "devnet")]
             ChainId::Devnet(ss) => ss.as_ref(),
         }
@@ -70,6 +81,7 @@ impl From<ChainId> for Felt {
         match value {
             ChainId::Mainnet => SN_MAIN,
             ChainId::Sepolia => SN_SEPOLIA,
+            ChainId::IntegrationSepolia => SN_INTEGRATION_SEPOLIA,
             #[cfg(feature = "devnet")]
             ChainId::Devnet(id) => id.into(),
         }
@@ -112,6 +124,9 @@ impl TryFrom<Felt> for ChainId {
         }
         if value == SN_SEPOLIA {
             return Ok(ChainId::Sepolia);
+        }
+        if value == SN_INTEGRATION_SEPOLIA {
+            return Ok(ChainId::IntegrationSepolia);
         }
 
         #[cfg(feature = "devnet")]
@@ -161,6 +176,7 @@ impl FromStr for ChainId {
         match value {
             SN_MAIN_STR => Ok(ChainId::Mainnet),
             SN_SEPOLIA_STR => Ok(ChainId::Sepolia),
+            SN_INTEGRATION_SEPOLIA_STR => Ok(ChainId::IntegrationSepolia),
             _ => {
                 #[cfg(feature = "devnet")]
                 return match ShortString::from_str(value) {
@@ -185,11 +201,13 @@ mod tests {
     use core::str::FromStr;
 
     use crate::{
-        chain_id::{SN_MAIN_STR, SN_SEPOLIA_STR},
+        chain_id::{
+            ChainId, SN_INTEGRATION_SEPOLIA, SN_INTEGRATION_SEPOLIA_STR, SN_MAIN, SN_MAIN_STR,
+            SN_SEPOLIA, SN_SEPOLIA_STR,
+        },
         felt::Felt,
+        short_string::ShortString,
     };
-
-    use super::{ChainId, SN_MAIN, SN_SEPOLIA};
 
     #[test]
     fn felt_and_chain_id_round_trip() {
@@ -198,6 +216,10 @@ mod tests {
         assert_eq!(Felt::from(chain_id), felt);
 
         let felt = SN_SEPOLIA;
+        let chain_id = ChainId::try_from(felt).unwrap();
+        assert_eq!(Felt::from(chain_id), felt);
+
+        let felt = SN_INTEGRATION_SEPOLIA;
         let chain_id = ChainId::try_from(felt).unwrap();
         assert_eq!(Felt::from(chain_id), felt);
 
@@ -228,6 +250,10 @@ mod tests {
         let chain_id = ChainId::from_str(s).unwrap();
         assert_eq!(chain_id.as_ref(), s);
 
+        let s = SN_INTEGRATION_SEPOLIA_STR;
+        let chain_id = ChainId::from_str(s).unwrap();
+        assert_eq!(chain_id.as_ref(), s);
+
         #[cfg(not(feature = "devnet"))]
         {
             let s = "SN_DEVNET";
@@ -243,5 +269,21 @@ mod tests {
             let s = "SN_DEVNET_🌟";
             assert!(ChainId::from_str(s).is_err());
         }
+    }
+
+    #[test]
+    fn enforce_chain_id_raw_values() {
+        assert_eq!(
+            SN_MAIN,
+            Felt::from(ShortString::from_str(SN_MAIN_STR).unwrap())
+        );
+        assert_eq!(
+            SN_SEPOLIA,
+            Felt::from(ShortString::from_str(SN_SEPOLIA_STR).unwrap())
+        );
+        assert_eq!(
+            SN_INTEGRATION_SEPOLIA,
+            Felt::from(ShortString::from_str(SN_INTEGRATION_SEPOLIA_STR).unwrap())
+        );
     }
 }
