@@ -132,8 +132,8 @@ impl SecretFelt {
 /// Constant time equality check for [SecretFelt]
 impl PartialEq for SecretFelt {
     fn eq(&self, other: &Self) -> bool {
-        let mut self_limbs = self.0 .0.representative().limbs;
-        let mut other_limbs = other.0 .0.representative().limbs;
+        let mut self_limbs = self.0.0.representative().limbs;
+        let mut other_limbs = other.0.0.representative().limbs;
 
         let is_eq: bool = self_limbs.ct_eq(&other_limbs).into();
 
@@ -146,9 +146,9 @@ impl PartialEq for SecretFelt {
 
 #[cfg(test)]
 mod test {
-    use crate::felt::{secret_felt::SecretFelt, Felt};
+    use crate::felt::{Felt, secret_felt::SecretFelt};
     use core::mem::size_of;
-    use rand_chacha::{rand_core::SeedableRng, ChaCha20Rng};
+    use rand_chacha::{ChaCha20Rng, rand_core::SeedableRng};
     use std::{ops::Deref, str::FromStr};
     use zeroize::Zeroize;
 

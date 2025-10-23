@@ -116,7 +116,7 @@ mod tests {
 
     use proptest::prelude::*;
 
-    use crate::felt::{felt_arbitrary::nonzero_felt, Felt, NonZeroFelt};
+    use crate::felt::{Felt, NonZeroFelt, felt_arbitrary::nonzero_felt};
 
     #[test]
     fn nonzerofelt_from_raw() {

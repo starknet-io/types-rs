@@ -1,10 +1,9 @@
-use criterion::{black_box, criterion_group, criterion_main, BatchSize, BenchmarkId, Criterion};
+use criterion::{BatchSize, BenchmarkId, Criterion, black_box, criterion_group, criterion_main};
 use rand::{Rng, RngCore, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 
 use starknet_types_core::felt::Felt;
-use starknet_types_core::hash::StarkHash;
-use starknet_types_core::hash::{Pedersen, Poseidon};
+use starknet_types_core::hash::{Pedersen, Poseidon, StarkHash};
 
 const SEED: u64 = 3;
 

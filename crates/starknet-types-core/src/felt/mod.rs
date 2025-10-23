@@ -109,11 +109,6 @@ impl Felt {
         Self(FieldElement::<Stark252PrimeField>::from_hex_unchecked(val))
     }
 
-    #[deprecated(since = "0.3.1", note = "use `from_hex_unwrap` instead")]
-    pub const fn from_hex_unchecked(val: &str) -> Self {
-        Self(FieldElement::<Stark252PrimeField>::from_hex_unchecked(val))
-    }
-
     /// Creates a new [Felt] from its big-endian representation in a [u8; 32] array.
     /// This is as performant as [from_bytes_le](Felt::from_bytes_le).
     pub fn from_bytes_be(bytes: &[u8; 32]) -> Self {
@@ -1342,14 +1337,14 @@ mod test {
 
     #[test]
     fn felt_from_hex_upper_bound_limit() {
-        assert!(Felt::from_hex(
-            "0x800000000000011000000000000000000000000000000000000000000000001"
-        )
-        .is_ok());
-        assert!(Felt::from_hex(
-            "0x800000000000011000000000000000000000000000000000000000000000002"
-        )
-        .is_err());
+        assert!(
+            Felt::from_hex("0x800000000000011000000000000000000000000000000000000000000000001")
+                .is_ok()
+        );
+        assert!(
+            Felt::from_hex("0x800000000000011000000000000000000000000000000000000000000000002")
+                .is_err()
+        );
         assert!(Felt::from_hex(&format!("0x{}", "f".repeat(63))).is_err());
     }
 }
