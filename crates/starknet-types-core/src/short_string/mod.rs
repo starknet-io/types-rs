@@ -65,8 +65,14 @@ pub enum TryShortStringFromFeltError {
 impl core::fmt::Display for TryShortStringFromFeltError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            TryShortStringFromFeltError::TooLong(value) => write!(f, "felt value `{:#x}` has to many significant bytes, the first one should always be set to zero to represent a 31 chars long string", value),
-            TryShortStringFromFeltError::NonAscii(value) => write!(f, "felt value `{:#x}` contains non ascii bytes", value),
+            TryShortStringFromFeltError::TooLong(value) => write!(
+                f,
+                "felt value `{:#x}` has to many significant bytes, the first one should always be set to zero to represent a 31 chars long string",
+                value
+            ),
+            TryShortStringFromFeltError::NonAscii(value) => {
+                write!(f, "felt value `{:#x}` contains non ascii bytes", value)
+            }
         }
     }
 }
