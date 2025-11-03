@@ -8,6 +8,8 @@ pub mod hash;
 pub mod felt;
 pub mod qm31;
 
-#[cfg(any(feature = "std", feature = "alloc"))]
+#[cfg(feature = "alloc")]
 pub mod short_string;
 pub mod u256;
+
+pub mod chain_id;
