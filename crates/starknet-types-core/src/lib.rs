@@ -8,7 +8,6 @@ pub mod hash;
 pub mod felt;
 pub mod qm31;
 
-#[cfg(feature = "alloc")]
 pub mod contract_address;
 pub mod patricia_key;
 pub mod regular_contract_address;
