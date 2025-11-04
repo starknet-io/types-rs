@@ -1,4 +1,4 @@
-//! //! A key used for nodes of a Patricia tree.
+//! A key used for nodes of a Patricia tree.
 //!
 //! The state of the starknet blockchain (contracts declared, contracts deployed, storage of each contract),
 //! is represented as multiple binary Merkle-Patricia trees.
