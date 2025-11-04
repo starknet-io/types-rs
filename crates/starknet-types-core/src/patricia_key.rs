@@ -1,12 +1,13 @@
-//! The key of one of starknet state tree
+//! //! A key used for nodes of a Patricia tree.
 //!
-//! https://docs.starknet.io/learn/protocol/state
 //! The state of the starknet blockchain (contracts declared, contracts deployed, storage of each contract),
 //! is represented as multiple binary Merkle-Patricia trees.
-//! Those trees have an height of 251, which means that they contains at most 2^251 values.
-//! The keys to those values are represented as `Felt`, with range [0, PATRICIA_KEY_UPPER_BOUND).
+//! Those trees have an height of 251, which means that they contain at most 2^251 values.
+//! The keys of those values are represented as `Felt`, with range [0, PATRICIA_KEY_UPPER_BOUND).
 //! Therefore not every `Felt` is a valid `PatriciaKey`,
 //! and we can use the `PatriciaKey` type to enfoce type safety in our code.
+//!
+//! See https://docs.starknet.io/learn/protocol/state for further details.
 
 use core::str::FromStr;
 
@@ -20,8 +21,8 @@ pub const PATRICIA_KEY_UPPER_BOUND: PatriciaKey = PatriciaKey(Felt::from_hex_unw
 ///
 /// Equal to `0x800000000000000000000000000000000000000000000000000000000000000 - 256`.
 ///
-/// In Starknet users are allowed to store up to 256 felts in a tree leaf.
-/// Therfore, storage addresses can be used as "pointers" to some specific felt stored in a leaf:
+/// In Starknet, users are allowed to store up to 256 felts in a tree leaf.
+/// Therefore, storage addresses can be used as "pointers" to some specific felt stored in a leaf:
 /// ValueAddress = LeafAddress + IndexInsideTheLeaf
 /// So, all leaf addresses are modulo this value.
 pub const STORAGE_LEAF_ADDRESS_UPPER_BOUND: PatriciaKey = PatriciaKey(Felt::from_raw([
@@ -74,14 +75,14 @@ impl core::fmt::Display for PatriciaKeyFromFeltError {
         #[cfg(feature = "alloc")]
         return write!(
             f,
-            "invalid felt value for patricia key. Upper non-inclusinve bound is 2^251 got {:#x}",
+            "invalid felt value for patricia key. Upper non-inclusive bound is 2^251 got {:#x}",
             self.0
         );
 
         #[cfg(not(feature = "alloc"))]
         return write!(
             f,
-            "invalid felt value for patricia key. Upper non-inclusinve bound is 2^251 got {}",
+            "invalid felt value for patricia key. Upper non-inclusive bound is 2^251 got {}",
             self.0
         );
     }

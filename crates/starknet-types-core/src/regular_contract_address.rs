@@ -1,14 +1,15 @@
 //! A regular Starknet contract address
 //!
-//! This excludes the two special values reserved by the protocol: 0x0 and 0x1.
-//! 0x0 is the default caller address used for external calls. Nothing is ever stored there.
-//! 0x1 is used for block hash mapping.
-//! 0x2 is used for alias.
-//! 0x3 is reserved without used for now.
+//! //! Similar to [ContractAddress] but it excludes the following values as they are reserved by the protocol:
+//! - 0x0 is the default caller address used for external calls. Nothing is ever stored there.
+//! - 0x1 is used for block hash mapping.
+//! - 0x2 is used for alias.
+//! - 0x3 is reserved without used for now.
+//!
 //! See: https://docs.starknet.io/learn/protocol/state#special-addresses
 //!
 //! Most user applications should not interact with those special addresses.
-//! Doing so would be a bug or invalid input.
+//! Doing so would result in a bug or invalid input.
 //! `RegularContractAddress` enforces this at the type level.
 
 use core::str::FromStr;
@@ -81,7 +82,7 @@ impl From<RegularContractAddress> for ContractAddress {
 }
 
 /// In Starknet, contract addresses must follow specific constraints to be less than 2^251 (0x800000000000000000000000000000000000000000000000000000000000000) to be valid.
-/// But there is also two special addressed for the protocol use:
+/// But the following addresses are reserved for the protocol use:
 ///   * 0x0 acts as the default caller address for external calls and has no storage
 ///   * 0x1 functions as a storage space for block mapping
 ///   * 0x2 is an alias
@@ -169,7 +170,7 @@ impl std::error::Error for RegularContractAddressFromFeltError {}
 
 impl Felt {
     /// Validates that a Felt value represents a valid Starknet contract address,
-    /// excluding the starknet special constract address `0x0`, `0x1`, `0x2` and `0x3`.
+    /// excluding the starknet reserved contract address `0x0`, `0x1`, `0x2` and `0x3`.
     ///
     /// https://docs.starknet.io/learn/protocol/state#special-addresses
     /// https://github.com/starkware-libs/sequencer/blob/ecd4779abef7bf345938a69f18ef70b6239d3a50/crates/blockifier/resources/blockifier_versioned_constants_0_15_0.json#L92-L97

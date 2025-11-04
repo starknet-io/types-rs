@@ -1,6 +1,6 @@
 //! A starknet contract address
 //!
-//! In starknet valid contract addresses exists as a subset of the type `Felt`.
+//! In starknet valid contract addresses exist as a subset of the type `Felt`.
 //! Therefore some checks must be done in order to produce protocol valid addresses.
 //! This module provides this logic as a type `ContractAddress`, that can garantee the validity of the address.
 //! It also comes with some quality of life methods.
@@ -71,15 +71,15 @@ impl From<ContractAddress> for PatriciaKey {
 
 #[derive(Debug)]
 pub enum ContractAddressFromPatriciaKeyError {
-    OutOfBound,
+    OutOfBounds,
 }
 
 impl core::fmt::Display for ContractAddressFromPatriciaKeyError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            ContractAddressFromPatriciaKeyError::OutOfBound => write!(
+            ContractAddressFromPatriciaKeyError::OutOfBounds => write!(
                 f,
-                "value out of bound, upper non-inclusive bound is {}",
+                "value out of bounds, upper non-inclusive bound is {}",
                 ContractAddress::UPPER_BOUND
             ),
         }
@@ -94,7 +94,7 @@ impl TryFrom<PatriciaKey> for ContractAddress {
 
     fn try_from(value: PatriciaKey) -> Result<Self, Self::Error> {
         if value >= STORAGE_LEAF_ADDRESS_UPPER_BOUND {
-            Err(ContractAddressFromPatriciaKeyError::OutOfBound)
+            Err(ContractAddressFromPatriciaKeyError::OutOfBounds)
         } else {
             Ok(ContractAddress(value))
         }
@@ -104,13 +104,13 @@ impl TryFrom<PatriciaKey> for ContractAddress {
 #[derive(Debug)]
 pub enum ContractAddressFromFeltError {
     PatriciaKey(PatriciaKeyFromFeltError),
-    OutOfBound(ContractAddressFromPatriciaKeyError),
+    OutOfBounds(ContractAddressFromPatriciaKeyError),
 }
 
 impl core::fmt::Display for ContractAddressFromFeltError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            ContractAddressFromFeltError::OutOfBound(e) => {
+            ContractAddressFromFeltError::OutOfBounds(e) => {
                 write!(f, "invalid value for contract address: {e}")
             }
             ContractAddressFromFeltError::PatriciaKey(e) => {
@@ -127,7 +127,8 @@ impl TryFrom<Felt> for ContractAddress {
 
     fn try_from(value: Felt) -> Result<Self, Self::Error> {
         let pk = PatriciaKey::try_from(value).map_err(ContractAddressFromFeltError::PatriciaKey)?;
-        let ca = ContractAddress::try_from(pk).map_err(ContractAddressFromFeltError::OutOfBound)?;
+        let ca =
+            ContractAddress::try_from(pk).map_err(ContractAddressFromFeltError::OutOfBounds)?;
 
         Ok(ca)
     }
@@ -143,7 +144,7 @@ impl Felt {
 #[derive(Debug)]
 pub enum ContractAddressFromStrError {
     PatriciaKey(PatriciaKeyFromStrError),
-    OutOfBound(ContractAddressFromPatriciaKeyError),
+    OutOfBounds(ContractAddressFromPatriciaKeyError),
 }
 
 impl core::fmt::Display for ContractAddressFromStrError {
@@ -152,7 +153,7 @@ impl core::fmt::Display for ContractAddressFromStrError {
             ContractAddressFromStrError::PatriciaKey(e) => {
                 write!(f, "invalid patricia key: {e}")
             }
-            ContractAddressFromStrError::OutOfBound(e) => {
+            ContractAddressFromStrError::OutOfBounds(e) => {
                 write!(f, "invalid value for contract address: {e}")
             }
         }
@@ -167,14 +168,14 @@ impl FromStr for ContractAddress {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let pk = PatriciaKey::from_str(s).map_err(ContractAddressFromStrError::PatriciaKey)?;
-        let ca = ContractAddress::try_from(pk).map_err(ContractAddressFromStrError::OutOfBound)?;
+        let ca = ContractAddress::try_from(pk).map_err(ContractAddressFromStrError::OutOfBounds)?;
 
         Ok(ca)
     }
 }
 
 impl ContractAddress {
-    /// Create a new [ContractAddress] from an hex encoded string without checking it is a valid value.
+    /// Creates a new [ContractAddress] from an hex encoded string without checking it is a valid value.
     ///
     /// Should NEVER be used on user inputs, as it can cause erroneous execution if dynamically initialized with bad values.
     /// Should mostly be used at compilation time on hardcoded static string.
