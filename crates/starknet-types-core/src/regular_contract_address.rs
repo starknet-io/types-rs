@@ -1,6 +1,6 @@
 //! A regular Starknet contract address
 //!
-//! //! Similar to [ContractAddress] but it excludes the following values as they are reserved by the protocol:
+//! Similar to [ContractAddress] but it excludes the following values as they are reserved by the protocol:
 //! - 0x0 is the default caller address used for external calls. Nothing is ever stored there.
 //! - 0x1 is used for block hash mapping.
 //! - 0x2 is used for alias.
