@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    "crates/felt-macro",
     "crates/starknet-types-core",
 ]
 
