@@ -21,6 +21,9 @@ macro_rules! felt {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "alloc")]
+    pub extern crate alloc;
+
     use crate::felt::Felt;
 
     #[test]
@@ -47,7 +50,7 @@ mod tests {
         assert_eq!(felt!(x), Felt::ONE);
         let x = "42";
         assert_eq!(felt!(x), Felt::from(42));
-        let x = String::from("42");
+        let x = alloc::string::String::from("42");
         assert_eq!(felt!(x), Felt::from(42));
         let x = 42u32;
         assert_eq!(felt!(x), Felt::from(42));
