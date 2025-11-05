@@ -7,7 +7,7 @@
 /// - positive hexadecimal string literal (eg. `"0x0"`, `"0x42"`)
 /// - variables of any type that implements `TryFrom<T> for Felt` (eg. `u32`, `i128`, `&str`, `String`)
 /// - functions and closure which return type implements `TryFrom<T> for Felt` (eg. `|x| x * 42`, `fn ret42() -> u32 { 42 }` )
-/// - code block (eg. `{40 + 2}`) and more generaly any expression that returns as types that implements `TryFrom<T> for Felt`
+/// - code block (eg. `{40 + 2}`) and more generally any expression that returns as types that implements `TryFrom<T> for Felt`
 ///
 /// Use in `const` expression is only possible using literal `bool` and literal hex string
 /// because the other types rely on non-`const` function for conversion (eg. `From::from` for numbers).
@@ -37,7 +37,7 @@ mod tests {
         assert_eq!(felt!(-42), Felt::ZERO - Felt::from(42));
         assert_eq!(felt!(-42i8), Felt::ZERO - Felt::from(42));
 
-        // Statis &str
+        // Static &str
         assert_eq!(felt!("42"), Felt::from(42));
         assert_eq!(felt!("-42"), Felt::ZERO - Felt::from(42));
         assert_eq!(felt!("0x42"), Felt::from_hex_unwrap("0x42"));
@@ -54,7 +54,7 @@ mod tests {
         let x = -42;
         assert_eq!(felt!(x), Felt::ZERO - Felt::from(42));
 
-        // Expresions
+        // Expressions
         let double_closure = |x| x * 2;
         assert_eq!(felt!(double_closure(5)), Felt::from(10));
         assert_eq!(felt!({ 40 + 2 }), Felt::from(42));
