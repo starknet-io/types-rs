@@ -1,7 +1,7 @@
 use proc_macro::TokenStream;
 use quote::quote;
 use std::ops::Neg;
-use syn::{Expr, ExprLit, ExprUnary, Lit, parse_macro_input};
+use syn::{Error, Expr, ExprLit, ExprUnary, Lit, Result, parse_macro_input};
 
 use lambdaworks_math::{
     field::{
@@ -23,16 +23,17 @@ pub fn felt(input: TokenStream) -> TokenStream {
     let expr = parse_macro_input!(input as Expr);
 
     match handle_expr(&expr) {
-        HandleExprOutput::ComptimeFelt(field_element) => {
+        Ok(HandleExprOutput::ComptimeFelt(field_element)) => {
             generate_const_felt_token_stream_from_lambda_field_element(field_element).into()
         }
-        HandleExprOutput::Runtime => quote! {
+        Ok(HandleExprOutput::Runtime) => quote! {
             match Felt::try_from(#expr) {
                 Ok(f) => f,
-                Err(_) => panic!("Invalid Felt value"),
+                Err(e) => panic!("Invalid Felt value: {}", e),
             }
         }
         .into(),
+        Err(error) => error.to_compile_error().into(),
     }
 }
 
@@ -54,19 +55,27 @@ fn generate_const_felt_token_stream_from_lambda_field_element(
     }
 }
 
-fn handle_expr(expr: &syn::Expr) -> HandleExprOutput {
+fn handle_expr(expr: &syn::Expr) -> Result<HandleExprOutput> {
     match expr {
         Expr::Lit(expr_lit) => match &expr_lit.lit {
-            Lit::Bool(lit_bool) => HandleExprOutput::ComptimeFelt(match lit_bool.value() {
-                false => LambdaFieldElement::from_hex_unchecked("0x0"),
-                true => LambdaFieldElement::from_hex_unchecked("0x1"),
-            }),
+            Lit::Bool(lit_bool) => Ok(HandleExprOutput::ComptimeFelt(match lit_bool.value() {
+                false => LambdaFieldElement::from(&UnsignedInteger::from_u64(0)),
+                true => LambdaFieldElement::from(&UnsignedInteger::from_u64(1)),
+            })),
 
             Lit::Int(lit_int) => {
-                let value = lit_int.base10_parse::<u128>().unwrap();
+                let value = match lit_int.base10_parse::<u128>() {
+                    Ok(v) => v,
+                    Err(_) => {
+                        return Err(Error::new_spanned(
+                            lit_int,
+                            "Invalid integer literal for Felt conversion",
+                        ));
+                    }
+                };
 
-                HandleExprOutput::ComptimeFelt(LambdaFieldElement::from(&UnsignedInteger::from(
-                    value,
+                Ok(HandleExprOutput::ComptimeFelt(LambdaFieldElement::from(
+                    &UnsignedInteger::from(value),
                 )))
             }
 
@@ -83,64 +92,103 @@ fn handle_expr(expr: &syn::Expr) -> HandleExprOutput {
                     UnsignedInteger::from_hex(value).map(|x| LambdaFieldElement::from(&x))
                 } else {
                     UnsignedInteger::from_dec_str(value).map(|x| LambdaFieldElement::from(&x))
-                }
-                .unwrap();
+                };
 
-                HandleExprOutput::ComptimeFelt(if is_neg { lfe.neg() } else { lfe })
+                let lfe = match lfe {
+                    Ok(v) => v,
+                    Err(_) => {
+                        return Err(Error::new_spanned(
+                            lit_str,
+                            "Invalid string literal for Felt conversion",
+                        ));
+                    }
+                };
+
+                Ok(HandleExprOutput::ComptimeFelt(if is_neg {
+                    lfe.neg()
+                } else {
+                    lfe
+                }))
             }
 
             Lit::ByteStr(lit_byte_str) => {
                 let bytes = lit_byte_str.value();
 
-                assert!(
-                    bytes.len() <= 31,
-                    "Short string must be at most 31 characters"
-                );
-                assert!(
-                    bytes.is_ascii(),
-                    "Short string must contain only ASCII characters"
-                );
+                if bytes.len() > 31 {
+                    return Err(Error::new_spanned(
+                        lit_byte_str,
+                        "Short string must be at most 31 characters",
+                    ));
+                }
+
+                if !bytes.is_ascii() {
+                    return Err(Error::new_spanned(
+                        lit_byte_str,
+                        "Short string must contain only ASCII characters",
+                    ));
+                }
 
                 let mut buffer = [0u8; 32];
                 buffer[(32 - bytes.len())..].copy_from_slice(&bytes);
 
-                HandleExprOutput::ComptimeFelt(LambdaFieldElement::from_bytes_be(&buffer).unwrap())
+                match LambdaFieldElement::from_bytes_be(&buffer) {
+                    Ok(field_element) => Ok(HandleExprOutput::ComptimeFelt(field_element)),
+                    Err(_) => Err(Error::new_spanned(
+                        lit_byte_str,
+                        "Failed to convert byte string to Felt",
+                    )),
+                }
             }
+
             Lit::Char(lit_char) => {
                 let char = lit_char.value();
 
-                assert!(char.is_ascii(), "Only ASCII characters are handled");
+                if !char.is_ascii() {
+                    return Err(Error::new_spanned(
+                        lit_char,
+                        "Only ASCII characters are supported",
+                    ));
+                }
 
                 let mut buffer = [0u8];
                 char.encode_utf8(&mut buffer);
 
-                HandleExprOutput::ComptimeFelt(LambdaFieldElement::from(&UnsignedInteger::from(
-                    u16::from(buffer[0]),
+                Ok(HandleExprOutput::ComptimeFelt(LambdaFieldElement::from(
+                    &UnsignedInteger::from(u16::from(buffer[0])),
                 )))
             }
+
             Lit::Byte(lit_byte) => {
                 let char = lit_byte.value();
 
-                HandleExprOutput::ComptimeFelt(LambdaFieldElement::from(&UnsignedInteger::from(
-                    u16::from(char),
+                Ok(HandleExprOutput::ComptimeFelt(LambdaFieldElement::from(
+                    &UnsignedInteger::from(u16::from(char)),
                 )))
             }
-            Lit::CStr(_) | Lit::Float(_) | Lit::Verbatim(_) => panic!("Literal type not handled"),
+
+            Lit::CStr(_) | Lit::Float(_) | Lit::Verbatim(_) => {
+                Err(Error::new_spanned(expr_lit, "Unsupported literal type"))
+            }
+
             // `Lit` is a non-exhaustive enum
-            _ => panic!("Unkown literal type. Not handled"),
+            _ => Err(Error::new_spanned(expr_lit, "Unknown literal type")),
         },
 
         // Negative (`-`) prefixed values
+        // Can be used before any other expression
         Expr::Unary(ExprUnary {
             attrs: _attrs,
             op: syn::UnOp::Neg(_),
             expr,
-        }) => match handle_expr(expr) {
+        }) => match handle_expr(expr)? {
             HandleExprOutput::ComptimeFelt(field_element) => {
-                HandleExprOutput::ComptimeFelt(field_element.neg())
+                Ok(HandleExprOutput::ComptimeFelt(field_element.neg()))
             }
-            HandleExprOutput::Runtime => HandleExprOutput::Runtime,
+            HandleExprOutput::Runtime => Ok(HandleExprOutput::Runtime),
         },
+
+        // Opposite (`!`) prefixed values
+        // Can only be used before literal bool expression and any runtime expression where it is semanticaly valid
         Expr::Unary(ExprUnary {
             attrs: _attrs,
             op: syn::UnOp::Not(_),
@@ -149,16 +197,17 @@ fn handle_expr(expr: &syn::Expr) -> HandleExprOutput {
             Expr::Lit(ExprLit {
                 lit: Lit::Bool(lit_bool),
                 ..
-            }) => HandleExprOutput::ComptimeFelt(match lit_bool.value() {
-                false => LambdaFieldElement::from_hex_unchecked("0x1"),
-                true => LambdaFieldElement::from_hex_unchecked("0x0"),
-            }),
-            Expr::Lit(_) => panic!(
-                "The `!` logical inversion operatior in only allowed before booleans in literal expressions."
-            ),
-            _ => HandleExprOutput::Runtime,
+            }) => Ok(HandleExprOutput::ComptimeFelt(match lit_bool.value() {
+                false => LambdaFieldElement::from(&UnsignedInteger::from_u64(1)),
+                true => LambdaFieldElement::from(&UnsignedInteger::from_u64(0)),
+            })),
+            Expr::Lit(_) => Err(Error::new_spanned(
+                expr,
+                "The `!` logical inversion operator is only allowed before booleans in literal expressions",
+            )),
+            _ => Ok(HandleExprOutput::Runtime),
         },
 
-        _ => HandleExprOutput::Runtime,
+        _ => Ok(HandleExprOutput::Runtime),
     }
 }

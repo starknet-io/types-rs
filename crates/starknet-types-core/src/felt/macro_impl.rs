@@ -115,6 +115,10 @@ mod tests {
         assert_eq!(felt!(-{ 40 + 2 }), Felt::from(-42));
         let x = 42;
         assert_eq!(felt!({ (40 + 2 == x) | true }), Felt::ONE);
+        let x = "105".to_string();
+        assert_eq!(felt!(x), Felt::from(105));
+        let x = true;
+        assert_eq!(felt!(!x), Felt::from(0));
 
         // Constants
         const X: &str = "42";
