@@ -1,124 +1,164 @@
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{Expr, Lit, parse_macro_input};
+use std::ops::Neg;
+use syn::{Expr, ExprLit, ExprUnary, Lit, parse_macro_input};
 
 use lambdaworks_math::{
     field::{
         element::FieldElement, fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
     },
+    traits::ByteConversion,
     unsigned_integer::element::UnsignedInteger,
 };
 
 type LambdaFieldElement = FieldElement<Stark252PrimeField>;
 
+enum HandleExprOutput {
+    ComptimeFelt(LambdaFieldElement),
+    Runtime,
+}
+
 #[proc_macro]
 pub fn felt(input: TokenStream) -> TokenStream {
     let expr = parse_macro_input!(input as Expr);
 
-    match &expr {
-        Expr::Lit(expr_lit) => match &expr_lit.lit {
-            Lit::Str(lit_str) => {
-                let value = lit_str.value();
-
-                // Check if it's a hex string (starts with 0x or 0X)
-                if value.starts_with("0x") || value.starts_with("0X") {
-                    // Hex string: use const fn for compile-time validation
-                    quote! {
-                        {
-                            const __FELT_VALUE: Felt = Felt::from_hex_unwrap(#lit_str);
-                            __FELT_VALUE
-                        }
-                    }
-                    .into()
-                } else {
-                    // Check for valid decimal format (optional leading minus, then digits)
-                    let is_valid = if let Some(stripped) = value.strip_prefix('-') {
-                        !stripped.is_empty() && stripped.chars().all(|c| c.is_ascii_digit())
-                    } else {
-                        !value.is_empty() && value.chars().all(|c| c.is_ascii_digit())
-                    };
-
-                    if !is_valid {
-                        return syn::Error::new_spanned(
-                            lit_str,
-                            format!("Invalid Felt decimal string literal: '{}'. Expected decimal digits (0-9), optionally prefixed with '-'.", value)
-                        )
-                        .to_compile_error()
-                        .into();
-                    }
-
-                    // Valid format, generate runtime parsing code
-                    quote! {
-                        match <Felt as ::core::str::FromStr>::from_str(#lit_str) {
-                            Ok(f) => f,
-                            Err(_) => panic!(concat!("Invalid Felt decimal string literal: ", #lit_str)),
-                        }
-                    }
-                    .into()
-                }
-            }
-
-            Lit::Bool(lit_bool) => quote! {
-                match #lit_bool {
-                    true => Felt::ONE,
-                    false => Felt::ZERO,
-                }
-            }
-            .into(),
-
-            Lit::Int(lit_int) => {
-                let value = (lit_int).base10_parse::<u128>().unwrap();
-                let fe: LambdaFieldElement =
-                    LambdaFieldElement::from(&UnsignedInteger::from(value));
-                let limbs = fe.to_raw().limbs;
-                let r0 = limbs[0];
-                let r1 = limbs[1];
-                let r2 = limbs[2];
-                let r3 = limbs[3];
-
-                quote! {
-                    {
-                        const __FELT_VALUE: Felt = Felt::from_raw([#r0, #r1, #r2, #r3]);
-                        __FELT_VALUE
-                    }
-                }
-            }
-            .into(),
-
-            _ => panic!("Unsupported literal type for felt! macro"),
-        },
-
-        // Handle negative integer literals: -42, -123, etc.
-        Expr::Unary(expr_unary) if matches!(expr_unary.op, syn::UnOp::Neg(_)) => {
-            if let Expr::Lit(syn::ExprLit {
-                lit: Lit::Int(lit_int),
-                ..
-            }) = &*expr_unary.expr
-            {
-                // Negative integer literal
-                quote! {
-                    Felt::from(-#lit_int)
-                }
-                .into()
-            } else {
-                // Some other unary negation, treat as expression
-                quote! {
-                    match <Felt as ::core::str::FromStr>::from_str(&#expr) {
-                        Ok(f) => f,
-                        Err(_) => panic!("Invalid Felt value"),
-                    }
-                }
-                .into()
-            }
+    match handle_expr(&expr) {
+        HandleExprOutput::ComptimeFelt(field_element) => {
+            generate_const_felt_token_stream_from_lambda_field_element(field_element).into()
         }
-
-        // Anything else is handled as a string and will fail if it is not one
-        _ => quote! {
+        HandleExprOutput::Runtime => quote! {
             match Felt::try_from(#expr) {
                 Ok(f) => f,
                 Err(_) => panic!("Invalid Felt value"),
             }
         }
         .into(),
+    }
+}
+
+/// Take the lambda class type for field element, extract its limbs and generate the token stream for a const value of itself
+fn generate_const_felt_token_stream_from_lambda_field_element(
+    value: LambdaFieldElement,
+) -> proc_macro2::TokenStream {
+    let limbs = value.to_raw().limbs;
+    let r0 = limbs[0];
+    let r1 = limbs[1];
+    let r2 = limbs[2];
+    let r3 = limbs[3];
+
+    quote! {
+        {
+            const __FELT_VALUE: Felt = Felt::from_raw([#r0, #r1, #r2, #r3]);
+            __FELT_VALUE
+        }
+    }
+}
+
+fn handle_expr(expr: &syn::Expr) -> HandleExprOutput {
+    match expr {
+        Expr::Lit(expr_lit) => match &expr_lit.lit {
+            Lit::Bool(lit_bool) => HandleExprOutput::ComptimeFelt(match lit_bool.value() {
+                false => LambdaFieldElement::from_hex_unchecked("0x0"),
+                true => LambdaFieldElement::from_hex_unchecked("0x1"),
+            }),
+
+            Lit::Int(lit_int) => {
+                let value = lit_int.base10_parse::<u128>().unwrap();
+
+                HandleExprOutput::ComptimeFelt(LambdaFieldElement::from(&UnsignedInteger::from(
+                    value,
+                )))
+            }
+
+            Lit::Str(lit_str) => {
+                let value = lit_str.value();
+
+                let (is_neg, value) = if let Some(striped) = value.strip_prefix('-') {
+                    (true, striped)
+                } else {
+                    (false, value.as_str())
+                };
+
+                let lfe = if value.starts_with("0x") || value.starts_with("0X") {
+                    UnsignedInteger::from_hex(value).map(|x| LambdaFieldElement::from(&x))
+                } else {
+                    UnsignedInteger::from_dec_str(value).map(|x| LambdaFieldElement::from(&x))
+                }
+                .unwrap();
+
+                HandleExprOutput::ComptimeFelt(if is_neg { lfe.neg() } else { lfe })
+            }
+
+            Lit::ByteStr(lit_byte_str) => {
+                let bytes = lit_byte_str.value();
+
+                assert!(
+                    bytes.len() <= 31,
+                    "Short string must be at most 31 characters"
+                );
+                assert!(
+                    bytes.is_ascii(),
+                    "Short string must contain only ASCII characters"
+                );
+
+                let mut buffer = [0u8; 32];
+                buffer[(32 - bytes.len())..].copy_from_slice(&bytes);
+
+                HandleExprOutput::ComptimeFelt(LambdaFieldElement::from_bytes_be(&buffer).unwrap())
+            }
+            Lit::Char(lit_char) => {
+                let char = lit_char.value();
+
+                assert!(char.is_ascii(), "Only ASCII characters are handled");
+
+                let mut buffer = [0u8];
+                char.encode_utf8(&mut buffer);
+
+                HandleExprOutput::ComptimeFelt(LambdaFieldElement::from(&UnsignedInteger::from(
+                    u16::from(buffer[0]),
+                )))
+            }
+            Lit::Byte(lit_byte) => {
+                let char = lit_byte.value();
+
+                HandleExprOutput::ComptimeFelt(LambdaFieldElement::from(&UnsignedInteger::from(
+                    u16::from(char),
+                )))
+            }
+            Lit::CStr(_) | Lit::Float(_) | Lit::Verbatim(_) => panic!("Literal type not handled"),
+            // `Lit` is a non-exhaustive enum
+            _ => panic!("Unkown literal type. Not handled"),
+        },
+
+        // Negative (`-`) prefixed values
+        Expr::Unary(ExprUnary {
+            attrs: _attrs,
+            op: syn::UnOp::Neg(_),
+            expr,
+        }) => match handle_expr(expr) {
+            HandleExprOutput::ComptimeFelt(field_element) => {
+                HandleExprOutput::ComptimeFelt(field_element.neg())
+            }
+            HandleExprOutput::Runtime => HandleExprOutput::Runtime,
+        },
+        Expr::Unary(ExprUnary {
+            attrs: _attrs,
+            op: syn::UnOp::Not(_),
+            expr,
+        }) => match &**expr {
+            Expr::Lit(ExprLit {
+                lit: Lit::Bool(lit_bool),
+                ..
+            }) => HandleExprOutput::ComptimeFelt(match lit_bool.value() {
+                false => LambdaFieldElement::from_hex_unchecked("0x1"),
+                true => LambdaFieldElement::from_hex_unchecked("0x0"),
+            }),
+            Expr::Lit(_) => panic!(
+                "The `!` logical inversion operatior in only allowed before booleans in literal expressions."
+            ),
+            _ => HandleExprOutput::Runtime,
+        },
+
+        _ => HandleExprOutput::Runtime,
     }
 }
