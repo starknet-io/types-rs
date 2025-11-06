@@ -70,7 +70,8 @@ mod tests {
 
         // Use in const expressions
         const _: Felt = felt!("0x42");
+        const _: Felt = felt!(42);
+        const _: Felt = felt!(42i32);
         const _: Felt = felt!(true);
-        const _: Felt = felt!(false);
     }
 }

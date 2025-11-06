@@ -2,6 +2,15 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::{Expr, Lit, parse_macro_input};
 
+use lambdaworks_math::{
+    field::{
+        element::FieldElement, fields::fft_friendly::stark_252_prime_field::Stark252PrimeField,
+    },
+    unsigned_integer::element::UnsignedInteger,
+};
+
+type LambdaFieldElement = FieldElement<Stark252PrimeField>;
+
 #[proc_macro]
 pub fn felt(input: TokenStream) -> TokenStream {
     let expr = parse_macro_input!(input as Expr);
@@ -57,8 +66,22 @@ pub fn felt(input: TokenStream) -> TokenStream {
             }
             .into(),
 
-            Lit::Int(lit_int) => quote! {
-                Felt::from(#lit_int)
+            Lit::Int(lit_int) => {
+                let value = (lit_int).base10_parse::<u128>().unwrap();
+                let fe: LambdaFieldElement =
+                    LambdaFieldElement::from(&UnsignedInteger::from(value));
+                let limbs = fe.to_raw().limbs;
+                let r0 = limbs[0];
+                let r1 = limbs[1];
+                let r2 = limbs[2];
+                let r3 = limbs[3];
+
+                quote! {
+                    {
+                        const __FELT_VALUE: Felt = Felt::from_raw([#r0, #r1, #r2, #r3]);
+                        __FELT_VALUE
+                    }
+                }
             }
             .into(),
 
