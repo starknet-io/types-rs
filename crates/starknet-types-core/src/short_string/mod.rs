@@ -7,7 +7,7 @@
 //! A `ShortString` is string that have been checked and is guaranteed to be convertible into a valid `Felt`.
 //! It checks that the `String` only contains ascii characters and is no longer than 31 characters.
 //!
-//! The convesion to `Felt` is done by using the internal ascii short string as bytes and parse those as a big endian number.
+//! The conversion to `Felt` is done by using the internal ascii short string as bytes and parse those as a big endian number.
 
 use crate::felt::Felt;
 use core::str::FromStr;
