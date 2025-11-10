@@ -198,11 +198,11 @@ fn handle_expr_unary(expr_unary: &ExprUnary) -> Result<HandleExprOutput> {
                 true => LambdaFieldElement::from(&UnsignedInteger::from_u64(0)),
             })),
             Expr::Lit(ExprLit {
-                lit: Lit::Int(_lit_int),
+                lit: Lit::Int(_) | Lit::Byte(_),
                 ..
             }) => Err(Error::new_spanned(
                 expr,
-                "The `!` logical inversion operator is applicable to the `Felt` type",
+                "The `!` logical inversion operator is not applicable to the `Felt` type",
             )),
             Expr::Lit(_) => Err(Error::new_spanned(
                 expr,
