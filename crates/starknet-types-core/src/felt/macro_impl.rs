@@ -25,8 +25,6 @@ mod tests {
     #[cfg(feature = "alloc")]
     pub extern crate alloc;
 
-    use core::ops::Neg;
-
     use crate::felt::Felt;
 
     #[test]
@@ -36,7 +34,6 @@ mod tests {
         // Bools
         assert_eq!(felt!(false), Felt::ZERO);
         assert_eq!(felt!(true), Felt::ONE);
-        assert_eq!(felt!(-true), Felt::from(-1));
         assert_eq!(felt!(!true), Felt::ZERO);
         assert_eq!(felt!(!!true), Felt::ONE);
         assert_eq!(felt!(!!!true), Felt::ZERO);
@@ -60,11 +57,6 @@ mod tests {
         assert_eq!(felt!("0x42"), Felt::from_hex_unwrap("0x42"));
         assert_eq!(felt!("-0x42"), Felt::ZERO - Felt::from_hex_unwrap("0x42"));
 
-        // Negated literals
-        assert_eq!(felt!(-"42"), Felt::ZERO - Felt::from(42));
-        assert_eq!(felt!(-"-42"), Felt::from(42));
-        assert_eq!(felt!(-true), Felt::from(-1));
-
         // Byte string (handles as cairo short strings)
         assert_eq!(
             felt!(b"SN_MAIN"),
@@ -85,13 +77,11 @@ mod tests {
             ])
         );
         assert_eq!(felt!(b"aa"), Felt::from_hex_unwrap("0x6161"));
-        assert_eq!(felt!(-b"ab"), Felt::from_hex_unwrap("0x6162").neg());
 
         // ASCII chars and bytes, handles as 1 char long cairo short strings
         assert_eq!(felt!('0'), Felt::from(b'0'));
         assert_eq!(felt!('A'), felt!(b"A"));
         assert_eq!(felt!('A'), felt!(b'A'));
-        assert_eq!(felt!(-'A'), Felt::from(-65));
 
         // Variables
         let x = true;
@@ -107,6 +97,12 @@ mod tests {
         assert_eq!(felt!(x), Felt::from(-42));
         assert_eq!(felt!(-x), Felt::from(42));
         assert_eq!(felt!(--x), Felt::from(-42));
+        // Be careful there, the type of the variable changes the behaviour of the `!` operator,
+        // resulting in really different values
+        let x: i32 = 10;
+        assert_eq!(felt!(!x), Felt::MAX - Felt::from(10));
+        let x: u32 = 10;
+        assert_eq!(felt!(!x), Felt::from(!10u32));
 
         // Expressions
         let double_closure = |x| x * 2;
@@ -136,7 +132,6 @@ mod tests {
         const _: Felt = felt!("0x42");
         const _: Felt = felt!("-0x42");
         const _: Felt = felt!("67");
-        const _: Felt = felt!(-"-69");
         const _: Felt = felt!(42);
         const _: Felt = felt!(-42i16);
         const _: Felt = felt!(--0x2i128);
@@ -145,6 +140,5 @@ mod tests {
         const _: Felt = felt!(42i32);
         const _: Felt = felt!(true);
         const _: Felt = felt!(!false);
-        const _: Felt = felt!(-true);
     }
 }

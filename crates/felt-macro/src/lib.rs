@@ -1,7 +1,7 @@
 use proc_macro::TokenStream;
 use quote::quote;
 use std::ops::Neg;
-use syn::{Error, Expr, ExprLit, ExprUnary, Lit, Result, parse_macro_input};
+use syn::{Error, Expr, ExprLit, ExprUnary, Lit, LitInt, Result, parse_macro_input};
 
 use lambdaworks_math::{
     field::{
@@ -63,21 +63,7 @@ fn handle_expr(expr: &syn::Expr) -> Result<HandleExprOutput> {
                 true => LambdaFieldElement::from(&UnsignedInteger::from_u64(1)),
             })),
 
-            Lit::Int(lit_int) => {
-                let value = match lit_int.base10_parse::<u128>() {
-                    Ok(v) => v,
-                    Err(_) => {
-                        return Err(Error::new_spanned(
-                            lit_int,
-                            "Invalid integer literal for Felt conversion",
-                        ));
-                    }
-                };
-
-                Ok(HandleExprOutput::ComptimeFelt(LambdaFieldElement::from(
-                    &UnsignedInteger::from(value),
-                )))
-            }
+            Lit::Int(lit_int) => handle_lit_int(lit_int),
 
             Lit::Str(lit_str) => {
                 let value = lit_str.value();
@@ -174,26 +160,36 @@ fn handle_expr(expr: &syn::Expr) -> Result<HandleExprOutput> {
             _ => Err(Error::new_spanned(expr_lit, "Unknown literal type")),
         },
 
-        // Negative (`-`) prefixed values
-        // Can be used before any other expression
-        Expr::Unary(ExprUnary {
-            attrs: _attrs,
-            op: syn::UnOp::Neg(_),
-            expr,
-        }) => match handle_expr(expr)? {
-            HandleExprOutput::ComptimeFelt(field_element) => {
-                Ok(HandleExprOutput::ComptimeFelt(field_element.neg()))
-            }
-            HandleExprOutput::Runtime => Ok(HandleExprOutput::Runtime),
-        },
+        Expr::Unary(expr_unary) => handle_expr_unary(expr_unary),
 
-        // Opposite (`!`) prefixed values
-        // Can only be used before literal bool expression and any runtime expression where it is semanticaly valid
-        Expr::Unary(ExprUnary {
-            attrs: _attrs,
-            op: syn::UnOp::Not(_),
-            expr,
-        }) => match &**expr {
+        _ => Ok(HandleExprOutput::Runtime),
+    }
+}
+
+fn handle_lit_int(lit_int: &LitInt) -> Result<HandleExprOutput> {
+    let value = match lit_int.base10_parse::<u128>() {
+        Ok(v) => v,
+        Err(_) => {
+            return Err(Error::new_spanned(
+                lit_int,
+                "Invalid integer literal for Felt conversion",
+            ));
+        }
+    };
+
+    Ok(HandleExprOutput::ComptimeFelt(LambdaFieldElement::from(
+        &UnsignedInteger::from(value),
+    )))
+}
+
+fn handle_expr_unary(expr_unary: &ExprUnary) -> Result<HandleExprOutput> {
+    let ExprUnary {
+        attrs: _attrs,
+        op,
+        expr,
+    } = expr_unary;
+    match op {
+        syn::UnOp::Not(_) => match &**expr {
             Expr::Lit(ExprLit {
                 lit: Lit::Bool(lit_bool),
                 ..
@@ -201,13 +197,36 @@ fn handle_expr(expr: &syn::Expr) -> Result<HandleExprOutput> {
                 false => LambdaFieldElement::from(&UnsignedInteger::from_u64(1)),
                 true => LambdaFieldElement::from(&UnsignedInteger::from_u64(0)),
             })),
+            Expr::Lit(ExprLit {
+                lit: Lit::Int(_lit_int),
+                ..
+            }) => Err(Error::new_spanned(
+                expr,
+                "The `!` logical inversion operator is applicable to the `Felt` type",
+            )),
             Expr::Lit(_) => Err(Error::new_spanned(
                 expr,
                 "The `!` logical inversion operator is only allowed before booleans in literal expressions",
             )),
             _ => Ok(HandleExprOutput::Runtime),
         },
-
-        _ => Ok(HandleExprOutput::Runtime),
+        syn::UnOp::Neg(_) => match &**expr {
+            Expr::Lit(ExprLit {
+                attrs: _attrs,
+                lit: Lit::Int(lit_int),
+            }) => match handle_lit_int(lit_int)? {
+                HandleExprOutput::ComptimeFelt(field_element) => {
+                    Ok(HandleExprOutput::ComptimeFelt(field_element.neg()))
+                }
+                HandleExprOutput::Runtime => Ok(HandleExprOutput::Runtime),
+            },
+            Expr::Unary(expr_unary) => handle_expr_unary(expr_unary),
+            _ => Ok(HandleExprOutput::Runtime),
+        },
+        syn::UnOp::Deref(_star) => Err(Error::new_spanned(
+            expr,
+            "Deref unary type `*` not supported",
+        )),
+        _ => Err(Error::new_spanned(expr, "Unknown unary type")),
     }
 }
