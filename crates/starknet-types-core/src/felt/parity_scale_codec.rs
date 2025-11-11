@@ -26,7 +26,7 @@ mod tests {
     fn parity_scale_codec_serialization() {
         use parity_scale_codec::{Decode, Encode};
 
-        // use an endianness-asymetric number to test that byte order is correct in serialization
+        // use an endianness-asymmetric number to test that byte order is correct in serialization
         let initial_felt = Felt::from_hex("0xabcdef123").unwrap();
 
         // serialize the felt

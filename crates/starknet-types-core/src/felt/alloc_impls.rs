@@ -18,7 +18,7 @@ impl Felt {
     /// 2. an amount of padding zeros so that the resulting string length is fixed (This amount may be 0),
     /// 3. the felt value represented in hexadecimal
     ///
-    /// The resulting string is guaranted to be 66 chars long, which is enough to represent `Felt::MAX`:
+    /// The resulting string is guaranteed to be 66 chars long, which is enough to represent `Felt::MAX`:
     /// 2 chars for the `0x` prefix and 64 chars for the padded hexadecimal felt value.
     pub fn to_fixed_hex_string(&self) -> alloc::string::String {
         alloc::format!("{self:#066x}")
