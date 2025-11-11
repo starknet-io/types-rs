@@ -1,11 +1,11 @@
 //! A key used for nodes of a Patricia tree.
 //!
-//! The state of the starknet blockchain (contracts declared, contracts deployed, storage of each contract),
+//! The state of the Starknet blockchain (contracts declared, contracts deployed, storage of each contract),
 //! is represented as multiple binary Merkle-Patricia trees.
 //! Those trees have an height of 251, which means that they contain at most 2^251 values.
 //! The keys of those values are represented as `Felt`, with range [0, PATRICIA_KEY_UPPER_BOUND).
 //! Therefore not every `Felt` is a valid `PatriciaKey`,
-//! and we can use the `PatriciaKey` type to enfoce type safety in our code.
+//! and we can use the `PatriciaKey` type to enforce type safety in our code.
 //!
 //! See https://docs.starknet.io/learn/protocol/state for further details.
 
@@ -134,7 +134,7 @@ impl FromStr for PatriciaKey {
 }
 
 impl PatriciaKey {
-    /// Create a new [PatriciaKey] from an hex encoded string without checking it is a valid value.
+    /// Create a new [PatriciaKey] from an hex encoded string without checking if it is a valid value.
     ///
     /// Should NEVER be used on user inputs,
     /// as it can cause erroneous execution if dynamically initialized with bad values.

@@ -1,8 +1,8 @@
 //! A starknet contract address
 //!
-//! In starknet valid contract addresses exist as a subset of the type `Felt`.
+//! In Starknet, a valid contract addresses exist as a subset of the type `Felt`.
 //! Therefore some checks must be done in order to produce protocol valid addresses.
-//! This module provides this logic as a type `ContractAddress`, that can garantee the validity of the address.
+//! This module provides this logic as a Rust type `ContractAddress`, that can guarantee the validity of the address.
 //! It also comes with some quality of life methods.
 
 use core::str::FromStr;

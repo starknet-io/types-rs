@@ -173,7 +173,6 @@ impl Felt {
     /// excluding the starknet reserved contract address `0x0`, `0x1`, `0x2` and `0x3`.
     ///
     /// https://docs.starknet.io/learn/protocol/state#special-addresses
-    /// https://github.com/starkware-libs/sequencer/blob/ecd4779abef7bf345938a69f18ef70b6239d3a50/crates/blockifier/resources/blockifier_versioned_constants_0_15_0.json#L92-L97
     pub fn is_regular_contract_address(&self) -> bool {
         self >= &Felt::from(RegularContractAddress::LOWER_BOUND)
             && self < &Felt::from(RegularContractAddress::UPPER_BOUND)

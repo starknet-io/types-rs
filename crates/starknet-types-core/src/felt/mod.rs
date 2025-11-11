@@ -473,22 +473,22 @@ impl Add<&Felt> for u64 {
             [0, 0, 0, low] => self.checked_add(low),
             // Now we need to compare the 3 most significant digits.
             // There are two relevant cases from now on, either `rhs` behaves like a
-            // substraction of a `u64` or the result of the sum falls out of range.
+            // subtraction of a `u64` or the result of the sum falls out of range.
 
             // The 3 MSB only match the prime for Felt::max_value(), which is -1
-            // in the signed field, so this is equivalent to substracting 1 to `self`.
+            // in the signed field, so this is equivalent to subtracting 1 to `self`.
             [hi @ .., _] if hi == PRIME_DIGITS_BE_HI => self.checked_sub(1),
 
             // For the remaining values between `[-u64::MAX..0]` (where `{0, -1}` have
             // already been covered) the MSB matches that of `PRIME - u64::MAX`.
             // Because we're in the negative number case, we count down. Because `0`
             // and `-1` correspond to different MSBs, `0` and `1` in the LSB are less
-            // than `-u64::MAX`, the smallest value we can add to (read, substract its
+            // than `-u64::MAX`, the smallest value we can add to (read, subtract its
             // magnitude from) a `u64` number, meaning we exclude them from the valid
             // case.
             // For the remaining range, we take the absolute value module-2 while
-            // correcting by substracting `1` (note we actually substract `2` because
-            // the absolute value itself requires substracting `1`.
+            // correcting by subtracting `1` (note we actually subtract `2` because
+            // the absolute value itself requires subtracting `1`.
             [hi @ .., low] if hi == PRIME_MINUS_U64_MAX_DIGITS_BE_HI && low >= 2 => {
                 (self).checked_sub(u64::MAX - (low - 2))
             }
