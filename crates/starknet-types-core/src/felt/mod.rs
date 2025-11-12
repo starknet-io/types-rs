@@ -8,6 +8,7 @@ mod apollo_serialization;
 mod arbitrary;
 #[cfg(test)]
 mod felt_arbitrary;
+mod macro_impl;
 mod non_zero;
 #[cfg(feature = "num-traits")]
 mod num_traits_impl;
@@ -452,6 +453,23 @@ impl FromStr for Felt {
         } else {
             Felt::from_dec_str(s)
         }
+    }
+}
+
+#[cfg(feature = "alloc")]
+impl TryFrom<alloc::string::String> for Felt {
+    type Error = FromStrError;
+
+    fn try_from(value: alloc::string::String) -> Result<Self, Self::Error> {
+        Felt::from_str(&value)
+    }
+}
+
+impl TryFrom<&str> for Felt {
+    type Error = FromStrError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        Felt::from_str(value)
     }
 }
 
