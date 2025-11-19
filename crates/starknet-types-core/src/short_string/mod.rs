@@ -110,7 +110,7 @@ pub enum TryShortStringFromStringError {
 impl core::fmt::Display for TryShortStringFromStringError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            TryShortStringFromStringError::TooLong => "string to long",
+            TryShortStringFromStringError::TooLong => "string too long",
             TryShortStringFromStringError::NonAscii => "string contains non ascii characters",
         }
         .fmt(f)
