@@ -442,6 +442,29 @@ impl From<BigUint> for Felt {
     }
 }
 
+impl From<Felt> for BigUint {
+    fn from(value: Felt) -> Self {
+        value.to_biguint()
+    }
+}
+
+impl From<&Felt> for BigUint {
+    fn from(value: &Felt) -> Self {
+        value.to_biguint()
+    }
+}
+
+impl From<Felt> for BigInt {
+    fn from(value: Felt) -> Self {
+        value.to_bigint()
+    }
+}
+
+impl From<&Felt> for BigInt {
+    fn from(value: &Felt) -> Self {
+        value.to_bigint()
+    }
+}
 impl FromStr for Felt {
     type Err = FromStrError;
 
