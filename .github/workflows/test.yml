@@ -7,7 +7,7 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Install toolchain
         run: rustup show
 
@@ -30,7 +30,7 @@ jobs:
     name: Test no_std support
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Check wasm compatibility
         run: |-
           cd ensure_no_std
